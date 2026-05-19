@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Distribuidora Orocu - Cloud Edition V44 PRO</title>
+    <title>Distribuidora - Cloud Edition V44 PRO</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
@@ -21,7 +21,6 @@
             --radius: 12px; --shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
         }
 
-        /* Animaciones fluidas */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .tab-content { animation: fadeIn 0.3s ease-out forwards; }
@@ -42,7 +41,6 @@
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
         label { font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; display: block;}
         
-        /* Layouts Generales */
         .auth-screen { display: flex; min-height: 100vh; background: var(--dark); padding: 15px; align-items: center; justify-content: center; box-sizing: border-box; width: 100vw; overflow-x: hidden;}
         .auth-box { background: var(--white); padding: 30px 20px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; margin: auto; box-sizing: border-box; }
         .app-container { display: flex; min-height: 100vh; max-width: 100vw; overflow-x: hidden;}
@@ -54,7 +52,6 @@
         .main-content { flex: 1; padding: 20px; overflow-y: auto; background: var(--light); width: 100%; box-sizing: border-box; max-width: 100vw;}
         .top-bar { display: none; background: var(--white); padding: 15px 20px; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
         
-        /* Sistema de Grillas */
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -113,101 +110,60 @@
         .inv-mini-card.selected { border: 2px solid var(--primary); background: #fffbeb; transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);}
         .inv-mini-badge { position: absolute; top: 10px; right: 10px; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: bold; color: white;}
 
-        /* ============================================================== */
-        /* DISEÑO DE TICKET POS CORREGIDO PARA IMPRESIÓN EXACTA           */
-        /* ============================================================== */
-        #web-ticket-preview { 
-            width: 100%; 
-            overflow-x: hidden; 
-            box-sizing: border-box; 
-            background: #fff; 
-            border-radius: 8px; 
-            border: 1px solid #ccc; 
-            padding: 5px; 
-            margin-bottom: 15px; 
-        }
-        
-        .pos-receipt { 
-            font-family: 'Courier New', Courier, monospace; 
-            background: white; 
-            color: black; 
-            width: 100%; 
-            max-width: 100%;
-            margin: 0; 
-            padding: 10px; 
-            box-sizing: border-box; 
-            overflow: hidden; 
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        
+        #web-ticket-preview { width: 100%; overflow-x: hidden; box-sizing: border-box; background: #fff; border-radius: 8px; border: 1px solid #ccc; padding: 5px; margin-bottom: 15px; }
+        .pos-receipt { font-family: 'Courier New', Courier, monospace; background: white; color: black; width: 100%; max-width: 100%; margin: 0; padding: 10px; box-sizing: border-box; overflow: hidden; word-wrap: break-word; overflow-wrap: break-word;}
         .pos-header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
         .pos-header h3 { font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 0.5px;}
         .pos-header p { margin: 2px 0; font-size: 18px; font-weight: bold; }
-        
         .pos-info-grid { display: block; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 8px; word-break: break-word;}
         .pos-info-grid > div { margin-bottom: 4px; }
-        
         .pos-table { width: 100%; border-collapse: collapse; font-size: 18px; margin-bottom: 10px; table-layout: fixed; word-break: break-word; }
         .pos-table th { border-bottom: 2px solid #000; text-align: left; padding: 4px 0; font-weight: bold;}
         .pos-table td { padding: 4px 0; vertical-align: top; border-bottom: 1px dotted #eee; word-wrap: break-word; white-space: normal;}
         .pos-table td:nth-child(1) { width: 15%; font-weight: bold; } 
         .pos-table td:nth-child(2) { width: 55%; padding-right: 2px; } 
         .pos-table td:nth-child(3) { width: 30%; text-align: right; font-weight: bold; } 
-        
         .pos-totals { border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box;}
         .pos-totals-row { display: flex; justify-content: space-between; font-size: 19px; margin-bottom: 4px; flex-wrap: nowrap; width: 100%; box-sizing: border-box;}
         .pos-totals-row span:last-child { text-align: right; }
         .pos-totals-row.grand-total { font-size: 24px; font-weight: bold; border-top: 1px dashed #000; border-bottom: 2px solid #000; padding: 5px 0; margin-bottom: 8px; margin-top:5px;}
-        
         .pos-empties-box { background: #f9f9f9; border: 2px solid #000; padding: 8px; margin-bottom: 10px; font-size: 16px; border-radius: 4px; box-sizing: border-box; width: 100%; }
         .pos-empties-box h4 { margin: 0 0 5px 0; font-size: 18px; text-align: center; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 2px; color: black; font-weight: 900;}
-        
         .pos-signature-block { margin-top: 15px; text-align: center; width: 100%; overflow: hidden;}
         .pos-signature-block img { max-width: 100%; max-height: 80px; object-fit: contain; border-bottom: 1px solid #000; margin-bottom: 4px; display: inline-block; min-height: 40px;}
 
-        .ink-normal { font-weight: normal; }
-        .ink-strong { font-weight: bold !important; text-shadow: 0px 0px 0px #000; }
-        .ink-extreme { font-weight: 900 !important; text-shadow: 0.5px 0.5px 0px #000; filter: contrast(1.5); }
+        .ink-normal { font-weight: normal; } .ink-strong { font-weight: bold !important; text-shadow: 0px 0px 0px #000; } .ink-extreme { font-weight: 900 !important; text-shadow: 0.5px 0.5px 0px #000; filter: contrast(1.5); }
 
-        /* REGLAS DE IMPRESIÓN MEJORADAS (Evita Ticket en Blanco y Textos Corridos) */
         @media print { 
             body * { visibility: hidden; }
             #print-container-wrapper, #print-container-wrapper * { visibility: visible; }
-            #print-container-wrapper { 
-                display: block !important; 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%;
-                margin: 0; 
-                padding: 0; 
-                border: none; 
-                box-shadow: none; 
-            }
+            #print-container-wrapper { display: block !important; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; border: none; box-shadow: none; }
             body, html { margin: 0 !important; padding: 0 !important; background: white !important; color: black !important; font-family: monospace !important; }
-            
             body.print-58mm @page { margin: 0; size: 58mm auto; }
             body.print-58mm #print-container-wrapper { width: 58mm !important; }
             body.print-58mm .pos-receipt { width: 58mm !important; max-width: 58mm !important; border: none !important; padding: 2mm !important; margin: 0 !important; }
-
             body.print-80mm @page { margin: 0; size: 80mm auto; }
             body.print-80mm #print-container-wrapper { width: 80mm !important; }
             body.print-80mm .pos-receipt { width: 80mm !important; max-width: 80mm !important; border: none !important; padding: 4mm !important; margin: 0 !important; }
-            body.print-80mm .pos-header h3 { font-size: 28px !important; }
-            body.print-80mm .pos-header p { font-size: 16px !important; }
-            body.print-80mm .pos-table th, body.print-80mm .pos-table td { font-size: 16px !important; }
-            body.print-80mm .pos-totals-row { font-size: 16px !important; }
-            body.print-80mm .pos-totals-row.grand-total { font-size: 22px !important; }
+            body.print-80mm .pos-header h3 { font-size: 28px !important; } body.print-80mm .pos-header p { font-size: 16px !important; }
+            body.print-80mm .pos-table th, body.print-80mm .pos-table td { font-size: 16px !important; } body.print-80mm .pos-totals-row { font-size: 16px !important; } body.print-80mm .pos-totals-row.grand-total { font-size: 22px !important; }
             .no-print { display: none !important; }
         }
+
+        /* Estilo para previas de fotos */
+        .img-preview-box { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #f8fafc; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 80px;}
+        .img-preview-box img { max-width: 100%; max-height: 100px; object-fit: contain; }
+        .prod-mini-thumb { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; border: 1px solid #ccc; background:#fff;}
     </style>
 </head>
 <body>
 
 <div id="view-auth" class="auth-screen">
     <div class="auth-box">
-        <h2 style="text-align: center; color: var(--primary); font-size:24px;">🍺 Distribuidora Orocu</h2>
+        <div style="text-align:center;">
+            <img id="login-logo" src="" style="max-height:100px; display:none; margin-bottom:10px; border-radius:8px;">
+            <h2 id="login-company-name" style="color: var(--primary); font-size:24px; margin-top:0;">🍺 Sistema POS</h2>
+        </div>
         <div id="cloud-status-badge" style="text-align:center; color:var(--success); font-size:12px; margin-bottom:15px; font-weight:bold;">☁️ Conectando a Firebase...</div>
         
         <div id="form-login-admin">
@@ -220,7 +176,7 @@
         </div>
 
         <div id="form-login-client" class="hidden">
-            <h3 style="text-align:center;">Portal de Clientes Orocu</h3>
+            <h3 style="text-align:center;">Portal de Clientes</h3>
             <label>WhatsApp Registrado</label>
             <input type="number" id="client-login-phone" placeholder="Ej: 60000000">
             <label>Clave / PIN de Acceso (Opcional)</label>
@@ -232,7 +188,7 @@
 
         <div id="form-register" class="hidden">
             <h3 style="text-align:center;">Afiliación de Negocio</h3>
-            <label>Nombre de tu Local Comercial</label><input type="text" id="reg-name" placeholder="Ej: Minisuper Orocu">
+            <label>Nombre de tu Local Comercial</label><input type="text" id="reg-name" placeholder="Ej: Minisuper Centro">
             <label>Número de WhatsApp</label><input type="number" id="reg-phone" placeholder="Ej: 60000000">
             
             <input type="hidden" id="reg-gps">
@@ -251,7 +207,7 @@
 
 <div id="view-client-dashboard" class="app-container hidden" style="justify-content: center; padding: 15px; flex-direction:column; align-items:center; box-sizing:border-box;">
     <div style="width: 100%; max-width: 800px; display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; margin-top:10px;">
-        <h2 style="margin: 0; color:var(--primary); font-size:18px;">Distribuidora Orocu</h2>
+        <h2 id="cli-topbar-company-name" style="margin: 0; color:var(--primary); font-size:18px;">Distribuidora</h2>
         <button class="outline" style="padding:6px 12px; font-size:12px;" onclick="location.reload()">Salir</button>
     </div>
 
@@ -280,12 +236,18 @@
         <h3 style="margin-top:0; color:var(--primary);">🛒 Solicitar Nuevo Pedido</h3>
         <p id="lbl-cli-price-warning" class="hidden" style="color:var(--danger); font-size:12px; font-weight:bold;">Precios asignados por el administrador.</p>
         <div class="grid-2">
-            <div><label>Seleccione Producto</label><select id="cli-order-prod"></select></div>
-            <div><label>Cantidad</label><input type="number" id="cli-order-qty" value="1" min="1"></div>
+            <div>
+                <label>Seleccione Producto</label>
+                <select id="cli-order-prod" onchange="updateClientProdImage()"></select>
+                <div class="img-preview-box" style="margin-top:10px; display:none;" id="cli-order-img-container">
+                    <img id="cli-order-img" src="">
+                </div>
+            </div>
+            <div><label>Cantidad (Cajas/Und)</label><input type="number" id="cli-order-qty" value="1" min="1"></div>
         </div>
         <button class="warning" style="width:100%; margin-bottom:15px;" onclick="addClientOrderItem()">Añadir al Carrito</button>
         <div class="table-wrapper"><table><thead><tr><th>Producto Solicitado</th><th>Cant.</th><th>X</th></tr></thead><tbody id="cli-order-items"></tbody></table></div>
-        <button class="success" style="width:100%; margin-top:15px; font-size:14px; padding:12px;" onclick="submitClientOrder()">📤 Enviar Pedido a Orocu</button>
+        <button class="success" style="width:100%; margin-top:15px; font-size:14px; padding:12px;" onclick="submitClientOrder()">📤 Enviar Pedido</button>
     </div>
 
     <div class="card tab-content hidden" id="c-tab-historial" style="width: 100%; max-width: 800px;">
@@ -296,11 +258,11 @@
 
 <div id="barcode-modal" class="modal-overlay">
     <div class="modal-content" style="text-align:center;">
-        <h3 id="modal-barcode-title" style="margin-top:0;">Código del Cliente</h3>
+        <h3 id="modal-barcode-title" style="margin-top:0;">Código Generado</h3>
         <div style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 15px;"><svg id="barcode-canvas" style="max-width:100%;"></svg></div>
         <div class="grid-2 no-print">
             <button class="outline" onclick="closeModal('barcode-modal')">Cerrar</button>
-            <button class="success" onclick="printBarcode()">🖨️ Imprimir</button>
+            <button class="success" onclick="printBarcode()">🖨️ Imprimir Cód.</button>
         </div>
     </div>
 </div>
@@ -387,34 +349,10 @@
         <input type="hidden" id="collect-client-id">
         
         <div class="empties-mobile-grid" style="margin-top:10px;">
-            <div class="empty-item-card">
-                <div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-azul);">🔵 Azul Regular</span><span class="empty-item-stats">Deuda Pndte: <b id="ce-debt-azul_reg">0</b></span></div>
-                <div class="empty-item-actions">
-                    <label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label>
-                    <input type="number" id="ce-ret-azul_reg" value="0">
-                </div>
-            </div>
-            <div class="empty-item-card">
-                <div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-azul);">🔵 Azul Manga L.</span><span class="empty-item-stats">Deuda Pndte: <b id="ce-debt-azul_manga">0</b></span></div>
-                <div class="empty-item-actions">
-                    <label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label>
-                    <input type="number" id="ce-ret-azul_manga" value="0">
-                </div>
-            </div>
-            <div class="empty-item-card">
-                <div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-verde);">🟢 Verde Regular</span><span class="empty-item-stats">Deuda Pndte: <b id="ce-debt-verde_reg">0</b></span></div>
-                <div class="empty-item-actions">
-                    <label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label>
-                    <input type="number" id="ce-ret-verde_reg" value="0">
-                </div>
-            </div>
-            <div class="empty-item-card">
-                <div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-verde);">🟢 Verde Caja Negra</span><span class="empty-item-stats">Deuda Pndte: <b id="ce-debt-verde_caja">0</b></span></div>
-                <div class="empty-item-actions">
-                    <label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label>
-                    <input type="number" id="ce-ret-verde_caja" value="0">
-                </div>
-            </div>
+            <div class="empty-item-card"><div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-azul);">🔵 Azul Regular</span><span class="empty-item-stats">Deuda: <b id="ce-debt-azul_reg">0</b></span></div><div class="empty-item-actions"><label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label><input type="number" id="ce-ret-azul_reg" value="0"></div></div>
+            <div class="empty-item-card"><div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-azul);">🔵 Azul Manga L.</span><span class="empty-item-stats">Deuda: <b id="ce-debt-azul_manga">0</b></span></div><div class="empty-item-actions"><label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label><input type="number" id="ce-ret-azul_manga" value="0"></div></div>
+            <div class="empty-item-card"><div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-verde);">🟢 Verde Regular</span><span class="empty-item-stats">Deuda: <b id="ce-debt-verde_reg">0</b></span></div><div class="empty-item-actions"><label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label><input type="number" id="ce-ret-verde_reg" value="0"></div></div>
+            <div class="empty-item-card"><div class="empty-item-header"><span class="empty-item-title" style="color:var(--brand-verde);">🟢 Verde Caja Negra</span><span class="empty-item-stats">Deuda: <b id="ce-debt-verde_caja">0</b></span></div><div class="empty-item-actions"><label style="margin:0; flex:1; font-size:11px;">¿Cuántas recoges hoy?</label><input type="number" id="ce-ret-verde_caja" value="0"></div></div>
         </div>
 
         <button class="success" style="width: 100%; margin-top:15px; padding:12px; font-size:14px;" onclick="confirmEmptiesCollection()">✅ Procesar e Imprimir Recibo</button>
@@ -426,7 +364,7 @@
     <div id="mobile-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>DIST. OROCU</h2>
+            <h2 id="sidebar-company-name">SISTEMA POS</h2>
             <span id="user-role-badge" style="font-size: 11px; color: var(--primary); text-transform: uppercase;"></span>
         </div>
         <div class="sidebar-nav">
@@ -451,7 +389,7 @@
 
     <div class="main-content">
         <div class="top-bar">
-            <h3 style="margin: 0; color:var(--primary); font-size:18px;">Distribuidora Orocu</h3>
+            <h3 id="topbar-company-name" style="margin: 0; color:var(--primary); font-size:18px;">Distribuidora</h3>
             <div>
                 <button class="outline" style="padding:6px 10px; font-size:12px; margin-right:5px;" onclick="openPrinterConfig()">🖨️</button>
                 <button class="outline" style="padding:6px 10px; font-size:12px;" onclick="toggleSidebar()">☰ Menú</button>
@@ -489,7 +427,7 @@
             <div class="card" style="background: var(--dark); color: white;">
                 <h3 style="font-size:16px;">Lector de Códigos de Barras</h3>
                 <div class="grid-2">
-                    <button class="warning" onclick="startCameraScanner()">📷 Abrir Escáner Cámara</button>
+                    <button class="warning" onclick="openScannerForInput(null)">📷 Abrir Escáner Cámara</button>
                     <input type="text" id="scanner-input" placeholder="Dispara pistola aquí..." onkeypress="handleScan(event)" style="margin: 0; color:black;">
                 </div>
                 <div id="reader" style="margin-top: 15px; display: none; background: white; border-radius:8px; overflow:hidden;"></div>
@@ -498,10 +436,10 @@
             <div class="card" style="border: 1px solid var(--primary);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
                     <h3 style="margin: 0; color: var(--primary); font-size:16px;">Datos del Cliente</h3>
-                    <label style="cursor: pointer; color: var(--dark); display: inline-flex; align-items: center; gap: 8px;"><input type="checkbox" id="check-new-client" onchange="toggleNewClientMode()" style="margin:0;"> 👤 Venta Casual (No Guardar)</label>
+                    <label style="cursor: pointer; color: var(--dark); display: inline-flex; align-items: center; gap: 8px;"><input type="checkbox" id="check-new-client" onchange="toggleNewClientMode()" style="margin:0;"> 👤 Venta Casual</label>
                 </div>
                 <div id="fact-client-wrapper" style="margin-top: 15px;">
-                    <label>Seleccionar del Directorio</label>
+                    <label>Seleccionar del Directorio (O escanea su código arriba)</label>
                     <select id="fact-client"></select>
                     <div id="fact-client-debt-info" class="hidden" style="background:#e0e7ff; color:#1e40af; padding:10px; border-radius:8px; margin-top:10px; font-size:12px; font-weight:bold; line-height:1.4;"></div>
                 </div>
@@ -526,10 +464,16 @@
                 </div>
                 
                 <div id="fact-mode-normal" class="grid-2" style="margin-top: 15px;">
-                    <div><label>Producto en Catálogo</label><select id="fact-prod" onchange="loadProductPrice()"></select></div>
-                    <div><label>Origen (Deduce de)</label><select id="fact-source" onchange="loadProductPrice()"><option value="stockCuartoFrio">❄️ Cuarto Frío (Fría)</option><option value="stockDeposito">📦 Depósito (Caliente)</option><option value="stockNeveras">🥶 Neveras (Fría)</option></select></div>
-                    <div><label>Precio Unitario ($)</label><input type="number" id="fact-price" step="0.01"></div>
-                    <div><label>Cantidad de Cajas / Und.</label><input type="number" id="fact-qty" value="1" min="1"></div>
+                    <div>
+                        <label>Producto en Catálogo</label>
+                        <select id="fact-prod" onchange="loadProductPrice()"></select>
+                        <div class="img-preview-box" style="margin-top:10px; display:none;" id="fact-prod-img-container"><img id="fact-prod-img" src=""></div>
+                    </div>
+                    <div>
+                        <label>Origen (Deduce de)</label><select id="fact-source" onchange="loadProductPrice()"><option value="stockDeposito">📦 Depósito (Caliente)</option><option value="stockCuartoFrio">❄️ Cuarto Frío (Fría)</option><option value="stockNeveras">🥶 Neveras (Fría)</option></select>
+                        <label style="margin-top:10px;">Precio Unitario ($)</label><input type="number" id="fact-price" step="0.01">
+                        <label>Cantidad de Cajas / Und.</label><input type="number" id="fact-qty" value="1" min="1">
+                    </div>
                 </div>
                 
                 <div id="fact-mode-express" class="grid-2 hidden" style="margin-top: 15px; background: #fffbeb; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary);">
@@ -539,8 +483,8 @@
                     <div>
                         <label>¿Requiere Devolución de Envase?</label>
                         <select id="exp-brand" style="font-weight:bold;">
-                            <option value="none">🚫 No requiere envases / Descartable</option>
-                            <option value="azul_reg">🔵 Azul Regular (Cristal, Panamá)</option>
+                            <option value="none">🚫 No requiere envases</option>
+                            <option value="azul_reg">🔵 Azul Regular</option>
                             <option value="azul_manga">🔵 Azul Manga Larga</option>
                             <option value="verde_reg">🟢 Verde Regular</option>
                             <option value="verde_caja">🟢 Verde Caja Negra</option>
@@ -577,14 +521,7 @@
 
         <div id="tab-invoices-list" class="tab-content hidden">
             <h2 style="font-size:20px;">📄 Historial y Modificación</h2>
-            <div class="card">
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>ID Documento / Fecha</th><th>Cliente</th><th>Total</th><th>Estado de Entrega</th><th>Acciones</th></tr></thead>
-                        <tbody id="invoices-log-table"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="table-wrapper"><table><thead><tr><th>ID Documento / Fecha</th><th>Cliente</th><th>Total</th><th>Estado de Entrega</th><th>Acciones</th></tr></thead><tbody id="invoices-log-table"></tbody></table></div></div>
         </div>
 
         <div id="tab-entregas" class="tab-content hidden">
@@ -605,10 +542,9 @@
             
             <div id="delivery-list-view">
                 <div class="grid-2" style="margin-bottom:15px;">
-                    <button class="warning" style="width:100%; padding:12px; font-size:15px;" onclick="optimizarRuta()">🗺️ Organizar Ruta Eficiente (Más Cercanos)</button>
-                    <button class="success" style="width:100%; padding:12px; font-size:15px;" onclick="openFullRouteMap()">📍 Trazar Ruta de Entregas (Mapa por Orden)</button>
+                    <button class="warning" style="width:100%; padding:12px; font-size:15px;" onclick="optimizarRuta()">🗺️ Organizar Ruta Eficiente</button>
+                    <button class="success" style="width:100%; padding:12px; font-size:15px;" onclick="openFullRouteMap()">📍 Trazar Mapa de Entregas</button>
                 </div>
-                <p style="color:var(--text-muted); font-size:12px;">Selecciona una factura para cargarla al camión o entregarla:</p>
                 <div id="delivery-cards-grid" class="inv-card-grid"></div>
             </div>
             
@@ -624,8 +560,8 @@
 
                 <div id="del-step-1" style="background:#e0e7ff; padding:20px; border-radius:8px; border:2px solid #3b82f6; text-align:center; margin-bottom:15px;">
                     <h3 style="margin-top:0; color:#1e40af;">Comenzar Entrega</h3>
-                    <p style="font-size:12px; color:#1e3a8a; margin-bottom:15px;">Presiona este botón apenas llegues al local y empieces a bajar la mercancía. Se iniciará el conteo de tiempo de despacho en la zona.</p>
-                    <button class="success" style="width:100%; padding:15px; font-size:16px; background:#2563eb;" onclick="marcarLlegada()">📍 Llegué al Local (Iniciar Descarga y Temporizador)</button>
+                    <p style="font-size:12px; color:#1e3a8a; margin-bottom:15px;">Presiona este botón apenas llegues al local y empieces a bajar la mercancía. Se iniciará el temporizador.</p>
+                    <button class="success" style="width:100%; padding:15px; font-size:16px; background:#2563eb;" onclick="marcarLlegada()">📍 Llegué al Local (Iniciar Descarga)</button>
                 </div>
 
                 <div id="del-step-2" class="hidden">
@@ -652,49 +588,12 @@
 
                     <div style="background: #fffbeb; padding:12px; border-radius:8px; border:1px solid #fef3c7; color:black; margin-bottom:15px;">
                         <h4 style="margin:0; color:#b45309; font-size:14px;">🍾 Control Físico de Vacíos</h4>
-                        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">¿Cuántas cajas te está entregando el cliente físicamente en este momento?</p>
                         
                         <div class="empties-mobile-grid">
-                            <div class="empty-item-card">
-                                <h4 style="margin:0 0 8px 0; color:var(--brand-azul); font-size:13px;">🔵 Azul Regular</h4>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-azul_reg">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-azul_reg" style="color:var(--primary);">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-azul_reg" style="color:var(--danger);">0</strong></div>
-                                <div style="display:flex; gap:8px;">
-                                    <div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-azul_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                    <div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-azul_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                </div>
-                            </div>
-                            <div class="empty-item-card">
-                                <h4 style="margin:0 0 8px 0; color:var(--brand-azul); font-size:13px;">🔵 Azul Manga Larga</h4>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-azul_manga">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-azul_manga" style="color:var(--primary);">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-azul_manga" style="color:var(--danger);">0</strong></div>
-                                <div style="display:flex; gap:8px;">
-                                    <div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-azul_manga" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                    <div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-azul_manga" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                </div>
-                            </div>
-                            <div class="empty-item-card">
-                                <h4 style="margin:0 0 8px 0; color:var(--brand-verde); font-size:13px;">🟢 Verde Regular</h4>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-verde_reg">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-verde_reg" style="color:var(--primary);">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-verde_reg" style="color:var(--danger);">0</strong></div>
-                                <div style="display:flex; gap:8px;">
-                                    <div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-verde_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                    <div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-verde_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                </div>
-                            </div>
-                            <div class="empty-item-card">
-                                <h4 style="margin:0 0 8px 0; color:var(--brand-verde); font-size:13px;">🟢 Verde Caja Negra</h4>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-verde_caja">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-verde_caja" style="color:var(--primary);">0</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-verde_caja" style="color:var(--danger);">0</strong></div>
-                                <div style="display:flex; gap:8px;">
-                                    <div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-verde_caja" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                    <div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-verde_caja" value="0" style="padding:6px; font-size:14px; text-align:center;"></div>
-                                </div>
-                            </div>
+                            <div class="empty-item-card"><h4 style="margin:0 0 8px 0; color:var(--brand-azul); font-size:13px;">🔵 Azul Regular</h4><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-azul_reg">0</strong></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-azul_reg" style="color:var(--primary);">0</strong></div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-azul_reg" style="color:var(--danger);">0</strong></div><div style="display:flex; gap:8px;"><div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-azul_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div><div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-azul_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div></div></div>
+                            <div class="empty-item-card"><h4 style="margin:0 0 8px 0; color:var(--brand-azul); font-size:13px;">🔵 Azul Manga Larga</h4><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-azul_manga">0</strong></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-azul_manga" style="color:var(--primary);">0</strong></div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-azul_manga" style="color:var(--danger);">0</strong></div><div style="display:flex; gap:8px;"><div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-azul_manga" value="0" style="padding:6px; font-size:14px; text-align:center;"></div><div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-azul_manga" value="0" style="padding:6px; font-size:14px; text-align:center;"></div></div></div>
+                            <div class="empty-item-card"><h4 style="margin:0 0 8px 0; color:var(--brand-verde); font-size:13px;">🟢 Verde Regular</h4><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-verde_reg">0</strong></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-verde_reg" style="color:var(--primary);">0</strong></div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-verde_reg" style="color:var(--danger);">0</strong></div><div style="display:flex; gap:8px;"><div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-verde_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div><div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-verde_reg" value="0" style="padding:6px; font-size:14px; text-align:center;"></div></div></div>
+                            <div class="empty-item-card"><h4 style="margin:0 0 8px 0; color:var(--brand-verde); font-size:13px;">🟢 Verde Caja Negra</h4><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Deuda Anterior:</span> <strong id="del-empties-hist-verde_caja">0</strong></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;"><span>Nuevas (En esta factura):</span> <strong id="del-owed-verde_caja" style="color:var(--primary);">0</strong></div><div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; border-bottom:1px dashed #ccc; padding-bottom:5px;"><span>TOTAL A RECOGER:</span> <strong id="del-total-rec-verde_caja" style="color:var(--danger);">0</strong></div><div style="display:flex; gap:8px;"><div style="flex:1;"><label style="font-size:10px;">Devuelve Hoy</label><input type="number" id="del-ret-verde_caja" value="0" style="padding:6px; font-size:14px; text-align:center;"></div><div style="flex:1;"><label style="font-size:10px;">Extras (Regalo)</label><input type="number" id="del-ext-verde_caja" value="0" style="padding:6px; font-size:14px; text-align:center;"></div></div></div>
                         </div>
                     </div>
 
@@ -709,7 +608,6 @@
         <div id="tab-perfiles" class="tab-content hidden">
             <div id="perfil-list-view">
                 <h2 style="font-size:20px;">👥 Perfiles y Deudas Globales</h2>
-                <p style="color:var(--text-muted); font-size:12px;">Toca un cliente para ver su expediente, cobrar abonos extras o registrarle vacíos.</p>
                 <input type="text" id="search-client-prof" placeholder="🔍 Buscar cliente por nombre..." onkeyup="filterProfiles()" style="margin:0; margin-bottom:15px;">
                 <div id="profiles-grid" class="inv-card-grid"></div>
             </div>
@@ -719,34 +617,17 @@
                 <h2 id="prof-name" style="margin-top: 0; color: var(--primary); font-size:18px;">Nombre Cliente</h2>
                 
                 <div class="grid-2">
-                    <div class="stat-card danger" style="padding:15px;">
-                        <p>DEUDA GLOBAL ($)</p>
-                        <h3 id="prof-debt" style="font-size:26px;">$0.00</h3>
-                    </div>
-                    <div class="stat-card warning" style="padding:15px;">
-                        <p>VACÍOS TOTALES PENDIENTES</p>
-                        <h3 id="prof-empties-total" style="font-size:22px;">0 Envases</h3>
-                        <div style="font-size:11px; margin-top:5px; line-height:1.4;" id="prof-empties-detail"></div>
-                    </div>
+                    <div class="stat-card danger" style="padding:15px;"><p>DEUDA GLOBAL ($)</p><h3 id="prof-debt" style="font-size:26px;">$0.00</h3></div>
+                    <div class="stat-card warning" style="padding:15px;"><p>VACÍOS TOTALES PENDIENTES</p><h3 id="prof-empties-total" style="font-size:22px;">0 Envases</h3><div style="font-size:11px; margin-top:5px; line-height:1.4;" id="prof-empties-detail"></div></div>
                 </div>
 
                 <button class="warning" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 14px;" onclick="triggerProfileEmpties()">🍾 Registrar Recolección de Vacíos</button>
 
                 <h3 style="margin-top: 20px; font-size:15px;">Facturas Pendientes de Cobro (Abonar Aquí)</h3>
-                <div class="table-wrapper" style="margin-bottom:15px;">
-                    <table>
-                        <thead><tr><th>Doc</th><th>Fecha</th><th>Deuda Restante</th><th>Acción</th></tr></thead>
-                        <tbody id="prof-pending-inv"></tbody>
-                    </table>
-                </div>
+                <div class="table-wrapper" style="margin-bottom:15px;"><table><thead><tr><th>Doc</th><th>Fecha</th><th>Deuda Restante</th><th>Acción</th></tr></thead><tbody id="prof-pending-inv"></tbody></table></div>
 
                 <h3 style="margin-top: 20px; font-size:15px;">Historial Completo de Facturas (Pagadas)</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Doc</th><th>Fecha</th><th>Total Original</th><th>Estado</th><th>Ver</th></tr></thead>
-                        <tbody id="prof-all-inv"></tbody>
-                    </table>
-                </div>
+                <div class="table-wrapper"><table><thead><tr><th>Doc</th><th>Fecha</th><th>Total Original</th><th>Estado</th><th>Ver</th></tr></thead><tbody id="prof-all-inv"></tbody></table></div>
             </div>
         </div>
 
@@ -801,11 +682,11 @@
                     <div style="display: flex; gap: 5px; margin-top:5px;"><button class="success" style="padding:6px; font-size:12px; flex:1;" onclick="updateVaciosBrand('add')">➕ Ingresar</button><button class="danger" style="padding:6px; font-size:12px; flex:1;" onclick="updateVaciosBrand('sub')">➖ Desechar</button></div>
                 </div>
             </div>
-            <div class="card"><h3 style="font-size:16px;">Visión Global de Inventarios Orocu</h3><div class="table-wrapper"><table><thead><tr><th>Cerveza / Producto</th><th>📦 Depósito</th><th>❄️ C. Frío</th><th>🥶 Neveras</th></tr></thead><tbody id="internal-list-table"></tbody></table></div></div>
+            <div class="card"><h3 style="font-size:16px;">Visión Global de Inventarios</h3><div class="table-wrapper"><table><thead><tr><th>Cerveza / Producto</th><th>📦 Depósito</th><th>❄️ C. Frío</th><th>🥶 Neveras</th></tr></thead><tbody id="internal-list-table"></tbody></table></div></div>
         </div>
 
         <div id="tab-clientes" class="tab-content hidden">
-            <div style="display: flex; justify-content: space-between; margin-bottom:15px; flex-wrap:wrap; gap:10px;"><h2 style="font-size:20px; margin:0;">👥 Directorio Clientes Orocu</h2><button id="btn-mass-ws" class="success hidden" onclick="massWhatsApp()">📲 Promociones Masivas</button></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom:15px; flex-wrap:wrap; gap:10px;"><h2 style="font-size:20px; margin:0;">👥 Directorio Clientes</h2></div>
             
             <div class="card">
                 <h3 id="lbl-client-form" style="font-size:16px;">Registrar Cliente Nuevo</h3>
@@ -813,7 +694,7 @@
                     <div><label>Nombre Negocio</label><input type="text" id="new-client-name"></div>
                     <div><label>WhatsApp (Login)</label><input type="number" id="new-client-phone"></div>
                     <div><label>Clave/PIN Acceso</label><input type="text" id="new-client-pin" placeholder="Opcional"></div>
-                    <div><label>Código Barras</label><div style="display: flex; gap:5px;"><input type="text" id="new-client-barcode"><button class="warning" onclick="generateCode('new-client-barcode', 'CLI-')">Auto</button></div></div>
+                    <div><label>Código Barras</label><div style="display: flex; gap:5px;"><input type="text" id="new-client-barcode"><button class="warning" onclick="generateCode('new-client-barcode', 'CLI-')">Auto</button><button class="outline" onclick="openScannerForInput('new-client-barcode')">📷</button></div></div>
                 </div>
                 <div><label>Ubicación GPS (Lat, Lng)</label>
                     <div style="display: flex; gap:5px; margin-bottom:15px;"><input type="text" id="new-client-gps" oninput="handleManualGpsInput(this.value)"><button class="warning" onclick="getLocation('new-client-gps', 'admin-client-map-container', 'admin-client-map-trigger')">📍 Capturar GPS Actual</button></div>
@@ -835,8 +716,17 @@
             <div class="card"><h3 style="font-size:16px;">Alertas de Stock</h3><div id="restock-alerts"></div></div>
             <div class="card">
                 <div class="grid-2" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
-                    <div><label>Nombre de Cerveza</label><input type="text" id="new-prod-name" placeholder="Ej: Balboa Ice"></div>
-                    <div style="display: flex; gap:5px; align-items: flex-end;"><div style="flex:1;"><label>Código Barras</label><input type="text" id="new-prod-barcode"></div><button class="warning" onclick="generateCode('new-prod-barcode', 'PRD-')" style="margin-bottom:15px;">Auto</button></div>
+                    <div><label>Nombre de Producto</label><input type="text" id="new-prod-name" placeholder="Ej: Balboa Ice"></div>
+                    <div style="display: flex; gap:5px; align-items: flex-end;"><div style="flex:1;"><label>Código Barras</label><input type="text" id="new-prod-barcode"></div><button class="warning" onclick="generateCode('new-prod-barcode', 'PRD-')" style="margin-bottom:15px;">Auto</button><button class="outline" onclick="openScannerForInput('new-prod-barcode')" style="margin-bottom:15px;">📷</button></div>
+                    
+                    <div style="grid-column: span 2;">
+                        <label>Fotografía del Producto (Opcional)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="file" id="new-prod-image" accept="image/*" onchange="encodeImageFileAsURL(this, 'new-prod-image-preview', 'new-prod-image-b64')" style="margin:0; flex:1;">
+                            <input type="hidden" id="new-prod-image-b64">
+                            <img id="new-prod-image-preview" src="" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #ccc; display:none;">
+                        </div>
+                    </div>
                 </div>
                 
                 <label>Tipo de Envase Físico (Para control cruzado en bodega)</label>
@@ -881,10 +771,25 @@
         </div>
 
         <div id="tab-ajustes" class="tab-content hidden">
-            <h2 style="font-size:20px;">⚙️ Ajustes Admin Orocu</h2>
+            <h2 style="font-size:20px;">⚙️ Ajustes Admin General</h2>
             <div class="grid-2">
+                <div class="card" style="border: 2px solid var(--primary);">
+                    <h3 style="color:var(--primary); font-size:16px;">🏢 Branding e Identidad de Empresa</h3>
+                    <label>Nombre de la Empresa (Facturas y Sistema)</label>
+                    <input type="text" id="setting-company-name" placeholder="Ej: Distribuidora Orocu">
+                    <label>RUC / Documento Identificador</label>
+                    <input type="text" id="setting-company-ruc" placeholder="Ej: OROCU-12345">
+                    
+                    <label>Logo Principal del Sistema (Opcional)</label>
+                    <input type="file" accept="image/*" onchange="encodeImageFileAsURL(this, 'setting-logo-preview', 'setting-company-logo')">
+                    <input type="hidden" id="setting-company-logo">
+                    <img id="setting-logo-preview" src="" style="width:100%; max-width:120px; border-radius:8px; display:none; margin-top:5px; border:1px solid #ccc;">
+                    
+                    <button class="success" onclick="saveSettings()" style="width:100%; margin-top:15px;">Guardar Identidad de Marca</button>
+                </div>
+                
                 <div class="card">
-                    <h3 style="color:var(--primary); font-size:16px;">🔒 Seguridad (Administrador)</h3>
+                    <h3 style="color:var(--dark); font-size:16px;">🔒 Seguridad (Administrador)</h3>
                     <label>Cambiar Clave Maestra de Admin</label>
                     <div style="display:flex; gap:10px; margin-bottom: 20px;">
                         <input type="text" id="setting-admin-pin" placeholder="Clave nueva..." style="margin:0;">
@@ -897,15 +802,20 @@
                     <button class="warning" onclick="saveDriver()" style="width: 100%;">Agregar Cuenta</button>
                     <div class="table-wrapper" style="margin-top:15px;"><table><thead><tr><th>Chofer</th><th>PIN</th><th>Remover</th></tr></thead><tbody id="driver-list-table"></tbody></table></div>
                 </div>
-                <div class="card">
+                
+                <div class="card" style="grid-column: 1 / -1;">
                     <h3 style="font-size:16px;">Ajustes Financieros y Conmutadores</h3>
-                    <label>% Retención a Bóveda Automática</label><input type="number" id="setting-vault-pct">
-                    <hr style="margin:15px 0;">
-                    <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-client-prices" style="width:18px; height:18px;"> Mostrar Precios a Clientes al pedir</label>
-                    <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-fidelity" style="width:18px; height:18px;"> Activar Puntos de Cliente</label>
-                    <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-gps" style="width:18px; height:18px;"> Activar Módulo Satelital</label>
-                    <button class="success" onclick="saveSettings()" style="width:100%;">Aplicar Parámetros</button>
-                    <hr style="margin:20px 0;">
+                    <div class="grid-2">
+                        <div>
+                            <label>% Retención a Bóveda Automática</label><input type="number" id="setting-vault-pct">
+                        </div>
+                        <div>
+                            <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-client-prices" style="width:18px; height:18px;"> Mostrar Precios a Clientes</label>
+                            <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-fidelity" style="width:18px; height:18px;"> Activar Puntos de Cliente</label>
+                            <label style="display:flex; align-items:center; gap:10px; font-size:14px; margin-bottom:10px; text-transform:none;"><input type="checkbox" id="setting-gps" style="width:18px; height:18px;"> Activar Rastreo Satelital</label>
+                        </div>
+                    </div>
+                    <button class="success" onclick="saveSettings()" style="width:100%; margin-bottom: 10px;">Aplicar Todos los Ajustes</button>
                     <button class="outline" onclick="toggleDarkMode()" style="width:100%; margin-bottom:10px;">Cambiar Tema (Día/Noche)</button>
                     <button class="danger" onclick="factoryReset()" style="width:100%;">⚠️ Borrar Todos los Datos (Reinicio de Fábrica)</button>
                 </div>
@@ -918,9 +828,9 @@
 <div id="print-container-wrapper" class="print-only">
     <div id="print-ticket" class="pos-receipt">
         <div class="pos-header">
-            <h3 style="font-size:24px; text-align:center; margin:0; font-weight:900;">DISTRIBUIDORA OROCU</h3>
+            <h3 id="pt-company-name" style="font-size:24px; text-align:center; margin:0; font-weight:900;">DISTRIBUIDORA OROCU</h3>
             <p id="pt-header-type" style="text-align:center; margin:3px 0; font-size:14px; font-weight:bold;">Documento Comercial</p>
-            <p style="text-align:center; margin:0; font-size:14px;">RUC: OROCU-12345</p>
+            <p id="pt-company-ruc" style="text-align:center; margin:0; font-size:14px;">RUC: OROCU-12345</p>
         </div>
         <div style="border-bottom:2px dashed #000; margin:10px 0;"></div>
         <div class="pos-info-grid" style="display:block; font-size:18px; margin-bottom:12px; border-bottom:1px solid #000; padding-bottom:10px; word-wrap:break-word;">
@@ -976,7 +886,6 @@
         </div>
         <div class="pos-footer" style="text-align:center; margin-top:15px; font-size:14px; color:#000; font-weight:bold;">
             <p style="margin:2px 0;">¡Gracias por su preferencia!</p>
-            <p style="margin:2px 0;">Sistema Master Mobility</p>
         </div>
     </div>
 </div>
@@ -1007,7 +916,7 @@ let db = {};
 
 function repararBaseDeDatos() {
     if(!db) db = {};
-    if(!db.settings) db.settings = { vaultPct: 5, useFidelity: false, useGPS: false, useWS: false, showClientPrices: false, adminPin: 'admin' };
+    if(!db.settings) db.settings = { vaultPct: 5, useFidelity: false, useGPS: false, useWS: false, showClientPrices: false, adminPin: 'admin', companyName: 'Distribuidora Orocu', companyRuc: 'OROCU-12345', companyLogo: '' };
     if(!db.stockVacios) db.stockVacios = { azul_reg: 0, azul_manga: 0, verde_reg: 0, verde_caja: 0 };
     if(db.vaultBalance === undefined) db.vaultBalance = 0;
     
@@ -1030,6 +939,7 @@ function repararBaseDeDatos() {
         if(!p.brand) p.brand = 'none';
         if(p.brand === 'azul' || p.brand === true) p.brand = 'azul_reg';
         if(p.brand === 'verde') p.brand = 'verde_reg';
+        if(p.image === undefined) p.image = '';
     });
 
     db.invoices.forEach(inv => {
@@ -1039,7 +949,6 @@ function repararBaseDeDatos() {
         if(inv.creditAdded === undefined) inv.creditAdded = 0;
     });
 
-    // Limpiar historial de despacho cada 15 días (15 días * 24 h * 60 m * 60 s * 1000 ms = 1296000000)
     let quinceDiasAtras = Date.now() - 1296000000;
     db.dispatchLogs = db.dispatchLogs.filter(log => log.timestamp > quinceDiasAtras);
 }
@@ -1052,7 +961,7 @@ function saveDB() {
 }
 
 // Variables Globales
-let currentUserRole = ''; let currentDriverName = ''; let currentClientId = null; let currentTempInvoice = []; let gpsWatchId = null; let html5QrcodeScanner = null;
+let currentUserRole = ''; let currentDriverName = ''; let currentClientId = null; let currentTempInvoice = []; let gpsWatchId = null; let html5QrcodeScanner = null; let scannerTargetInput = null;
 let editingProdId = null; let tempEditingItemIndex = null; let editingClientId = null; let editingInvoiceId = null;
 let currentApproveInvId = null; let approveDraftItems = []; let currentPreviewInvId = null;
 let isDrawingFact = false; let isDrawingDel = false; let canvasFact, ctxFact, canvasDel, ctxDel;
@@ -1078,11 +987,13 @@ window.onload = () => {
             if(badge) badge.innerText = "☁️ Base de Datos en la Nube Creada";
         }
         initSignaturePads();
+        applySettings();
     }).catch(err => {
         db = localData || {}; 
         repararBaseDeDatos();
         if(badge) { badge.innerText = "📱 Modo Fuera de Línea (Sin Internet)"; badge.style.color = "var(--primary)"; }
         initSignaturePads();
+        applySettings();
     });
 };
 
@@ -1090,16 +1001,54 @@ function logAccess(user, role) { db.logs.unshift({ user: user, role: role, time:
 function pushNotification(text, invId = null) { db.notifications.unshift({ time: new Date().toLocaleTimeString(), text: text, invId: invId }); if(db.notifications.length > 30) db.notifications.pop(); saveDB(); }
 
 // ==========================================
+// CÓDIGOS DE BARRAS / IMÁGENES / SCANNER
+// ==========================================
+function encodeImageFileAsURL(element, targetImgId, targetHiddenId) {
+    let file = element.files[0];
+    if(!file) return;
+    let reader = new FileReader();
+    reader.onloadend = function() {
+        let img = new Image();
+        img.onload = function() {
+            let canvas = document.createElement("canvas");
+            let MAX_WIDTH = 300; let MAX_HEIGHT = 300;
+            let width = img.width; let height = img.height;
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+            canvas.width = width; canvas.height = height;
+            let ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            let dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+            document.getElementById(targetImgId).src = dataUrl;
+            document.getElementById(targetImgId).style.display = 'inline-block';
+            document.getElementById(targetHiddenId).value = dataUrl;
+        }
+        img.src = reader.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+function showBarcode(code, name) {
+    document.getElementById('modal-barcode-title').innerText = "Cód: " + name;
+    JsBarcode("#barcode-canvas", code, { format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 18 });
+    document.getElementById('barcode-modal').style.display = 'flex';
+}
+
+function printBarcode() {
+    let svg = document.getElementById('barcode-canvas');
+    let svgData = new XMLSerializer().serializeToString(svg);
+    let winOut = window.open('', '_blank');
+    winOut.document.write('<html><body style="text-align:center; padding-top:20px;">' + svgData + '<script>setTimeout(()=>{window.print();window.close();}, 500);<\/script></body></html>');
+}
+
+// ==========================================
 // RUTAS EFICIENTES Y GOOGLE MAPS
 // ==========================================
 function deg2rad(deg) { return deg * (Math.PI/180); }
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    let R = 6371; 
-    let dLat = deg2rad(lat2-lat1);  
-    let dLon = deg2rad(lon2-lon1); 
+    let R = 6371; let dLat = deg2rad(lat2-lat1); let dLon = deg2rad(lon2-lon1); 
     let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    return R * c;
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
 }
 
 function optimizarRuta() {
@@ -1108,24 +1057,18 @@ function optimizarRuta() {
     navigator.geolocation.getCurrentPosition((pos) => {
         let myLat = pos.coords.latitude;
         let myLng = pos.coords.longitude;
-        
         let pendingInvs = db.invoices.filter(i => i.status === 'Pendiente' || i.status === 'Despachado' || i.status === 'En Ruta');
         pendingInvs.forEach(i => {
             let cl = (typeof i.clientId === 'number') ? db.clients.find(c => c.id === i.clientId) : null;
             if(cl && cl.gps && cl.gps.includes(',')) {
                 let pts = cl.gps.split(',');
                 i.distance = getDistanceFromLatLonInKm(myLat, myLng, parseFloat(pts[0].trim()), parseFloat(pts[1].trim()));
-            } else {
-                i.distance = 9999;
-            }
+            } else { i.distance = 9999; }
         });
-        
         pendingInvs.sort((a, b) => a.distance - b.distance);
         renderSortedDeliveryCards(pendingInvs);
         alert("¡Ruta optimizada! Los clientes más cercanos están de primeros.");
-    }, () => {
-        alert("Debes permitir el acceso a tu ubicación GPS para optimizar la ruta.");
-    }, { enableHighAccuracy: true });
+    }, () => { alert("Debes permitir el acceso a tu ubicación GPS para optimizar la ruta."); }, { enableHighAccuracy: true });
 }
 
 function openFullRouteMap() {
@@ -1138,17 +1081,11 @@ function openFullRouteMap() {
             if(!coords.includes(validGps)) coords.push(validGps); 
         }
     });
-
     if(coords.length === 0) return alert("Ningún cliente en la ruta pendiente tiene coordenadas GPS registradas.");
-    
-    let origin = coords[0];
-    let destination = coords[coords.length - 1];
-    let waypoints = coords.slice(1, -1).join('/');
-    
+    let origin = coords[0]; let destination = coords[coords.length - 1]; let waypoints = coords.slice(1, -1).join('/');
     let gmapsUrl = `https://www.google.com/maps/dir/${origin}/`;
     if(waypoints.length > 0) gmapsUrl += `${waypoints}/`;
     gmapsUrl += `${destination}`;
-    
     window.open(gmapsUrl, '_blank');
 }
 
@@ -1358,12 +1295,13 @@ function clientLogin() {
 }
 
 // ==========================================
-// PORTAL DEL CLIENTE (LÓGICA)
+// PORTAL DEL CLIENTE (LÓGICA Y ALERTA DE STOCK)
 // ==========================================
 function updateClientPortalUI() {
     let prOpts = '<option value="">Seleccione Producto...</option>' + db.products.map(p => `<option value="${p.id}">${p.name} ${db.settings.showClientPrices ? `($${p.priceBulk})` : ''}</option>`).join('');
     document.getElementById('cli-order-prod').innerHTML = prOpts;
     if(!db.settings.showClientPrices) document.getElementById('lbl-cli-price-warning').classList.remove('hidden'); else document.getElementById('lbl-cli-price-warning').classList.add('hidden');
+    updateClientProdImage();
 
     let myInvs = db.invoices.filter(i => i.clientId === currentClientId).sort((a,b)=> b.id - a.id);
     let html = '';
@@ -1378,15 +1316,36 @@ function updateClientPortalUI() {
     document.getElementById('cli-invoices-grid').innerHTML = html || '<p>No tienes historial de pedidos.</p>';
 }
 
+function updateClientProdImage() {
+    let pId = document.getElementById('cli-order-prod').value;
+    let p = db.products.find(x => x.id == pId);
+    let cont = document.getElementById('cli-order-img-container');
+    if(p && p.image) {
+        document.getElementById('cli-order-img').src = p.image;
+        cont.style.display = 'flex';
+    } else {
+        cont.style.display = 'none';
+    }
+}
+
 function cancelInvoiceClient(id) { if(confirm("¿Estás seguro de cancelar este pedido?")) { let inv = db.invoices.find(i => i.id === id); if(inv) { inv.status = 'Cancelada por Cliente'; pushNotification(`❌ CLIENTE CANCELÓ PEDIDO DOC-${id.toString().substring(6)}`, inv.id); saveDB(); updateClientPortalUI(); alert("Pedido cancelado."); } } }
 
 let clientDraftCart = [];
 function addClientOrderItem() {
     let pId = document.getElementById('cli-order-prod').value; let qty = parseInt(document.getElementById('cli-order-qty').value);
     if(!pId || qty<1) return alert("Selecciona producto y cantidad válida."); let p = db.products.find(x => x.id == pId);
+    
+    // Validar Stock Cliente
+    let totalStock = p.stockDeposito + p.stockCuartoFrio + p.stockNeveras;
+    if(totalStock < qty) {
+        alert("⚠️ Este producto cuenta con bajo inventario. Se revisará si hay stock disponible para autorizar el despacho.");
+    }
+
     let price = db.settings.showClientPrices ? p.priceBulk : 0; let sub = price * qty;
+    let imgThumb = p.image ? `<img src="${p.image}" class="prod-mini-thumb"> ` : '';
+    
     clientDraftCart.push({ prodName: p.name, barcode: p.barcode, originalProductId: p.id, qty: qty, price: price, subtotal: sub, source: 'stockDeposito', sourceName: '📦 Depósito', temp: 'Caliente', brand: p.brand }); 
-    document.getElementById('cli-order-items').innerHTML = clientDraftCart.map((item, idx) => `<tr><td>${item.prodName}</td><td>${item.qty}</td><td><button class="danger" style="padding:2px 6px;" onclick="removeClientOrderItem(${idx})">X</button></td></tr>`).join('');
+    document.getElementById('cli-order-items').innerHTML = clientDraftCart.map((item, idx) => `<tr><td>${imgThumb}${item.prodName}</td><td>${item.qty}</td><td><button class="danger" style="padding:2px 6px;" onclick="removeClientOrderItem(${idx})">X</button></td></tr>`).join('');
 }
 function removeClientOrderItem(idx) { clientDraftCart.splice(idx, 1); document.getElementById('cli-order-items').innerHTML = clientDraftCart.map((item, idx) => `<tr><td>${item.prodName}</td><td>${item.qty}</td><td><button class="danger" style="padding:2px 6px;" onclick="removeClientOrderItem(${idx})">X</button></td></tr>`).join(''); }
 function submitClientOrder() {
@@ -1425,10 +1384,15 @@ function updateUI() {
     
     if(document.getElementById('client-list-table')) document.getElementById('client-list-table').innerHTML = db.clients.map(c => { 
         let miniMap = c.gps ? `<iframe width="120" height="80" frameborder="0" style="border:0; border-radius:4px; margin-top:5px; display:block;" src="https://maps.google.com/maps?q=${c.gps}&hl=es&z=14&output=embed"></iframe>` : 'N/A'; 
-        return `<tr><td><strong>${c.name}</strong></td><td><span class="barcode">${c.barcode}</span></td><td>${c.phone}${miniMap}</td><td style="color:var(--danger); font-weight:bold;">$${(c.credit||0).toFixed(2)}</td><td><div style="display:flex; gap:5px; flex-direction:column;"><button class="warning" style="padding:4px 8px; font-size:12px;" onclick="editClient(${c.id})">⚙️ Admin</button><button class="danger" style="padding:4px 8px; font-size:12px;" onclick="deleteClient(${c.id})">❌ Borrar</button></div></td></tr>`; 
+        return `<tr><td><strong>${c.name}</strong></td><td><span class="barcode">${c.barcode}</span></td><td>${c.phone}${miniMap}</td><td style="color:var(--danger); font-weight:bold;">$${(c.credit||0).toFixed(2)}</td><td><div style="display:flex; gap:5px; flex-direction:column;"><button class="warning" style="padding:4px 8px; font-size:12px;" onclick="editClient(${c.id})">⚙️ Admin</button><button class="outline" style="padding:4px 8px; font-size:12px;" onclick="showBarcode('${c.barcode}', '${c.name}')">🖨️ Cód</button><button class="danger" style="padding:4px 8px; font-size:12px;" onclick="deleteClient(${c.id})">❌ Borrar</button></div></td></tr>`; 
     }).join('');
     
-    if(document.getElementById('prod-list-table')) document.getElementById('prod-list-table').innerHTML = db.products.map(p => { let totalStk = p.stockDeposito + p.stockCuartoFrio + p.stockNeveras; return `<tr><td><strong>${p.name}</strong></td><td><span class="barcode">${p.barcode}</span></td><td>🧊 $${p.priceCold.toFixed(2)}<br>🔥 $${p.priceHot.toFixed(2)}<br>🛒 $${p.priceBulk.toFixed(2)}</td><td><b>${totalStk}</b> cajas</td><td><button class="warning" style="padding:5px 10px;" onclick="editProduct(${p.id})">✏️ Modificar</button></td></tr>`; }).join('');
+    if(document.getElementById('prod-list-table')) document.getElementById('prod-list-table').innerHTML = db.products.map(p => { 
+        let totalStk = p.stockDeposito + p.stockCuartoFrio + p.stockNeveras; 
+        let thumb = p.image ? `<img src="${p.image}" class="prod-mini-thumb"> ` : '';
+        return `<tr><td><div style="display:flex; align-items:center; gap:8px;">${thumb}<strong>${p.name}</strong></div></td><td><span class="barcode">${p.barcode}</span></td><td>🧊 $${p.priceCold.toFixed(2)}<br>🔥 $${p.priceHot.toFixed(2)}<br>🛒 $${p.priceBulk.toFixed(2)}</td><td><b>${totalStk}</b> cajas</td><td><div style="display:flex; gap:5px; flex-direction:column;"><button class="warning" style="padding:4px 8px; font-size:12px;" onclick="editProduct(${p.id})">✏️ Editar</button><button class="outline" style="padding:4px 8px; font-size:12px;" onclick="showBarcode('${p.barcode}', '${p.name}')">🖨️ Cód</button></div></td></tr>`; 
+    }).join('');
+    
     if(document.getElementById('asset-list-table')) document.getElementById('asset-list-table').innerHTML = db.assets.map(a => `<tr><td>${a.name}</td><td>${a.clientName}</td><td>${a.maint}</td></tr>`).join('');
     if(document.getElementById('driver-list-table')) document.getElementById('driver-list-table').innerHTML = db.drivers.map(d => `<tr><td>${d.name}</td><td>${d.pin}</td><td><button class="danger" style="padding:4px 8px;" onclick="deleteDriver(${d.id})">❌</button></td></tr>`).join('');
     if(document.getElementById('logs-list-table')) document.getElementById('logs-list-table').innerHTML = (db.logs || []).slice(0, 50).map(l => `<tr><td>${l.time}</td><td><b>${l.user}</b></td><td>${l.role}</td></tr>`).join('');
@@ -1506,7 +1470,7 @@ function renderProfiles() {
                 <span style="color:var(--danger); font-weight:bold;">Debe: $${debt.toFixed(2)}</span>
                 <span style="color:var(--warning); font-weight:bold;">Vacíos: ${totalV}</span>
             </div>
-            <button class="outline" style="width:100%; margin-top:5px; padding:8px; font-size:12px;" onclick="viewClientProfile(${c.id})">👁️ Ver Expediente de Cliente</button>
+            <button class="outline" style="width:100%; margin-top:5px; padding:8px; font-size:12px;" onclick="viewClientProfile(${c.id})">👁️ Ver Expediente</button>
         </div>`;
     });
     
@@ -1708,12 +1672,47 @@ function confirmApproveOrder() {
 function rejectOrder() { if(confirm("¿Rechazar este pedido?")) { let inv = db.invoices.find(i => i.id === currentApproveInvId); if(!inv) return; inv.status = 'Cancelada por Admin'; inv.note = document.getElementById('approve-note').value.trim(); pushNotification(`❌ Admin rechazó Pedido`, inv.id); saveDB(); closeModal('approve-order-modal'); alert("Pedido rechazado."); } }
 
 // ==========================================
-// FACTURACIÓN INTELIGENTE 
+// FACTURACIÓN INTELIGENTE CON ESCANEO DIRECCIONADO
 // ==========================================
+function openScannerForInput(targetId) {
+    scannerTargetInput = targetId; 
+    startCameraScanner();
+    document.getElementById('reader').scrollIntoView({behavior: "smooth"});
+}
+
 function startCameraScanner() { let r = document.getElementById('reader'); if (r.style.display === 'block') { if(html5QrcodeScanner) { html5QrcodeScanner.clear(); html5QrcodeScanner = null; } r.style.display = 'none'; return; } if (typeof Html5QrcodeScanner === "undefined") return alert("Cargando librerías..."); r.style.display = 'block'; html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 120}, videoConstraints: { facingMode: { exact: "environment" } } }, false); html5QrcodeScanner.render(onScanSuccess, (e)=>{}); }
-function onScanSuccess(t) { if(html5QrcodeScanner) { html5QrcodeScanner.clear(); html5QrcodeScanner = null; } document.getElementById('reader').style.display = 'none'; processBarcode(t); }
+function onScanSuccess(t) { 
+    if(html5QrcodeScanner) { html5QrcodeScanner.clear(); html5QrcodeScanner = null; } 
+    document.getElementById('reader').style.display = 'none'; 
+    
+    if(scannerTargetInput) {
+        document.getElementById(scannerTargetInput).value = t;
+        alert("Código capturado con éxito.");
+        scannerTargetInput = null;
+    } else {
+        processBarcode(t); 
+    }
+}
 function handleScan(e) { if(e.key === 'Enter') { let code = e.target.value.trim(); e.target.value = ''; processBarcode(code); } }
-function processBarcode(code) { let cl = db.clients.find(c => c.barcode === code); if(cl) { document.getElementById('fact-client').value = cl.id; alert(`Cliente: ${cl.name}`); return; } let pr = db.products.find(p => p.barcode === code); if(pr) { document.getElementById('fact-prod').value = pr.id; loadProductPrice(); alert(`Producto: ${pr.name}`); return; } alert("Código no registrado."); }
+function processBarcode(code) { 
+    let cl = db.clients.find(c => c.barcode === code); 
+    if(cl) { 
+        document.getElementById('check-new-client').checked = false;
+        toggleNewClientMode();
+        document.getElementById('fact-client').value = cl.id; 
+        document.getElementById('fact-client').dispatchEvent(new Event('change'));
+        alert(`✅ Cliente auto-seleccionado: ${cl.name}`); 
+        return; 
+    } 
+    let pr = db.products.find(p => p.barcode === code); 
+    if(pr) { 
+        document.getElementById('fact-prod').value = pr.id; 
+        loadProductPrice(); 
+        alert(`📦 Producto en lista: ${pr.name}`); 
+        return; 
+    } 
+    alert("Código no registrado en el sistema."); 
+}
 
 function loadInvoiceToEditTab(id) {
     let inv = db.invoices.find(x => x.id === id); if(!inv) return;
@@ -1722,7 +1721,7 @@ function loadInvoiceToEditTab(id) {
     document.getElementById('lbl-title-facturar').innerText = "✏️ Editando Factura: DOC-" + id.toString().substring(6);
     document.getElementById('editing-invoice-id').value = id;
     currentTempInvoice = JSON.parse(JSON.stringify(inv.items || [])); renderTempInvoice();
-    if(typeof inv.clientId === 'number') { document.getElementById('check-new-client').checked = false; toggleNewClientMode(); document.getElementById('fact-client').value = inv.clientId; } 
+    if(typeof inv.clientId === 'number') { document.getElementById('check-new-client').checked = false; toggleNewClientMode(); document.getElementById('fact-client').value = inv.clientId; document.getElementById('fact-client').dispatchEvent(new Event('change')); } 
     else { document.getElementById('check-new-client').checked = true; toggleNewClientMode(); document.getElementById('fact-new-client-name').value = inv.clientId; }
     document.getElementById('fact-delivery-date').value = inv.deliveryDate || ''; document.getElementById('fact-delivery-time').value = inv.deliveryTime || '';
     Array.from(document.querySelectorAll('#fact-buttons-new')).forEach(e=>e.classList.add('hidden')); Array.from(document.querySelectorAll('#fact-buttons-edit')).forEach(e=>e.classList.remove('hidden')); document.querySelector('.main-content').scrollTo(0,0);
@@ -1747,7 +1746,23 @@ function updateExistingInvoice() {
 
 function toggleNewClientMode() { let isNew = document.getElementById('check-new-client').checked; if(isNew) { document.getElementById('fact-client-wrapper').classList.add('hidden'); document.getElementById('fact-new-client-wrapper').classList.remove('hidden'); } else { document.getElementById('fact-client-wrapper').classList.remove('hidden'); document.getElementById('fact-new-client-wrapper').classList.add('hidden'); } }
 function toggleExpressMode() { let isExp = document.getElementById('check-express').checked; if(isExp) { document.getElementById('fact-mode-normal').classList.add('hidden'); document.getElementById('fact-mode-express').classList.remove('hidden'); } else { document.getElementById('fact-mode-normal').classList.remove('hidden'); document.getElementById('fact-mode-express').classList.add('hidden'); } }
-function loadProductPrice() { let p = db.products.find(x => x.id == document.getElementById('fact-prod').value); let src = document.getElementById('fact-source').value; if(p) { document.getElementById('fact-price').value = (src==='stockDeposito')? p.priceHot : p.priceCold; } }
+
+function loadProductPrice() { 
+    let p = db.products.find(x => x.id == document.getElementById('fact-prod').value); 
+    let src = document.getElementById('fact-source').value; 
+    let imgCont = document.getElementById('fact-prod-img-container');
+    if(p) { 
+        document.getElementById('fact-price').value = (src==='stockDeposito')? p.priceHot : p.priceCold; 
+        if(p.image) {
+            document.getElementById('fact-prod-img').src = p.image;
+            imgCont.style.display = 'flex';
+        } else {
+            imgCont.style.display = 'none';
+        }
+    } else {
+        imgCont.style.display = 'none';
+    }
+}
 
 function addItemToInvoice() {
     let isExp = document.getElementById('check-express').checked;
@@ -1760,12 +1775,18 @@ function addItemToInvoice() {
     
     if(isExp) {
         let n = document.getElementById('exp-name').value; let pr = parseFloat(document.getElementById('exp-price').value); let q = parseInt(document.getElementById('exp-qty').value); let brandVal = document.getElementById('exp-brand').value;
-        if(n && pr && q) { currentTempInvoice.push({ prodName: n, barcode: 'EXP', source: 'express', sourceName: '✨ Express', price: pr, qty: q, subtotal: pr*q, brand: brandVal }); }
+        if(n && pr && q) { currentTempInvoice.push({ prodName: n, barcode: 'EXP', source: 'express', sourceName: '✨ Express', price: pr, qty: q, subtotal: pr*q, brand: brandVal, image: '' }); }
     } else {
         let p = db.products.find(x => x.id == document.getElementById('fact-prod').value); let pr = parseFloat(document.getElementById('fact-price').value); let q = parseInt(document.getElementById('fact-qty').value); let src = document.getElementById('fact-source').value; let srcN = document.getElementById('fact-source').options[document.getElementById('fact-source').selectedIndex].text;
         if(p && pr && q) {
-            if(p[src] < q) return alert("Stock insuficiente en bodega seleccionada.");
-            p[src] -= q; currentTempInvoice.push({ prodName: p.name, barcode: p.barcode, source: src, sourceName: srcN, price: pr, qty: q, subtotal: pr*q, originalProductId: p.id, brand: p.brand });
+            // VERIFICACIÓN DE INVENTARIO CON OVERRIDE
+            if(p[src] < q) {
+                if(!confirm(`⚠️ Producto con inventario insuficiente (${p[src]} disponibles en ${srcN}). ¿Deseas facturarlo de todos modos (el inventario quedará en negativo)?`)) {
+                    return; 
+                }
+            }
+            p[src] -= q; 
+            currentTempInvoice.push({ prodName: p.name, barcode: p.barcode, source: src, sourceName: srcN, price: pr, qty: q, subtotal: pr*q, originalProductId: p.id, brand: p.brand, image: p.image });
         }
     }
     renderTempInvoice(); document.getElementById('exp-name').value='';
@@ -1774,7 +1795,7 @@ function addItemToInvoice() {
 function editTempItem(index) { 
     let item = currentTempInvoice[index]; 
     if(item.source === 'express') { document.getElementById('check-express').checked = true; toggleExpressMode(); document.getElementById('exp-name').value = item.prodName; document.getElementById('exp-price').value = item.price; document.getElementById('exp-qty').value = item.qty; document.getElementById('exp-brand').value = item.brand || 'none'; } 
-    else { document.getElementById('check-express').checked = false; toggleExpressMode(); document.getElementById('fact-prod').value = item.originalProductId; document.getElementById('fact-source').value = item.source; document.getElementById('fact-price').value = item.price; document.getElementById('fact-qty').value = item.qty; } 
+    else { document.getElementById('check-express').checked = false; toggleExpressMode(); document.getElementById('fact-prod').value = item.originalProductId; document.getElementById('fact-source').value = item.source; document.getElementById('fact-price').value = item.price; document.getElementById('fact-qty').value = item.qty; loadProductPrice(); } 
     tempEditingItemIndex = index; 
     document.getElementById('btn-add-item-invoice').innerText = "🔄 Confirmar Cambio"; document.getElementById('btn-add-item-invoice').classList.replace("warning", "success"); 
 }
@@ -1786,7 +1807,7 @@ function removeTempItem(index, isQuiet = false) {
     if(!isQuiet) renderTempInvoice(); 
 }
 
-function renderTempInvoice() { document.getElementById('current-invoice-items').innerHTML = currentTempInvoice.map((i, idx) => `<tr><td>${i.prodName}</td><td>${i.sourceName.split(' ')[0]}</td><td><b>${i.qty}</b></td><td>$${(i.price||0).toFixed(2)}</td><td>$${(i.subtotal||0).toFixed(2)}</td><td><div style="display:flex;gap:5px;"><button class="warning" style="padding:4px 8px; font-size:12px;" onclick="editTempItem(${idx})">✏️</button><button class="danger" style="padding:4px 8px; font-size:12px;" onclick="removeTempItem(${idx})">❌</button></div></td></tr>`).join(''); document.getElementById('fact-total-preview').innerText = currentTempInvoice.reduce((s,i)=>s+i.subtotal,0).toFixed(2); }
+function renderTempInvoice() { document.getElementById('current-invoice-items').innerHTML = currentTempInvoice.map((i, idx) => `<tr><td>${i.image ? `<img src="${i.image}" class="prod-mini-thumb"> ` : ''}${i.prodName}</td><td>${i.sourceName.split(' ')[0]}</td><td><b>${i.qty}</b></td><td>$${(i.price||0).toFixed(2)}</td><td>$${(i.subtotal||0).toFixed(2)}</td><td><div style="display:flex;gap:5px;"><button class="warning" style="padding:4px 8px; font-size:12px;" onclick="editTempItem(${idx})">✏️</button><button class="danger" style="padding:4px 8px; font-size:12px;" onclick="removeTempItem(${idx})">❌</button></div></td></tr>`).join(''); document.getElementById('fact-total-preview').innerText = currentTempInvoice.reduce((s,i)=>s+i.subtotal,0).toFixed(2); }
 
 function saveFinalInvoice(actionType) {
     let clientId; let isNew = document.getElementById('check-new-client').checked;
@@ -1919,14 +1940,6 @@ function reimprimirCopia() {
     executePrintInvoice();
 }
 
-function downloadInvoiceAsImage() {
-    let element = document.getElementById('web-ticket-preview');
-    if(typeof html2canvas === 'undefined') return alert("Cargando módulo de descarga, verifica tu conexión a internet.");
-    html2canvas(element, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
-        let link = document.createElement('a'); link.download = `Factura_Orocu_DOC-${currentPreviewInvId.toString().substring(6)}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
-    }).catch(err => { alert("Error al procesar la imagen de descarga."); });
-}
-
 // ==========================================
 // DESPACHOS Y COBROS EN RUTA CON TEMPORIZADOR Y SEGUIMIENTO 
 // ==========================================
@@ -1992,7 +2005,6 @@ function marcarLlegada() {
     document.getElementById('del-step-1').classList.add('hidden');
     document.getElementById('del-step-2').classList.remove('hidden');
     
-    // Iniciar temporizador de despacho
     deliveryStartTime = new Date();
     
     pushNotification(`📍 Chofer ${currentDriverName} llegó al local y comenzó la descarga.`, invId);
@@ -2036,7 +2048,6 @@ function closeDelivery() {
     if(cl) { cl.credit += cred; cl.rentability = (cl.rentability||0) + paid; if(db.settings.useFidelity && cred === 0) cl.points = (cl.points||0) + 12; }
     db.vaultBalance += paid * (db.settings.vaultPct / 100); 
     
-    // Registrar el tiempo de despacho para el administrador/chofer
     let endTime = new Date();
     let tiempoTexto = "N/A";
     let startString = endTime.toLocaleTimeString();
@@ -2062,7 +2073,7 @@ function closeDelivery() {
     let notifTxt = `🚚 ENTREGADO: DOC-${inv.id.toString().substring(6)} por ${currentDriverName}. Demoró: ${tiempoTexto}`;
     pushNotification(notifTxt, inv.id);
     
-    deliveryStartTime = null; // Reiniciar
+    deliveryStartTime = null; 
     
     saveDB(); document.getElementById('delivery-panel').classList.add('hidden'); updateUI(); 
     
@@ -2100,8 +2111,57 @@ function clearDelSignature() { if(ctxDel) { ctxDel.clearRect(0,0,canvasDel.width
 function resizeCanvases() { if(canvasFact && canvasFact.offsetWidth) { canvasFact.width = canvasFact.offsetWidth; canvasFact.height = 180; clearFactSignature(); } if(canvasDel && canvasDel.offsetWidth) { canvasDel.width = canvasDel.offsetWidth; canvasDel.height = 200; clearDelSignature(); } }
 
 // ==========================================
-// SEGURIDAD, CRUD Y HERRAMIENTAS ADICIONALES 
+// SEGURIDAD Y HERRAMIENTAS ADICIONALES (ADMINISTRADOR DE EMPRESA)
 // ==========================================
+function applySettings() { 
+    let gpsNav = document.getElementById('nav-gps');
+    if(gpsNav) {
+        if(db.settings.useGPS && currentUserRole === 'admin') gpsNav.classList.remove('hidden'); 
+        else gpsNav.classList.add('hidden'); 
+    }
+    
+    let cName = db.settings.companyName || "Distribuidora Orocu";
+    let cRuc = db.settings.companyRuc || "OROCU-12345";
+    let cLogo = db.settings.companyLogo || "";
+    
+    document.getElementById('login-company-name').innerText = cName;
+    document.getElementById('sidebar-company-name').innerText = cName;
+    document.getElementById('topbar-company-name').innerText = cName;
+    document.getElementById('cli-topbar-company-name').innerText = cName;
+    
+    document.getElementById('pt-company-name').innerText = cName.toUpperCase();
+    document.getElementById('pt-company-ruc').innerText = "RUC: " + cRuc;
+
+    let loginLogo = document.getElementById('login-logo');
+    if(cLogo) {
+        loginLogo.src = cLogo;
+        loginLogo.style.display = 'inline-block';
+        document.getElementById('setting-logo-preview').src = cLogo;
+        document.getElementById('setting-logo-preview').style.display = 'block';
+    } else {
+        loginLogo.style.display = 'none';
+        document.getElementById('setting-logo-preview').style.display = 'none';
+    }
+    
+    document.getElementById('setting-company-name').value = cName;
+    document.getElementById('setting-company-ruc').value = cRuc;
+}
+
+function saveSettings() { 
+    if(document.getElementById('setting-vault-pct')) db.settings.vaultPct = parseFloat(document.getElementById('setting-vault-pct').value) || 0; 
+    if(document.getElementById('setting-fidelity')) db.settings.useFidelity = document.getElementById('setting-fidelity').checked; 
+    if(document.getElementById('setting-gps')) db.settings.useGPS = document.getElementById('setting-gps').checked; 
+    if(document.getElementById('setting-client-prices')) db.settings.showClientPrices = document.getElementById('setting-client-prices').checked; 
+    
+    db.settings.companyName = document.getElementById('setting-company-name').value.trim() || "Distribuidora Orocu";
+    db.settings.companyRuc = document.getElementById('setting-company-ruc').value.trim() || "OROCU-12345";
+    db.settings.companyLogo = document.getElementById('setting-company-logo').value || "";
+
+    saveDB(); 
+    applySettings(); 
+    alert("¡Ajustes guardados correctamente!"); 
+}
+
 function updateAdminPin() {
     let newPin = document.getElementById('setting-admin-pin').value.trim();
     if(!newPin) return alert("Por favor ingresa una clave válida.");
@@ -2111,42 +2171,17 @@ function updateAdminPin() {
     document.getElementById('setting-admin-pin').value = '';
 }
 
-function saveSettings() { 
-    if(document.getElementById('setting-vault-pct')) db.settings.vaultPct = parseFloat(document.getElementById('setting-vault-pct').value) || 0; 
-    if(document.getElementById('setting-fidelity')) db.settings.useFidelity = document.getElementById('setting-fidelity').checked; 
-    if(document.getElementById('setting-gps')) db.settings.useGPS = document.getElementById('setting-gps').checked; 
-    if(document.getElementById('setting-client-prices')) db.settings.showClientPrices = document.getElementById('setting-client-prices').checked; 
-    
-    saveDB(); 
-    applySettings(); 
-    alert("Ajustes guardados correctamente."); 
-}
-
-function applySettings() { 
-    let gpsNav = document.getElementById('nav-gps');
-    if(gpsNav) {
-        if(db.settings.useGPS && currentUserRole === 'admin') {
-            gpsNav.classList.remove('hidden'); 
-        } else {
-            gpsNav.classList.add('hidden'); 
-        }
-    }
-}
-
 function factoryReset() {
     if(confirm("⚠️ ADVERTENCIA CRÍTICA: Esto borrará TODOS los datos, clientes, facturas y productos. ¿Deseas continuar?")) {
         if(prompt("Escribe 'BORRAR' en mayúsculas para confirmar la eliminación de toda la base de datos:") === 'BORRAR') {
-            db = {};
-            repararBaseDeDatos();
-            saveDB();
-            alert("Sistema reiniciado de fábrica.");
-            location.reload();
-        } else {
-            alert("Operación cancelada.");
-        }
+            db = {}; repararBaseDeDatos(); saveDB(); alert("Sistema reiniciado de fábrica."); location.reload();
+        } else { alert("Operación cancelada."); }
     }
 }
 
+// ==========================================
+// CRUD 
+// ==========================================
 function saveDriver() { let name = document.getElementById('new-driver-name').value; let pin = document.getElementById('new-driver-pin').value; if(!name || !pin) return; if(db.drivers.find(d => d.pin === pin)) return alert("PIN Duplicado."); db.drivers.push({ id: Date.now(), name, pin }); document.getElementById('new-driver-name').value=''; document.getElementById('new-driver-pin').value=''; saveDB(); }
 function deleteDriver(id) { if(confirm("¿Remover chofer?")) { db.drivers = db.drivers.filter(d => d.id !== id); saveDB(); } }
 
@@ -2156,9 +2191,44 @@ function cancelClientEdit() { editingClientId = null; document.getElementById('n
 function approveClient(id) { let p = db.pendingClients.find(x => x.id === id); if(p) { db.clients.push({ id: Date.now(), name: p.name, phone: p.phone, gps: p.gps, barcode: 'CLI-'+Date.now(), credit: 0, emptiesData: {azul_reg:0, azul_manga:0, verde_reg:0, verde_caja:0}, rentability: 0, points: 0 }); db.pendingClients = db.pendingClients.filter(x => x.id !== id); saveDB(); alert("Aprobado."); } }
 function deleteClient(id) { if(confirm("⚠️ ¿Estás seguro de ELIMINAR permanentemente a este cliente? Se borrarán sus registros actuales en la vista.")) { db.clients = db.clients.filter(c => c.id !== id); saveDB(); alert("Cliente eliminado exitosamente."); } }
 
-function saveProduct() { let n = document.getElementById('new-prod-name').value; let pc = parseFloat(document.getElementById('new-prod-price-cold').value)||0; let ph = parseFloat(document.getElementById('new-prod-price-hot').value)||0; let pb = parseFloat(document.getElementById('new-prod-price-bulk').value)||0; let brandVal = document.getElementById('new-prod-brand').value; if(!n) return alert("Falta nombre."); if(editingProdId) { let p = db.products.find(x => x.id === editingProdId); p.name = n; p.barcode = document.getElementById('new-prod-barcode').value; p.priceCold = pc; p.priceHot = ph; p.priceBulk = pb; p.stockDeposito = parseInt(document.getElementById('new-prod-deposito').value)||0; p.stockCuartoFrio = parseInt(document.getElementById('new-prod-cuartofrio').value)||0; p.stockNeveras = parseInt(document.getElementById('new-prod-neveras').value)||0; p.brand = brandVal; alert("Modificado."); cancelEditProduct(); } else { db.products.push({ id: Date.now(), name: n, barcode: document.getElementById('new-prod-barcode').value||'PRD-'+Date.now(), priceCold: pc, priceHot: ph, priceBulk: pb, stockDeposito: parseInt(document.getElementById('new-prod-deposito').value)||0, stockCuartoFrio: parseInt(document.getElementById('new-prod-cuartofrio').value)||0, stockNeveras: parseInt(document.getElementById('new-prod-neveras').value)||0, stockVacios: 0, brand: brandVal }); cancelEditProduct(); } saveDB(); }
-function editProduct(id) { let p = db.products.find(x => x.id === id); if(!p) return; document.getElementById('new-prod-name').value = p.name; document.getElementById('new-prod-barcode').value = p.barcode; document.getElementById('new-prod-price-cold').value = p.priceCold; document.getElementById('new-prod-price-hot').value = p.priceHot; document.getElementById('new-prod-price-bulk').value = p.priceBulk; document.getElementById('new-prod-deposito').value = p.stockDeposito; document.getElementById('new-prod-cuartofrio').value = p.stockCuartoFrio; document.getElementById('new-prod-neveras').value = p.stockNeveras; document.getElementById('new-prod-brand').value = p.brand || 'none'; editingProdId = id; document.getElementById('btn-save-prod').innerText = "Guardar Modificación Realizada"; document.getElementById('btn-save-prod').classList.replace("success", "warning"); document.getElementById('btn-cancel-edit').classList.remove("hidden"); document.querySelector('.main-content').scrollTo(0,0); }
-function cancelEditProduct() { editingProdId = null; ['new-prod-name','new-prod-barcode','new-prod-price-cold','new-prod-price-hot','new-prod-price-bulk','new-prod-deposito','new-prod-cuartofrio','new-prod-neveras'].forEach(id => document.getElementById(id).value = ''); document.getElementById('new-prod-brand').value = 'none'; document.getElementById('btn-save-prod').innerText = "Guardar Producto"; document.getElementById('btn-save-prod').classList.replace("warning", "success"); document.getElementById('btn-cancel-edit').classList.add("hidden"); }
+function saveProduct() { 
+    let n = document.getElementById('new-prod-name').value; let pc = parseFloat(document.getElementById('new-prod-price-cold').value)||0; let ph = parseFloat(document.getElementById('new-prod-price-hot').value)||0; let pb = parseFloat(document.getElementById('new-prod-price-bulk').value)||0; let brandVal = document.getElementById('new-prod-brand').value; 
+    let imgB64 = document.getElementById('new-prod-image-b64').value;
+    if(!n) return alert("Falta nombre."); 
+    if(editingProdId) { 
+        let p = db.products.find(x => x.id === editingProdId); p.name = n; p.barcode = document.getElementById('new-prod-barcode').value; p.priceCold = pc; p.priceHot = ph; p.priceBulk = pb; p.stockDeposito = parseInt(document.getElementById('new-prod-deposito').value)||0; p.stockCuartoFrio = parseInt(document.getElementById('new-prod-cuartofrio').value)||0; p.stockNeveras = parseInt(document.getElementById('new-prod-neveras').value)||0; p.brand = brandVal; 
+        if(imgB64) p.image = imgB64;
+        alert("Producto modificado."); cancelEditProduct(); 
+    } else { 
+        db.products.push({ id: Date.now(), name: n, barcode: document.getElementById('new-prod-barcode').value||'PRD-'+Date.now(), priceCold: pc, priceHot: ph, priceBulk: pb, stockDeposito: parseInt(document.getElementById('new-prod-deposito').value)||0, stockCuartoFrio: parseInt(document.getElementById('new-prod-cuartofrio').value)||0, stockNeveras: parseInt(document.getElementById('new-prod-neveras').value)||0, stockVacios: 0, brand: brandVal, image: imgB64 }); cancelEditProduct(); 
+    } 
+    saveDB(); 
+}
+
+function editProduct(id) { 
+    let p = db.products.find(x => x.id === id); if(!p) return; 
+    document.getElementById('new-prod-name').value = p.name; document.getElementById('new-prod-barcode').value = p.barcode; document.getElementById('new-prod-price-cold').value = p.priceCold; document.getElementById('new-prod-price-hot').value = p.priceHot; document.getElementById('new-prod-price-bulk').value = p.priceBulk; document.getElementById('new-prod-deposito').value = p.stockDeposito; document.getElementById('new-prod-cuartofrio').value = p.stockCuartoFrio; document.getElementById('new-prod-neveras').value = p.stockNeveras; document.getElementById('new-prod-brand').value = p.brand || 'none'; 
+    
+    if(p.image) {
+        document.getElementById('new-prod-image-preview').src = p.image;
+        document.getElementById('new-prod-image-preview').style.display = 'block';
+        document.getElementById('new-prod-image-b64').value = p.image;
+    } else {
+        document.getElementById('new-prod-image-preview').style.display = 'none';
+        document.getElementById('new-prod-image-b64').value = '';
+    }
+
+    editingProdId = id; document.getElementById('btn-save-prod').innerText = "Guardar Modificación Realizada"; document.getElementById('btn-save-prod').classList.replace("success", "warning"); document.getElementById('btn-cancel-edit').classList.remove("hidden"); document.querySelector('.main-content').scrollTo(0,0); 
+}
+
+function cancelEditProduct() { 
+    editingProdId = null; 
+    ['new-prod-name','new-prod-barcode','new-prod-price-cold','new-prod-price-hot','new-prod-price-bulk','new-prod-deposito','new-prod-cuartofrio','new-prod-neveras', 'new-prod-image', 'new-prod-image-b64'].forEach(id => document.getElementById(id).value = ''); 
+    document.getElementById('new-prod-brand').value = 'none'; 
+    document.getElementById('new-prod-image-preview').style.display = 'none';
+    document.getElementById('new-prod-image-preview').src = '';
+    document.getElementById('btn-save-prod').innerText = "Guardar Producto"; document.getElementById('btn-save-prod').classList.replace("warning", "success"); document.getElementById('btn-cancel-edit').classList.add("hidden"); 
+}
 
 function saveAsset() { let cId = document.getElementById('new-asset-client').value; if(!cId) return; db.assets.push({ id: Date.now(), name: document.getElementById('new-asset-name').value, clientName: db.clients.find(c=>c.id==cId).name, maint: document.getElementById('new-asset-maint').value }); saveDB(); }
 function moveInternalStock() { let pId = document.getElementById('int-prod').value; let from = document.getElementById('int-from').value; let to = document.getElementById('int-to').value; let qty = parseInt(document.getElementById('int-qty').value); if(!pId || !qty) return alert("Rellena datos."); if(from === to) return alert("Destinos idénticos."); let p = db.products.find(x => x.id == pId); if(p[from] < qty) return alert("Inventario insuficiente."); p[from] -= qty; p[to] += qty; saveDB(); alert("Traspaso completado."); document.getElementById('int-qty').value = 1; }
