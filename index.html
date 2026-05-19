@@ -1740,7 +1740,10 @@ function updateExistingInvoice() {
     else { clientId = document.getElementById('fact-client').value; if(!clientId) return alert("Selecciona cliente."); clientId = parseInt(clientId); }
     if(currentTempInvoice.length === 0) return alert("Orden vacía.");
 
-    inv.clientId = clientId; inv.items = currentTempInvoice; inv.total = currentTempInvoice.reduce((s,i)=>s+i.subtotal,0); inv.deliveryDate = document.getElementById('fact-delivery-date').value; inv.deliveryTime = document.getElementById('fact-delivery-time').value; inv.status = 'Pendiente'; 
+    let newTotal = currentTempInvoice.reduce((s,i)=>s+i.subtotal,0);
+    inv.clientId = clientId; inv.items = currentTempInvoice; inv.total = newTotal; 
+    if(inv.status !== 'Entregada') { inv.paid = 0; inv.creditAdded = newTotal; }
+    inv.deliveryDate = document.getElementById('fact-delivery-date').value; inv.deliveryTime = document.getElementById('fact-delivery-time').value; inv.status = 'Pendiente'; 
     saveDB(); alert("Factura actualizada exitosamente."); cancelEditInvoice(); switchTab('invoices-list');
 }
 
@@ -1825,7 +1828,7 @@ function saveFinalInvoice(actionType) {
     let totalFactura = currentTempInvoice.reduce((s,i)=>s+i.subtotal,0);
     let newId = Date.now() + Math.floor(Math.random() * 1000);
 
-    let inv = { id: newId, clientId: clientId, items: currentTempInvoice, total: totalFactura, paid: isEntregada?totalFactura:0, creditAdded: 0, date: new Date().toLocaleDateString(), deliveryDate: document.getElementById('fact-delivery-date').value, deliveryTime: document.getElementById('fact-delivery-time').value, status: finalStatus, note: '', noteViewed: false, signature: sigData };
+    let inv = { id: newId, clientId: clientId, items: currentTempInvoice, total: totalFactura, paid: isEntregada?totalFactura:0, creditAdded: isEntregada?0:totalFactura, date: new Date().toLocaleDateString(), deliveryDate: document.getElementById('fact-delivery-date').value, deliveryTime: document.getElementById('fact-delivery-time').value, status: finalStatus, note: '', noteViewed: false, signature: sigData };
     
     if(isEntregada) { 
         db.vaultBalance += totalFactura * (db.settings.vaultPct / 100); 
@@ -2237,3 +2240,4 @@ function loadLocalPrice() { let p = db.products.find(x => x.id == document.getEl
 function registerLocalSale() { let pId = document.getElementById('local-prod').value; let source = document.getElementById('local-source').value; let qty = parseInt(document.getElementById('local-qty').value); let price = parseFloat(document.getElementById('local-price').value); if(!pId || !qty || isNaN(price)) return alert("Datos incompletos."); let p = db.products.find(x => x.id == pId); if(p[source] < qty) return alert("Sin existencias."); p[source] -= qty; let sub = price * qty; let items = [{ prodName: p.name, barcode: p.barcode, source: source, sourceName: (source==='stockDeposito'?'📦 Depósito':'❄️ Cuarto Frío'), price: price, qty: qty, subtotal: sub, brand: p.brand }]; let newInv = { id: Date.now(), clientId: 'Venta Directa Local', items: items, total: sub, paid: sub, creditAdded: 0, date: new Date().toLocaleDateString(), status: 'Entregada', signature: '' }; db.invoices.push(newInv); db.vaultBalance = (db.vaultBalance || 0) + (sub * (db.settings.vaultPct / 100)); pushNotification(`💰 Venta Local de $${sub.toFixed(2)}`, newInv.id); saveDB(); alert("Venta procesada con éxito."); document.getElementById('local-qty').value = 1; }
 
 </script>
+</html>
