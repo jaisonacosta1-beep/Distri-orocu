@@ -858,11 +858,14 @@
               <p class="text-xs text-slate-500 mt-1">Necesario para el asistente virtual y la lectura de credenciales de Firebase por foto.</p>
             </div>
           </div>
-          <div class="flex gap-2">
-            <input type="password" id="pref-gemini-key" placeholder="AIzaSy..." class="flex-1 text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <button onclick="saveGeminiKey()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2 shrink-0">
-              <i class="fa-solid fa-save"></i> Guardar
-            </button>
+          <div class="flex flex-col gap-2">
+            <div class="flex gap-2">
+              <input type="text" id="pref-gemini-key" placeholder="AIzaSy..." class="flex-1 text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <button onclick="saveGeminiKey()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2 shrink-0">
+                <i class="fa-solid fa-save"></i> Guardar
+              </button>
+            </div>
+            <div id="gemini-key-status" class="hidden"></div>
           </div>
         </div>
 
@@ -1009,41 +1012,66 @@
     </main>
   </div>
 
-  <!-- Floating AI Button -->
-  <button onclick="toggleAIChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-2xl shadow-indigo-500/50 text-white flex items-center justify-center text-2xl z-40 hover:scale-110 transition-transform" title="Asistente de IA Gemini">
+  <!-- Floating AI Button (Updated Gemini Mobile UI) -->
+  <button onclick="openGeminiSheet()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-2xl shadow-purple-500/50 text-white flex items-center justify-center text-2xl z-40 hover:scale-110 transition-transform" title="Asistente de IA Gemini">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
   </button>
 
-  <!-- AI Chat Panel -->
-  <div id="ai-chat-panel" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-200">
-    <div class="h-16 bg-gradient-to-r from-indigo-600 to-purple-700 px-4 flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
-          <i class="fa-solid fa-robot"></i>
-        </div>
-        <h3 class="font-bold text-white">CervezaLogix AI</h3>
-      </div>
-      <button onclick="toggleAIChat()" class="text-white/80 hover:text-white p-2">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-    </div>
+  <!-- Gemini Mobile-like Bottom Sheet Overlay -->
+  <div id="gemini-backdrop" onclick="closeGeminiSheet()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"></div>
+
+  <div id="gemini-sheet" class="fixed bottom-0 left-0 right-0 h-[85vh] bg-slate-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] z-50 transform translate-y-full transition-transform duration-300 flex flex-col md:max-w-2xl md:mx-auto md:rounded-3xl md:bottom-6 md:h-[80vh]">
     
-    <div id="ai-chat-history" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-          <i class="fa-solid fa-robot text-xs"></i>
-        </div>
-        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-sm text-slate-700">
-          ¡Hola! Soy tu asistente de inteligencia artificial impulsado por Gemini. Puedo analizar tu inventario, ventas, o ayudarte con el sistema. ¿En qué te ayudo hoy?
-        </div>
+    <!-- Drag handle & Header -->
+    <div class="flex flex-col items-center pt-3 pb-2 shrink-0 bg-white rounded-t-3xl cursor-pointer" onclick="closeGeminiSheet()">
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mb-2"></div>
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600"></i>
+        <span id="gemini-sheet-title" class="text-sm font-black text-slate-800 tracking-wide">Gemini AI</span>
       </div>
     </div>
 
-    <div class="p-4 bg-white border-t border-slate-200 shrink-0">
-      <form onsubmit="handleAISubmit(event)" class="relative">
-        <input type="text" id="ai-input" placeholder="Pregúntame sobre el inventario o ventas..." class="w-full pl-4 pr-12 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <button type="submit" id="ai-submit-btn" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition">
-          <i class="fa-solid fa-paper-plane text-xs"></i>
+    <!-- Main Content Area (Listening OR Chat) -->
+    <div class="flex-1 relative overflow-hidden flex flex-col bg-white">
+      
+      <!-- Listening State (Default) -->
+      <div id="gemini-listening-view" class="absolute inset-0 flex flex-col items-center justify-center bg-white transition-opacity duration-300 z-10">
+        <div class="relative flex items-center justify-center mb-8">
+          <div id="gemini-glow-1" class="absolute w-28 h-28 bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-40 animate-ping hidden"></div>
+          <div id="gemini-glow-2" class="absolute w-36 h-36 bg-gradient-to-tr from-blue-300 via-purple-300 to-pink-300 rounded-full opacity-20 animate-pulse hidden"></div>
+          <div class="relative z-10 w-16 h-16 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg text-white text-2xl cursor-pointer" onclick="startGeminiListening()">
+            <i class="fa-solid fa-microphone"></i>
+          </div>
+        </div>
+        <h2 id="gemini-status-text" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight text-center px-4">Toca el micrófono para hablar</h2>
+      </div>
+
+      <!-- Chat History -->
+      <div id="gemini-chat-history" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-white z-20">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+          </div>
+          <div class="bg-slate-50 p-3.5 rounded-2xl rounded-tl-none border border-slate-100 text-sm text-slate-700 shadow-sm font-medium">
+            ¡Hola! Soy tu asistente inteligente. Puedes pedirme que analice las ventas, revise el inventario o cualquier otra tarea de la distribuidora. ¿En qué te ayudo?
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input Area -->
+    <div class="p-3 bg-white border-t border-slate-100 shrink-0 md:rounded-b-3xl z-30">
+      <form onsubmit="handleGeminiSubmit(event)" class="relative flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200 focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all">
+        <button type="button" onclick="startGeminiListening()" class="w-10 h-10 shrink-0 bg-white shadow-sm text-slate-600 hover:text-purple-600 rounded-full flex items-center justify-center transition">
+          <i class="fa-solid fa-microphone text-base"></i>
+        </button>
+        <input type="text" id="gemini-input" placeholder="Escribe o habla..." class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 placeholder-slate-400 py-2.5 outline-none px-2">
+        <button type="button" onclick="stopGeminiSpeechAndAudio()" class="hidden w-8 h-8 shrink-0 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center transition" id="gemini-stop-btn" title="Detener audio">
+          <i class="fa-solid fa-stop text-xs"></i>
+        </button>
+        <button type="submit" id="gemini-submit-btn" class="w-10 h-10 shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center transition shadow-sm">
+          <i class="fa-solid fa-paper-plane text-xs relative -left-0.5"></i>
         </button>
       </form>
     </div>
@@ -2175,10 +2203,56 @@
       }
     };
 
-    window.saveGeminiKey = function() {
-       const key = document.getElementById('pref-gemini-key').value.trim();
+    window.saveGeminiKey = async function() {
+       const keyInput = document.getElementById('pref-gemini-key').value.trim();
+       const key = keyInput.replace(/[\s\n\r]/g, '');
+       const statusEl = document.getElementById('gemini-key-status');
+       
+       if (!key) {
+           window.showNotification('Por favor ingresa una clave API.', 'warning');
+           return;
+       }
+       
        localStorage.setItem('DISTRI_GEMINI_KEY', key);
-       window.showNotification('Clave API de Gemini guardada correctamente.', 'success');
+       
+       if(statusEl) {
+           statusEl.classList.remove('hidden');
+           statusEl.className = 'text-[10px] font-mono text-amber-700 mt-2 block bg-amber-50 p-2 rounded-lg border border-amber-200';
+           statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Detectando modelos disponibles en tu cuenta...';
+       }
+       
+       try {
+           // Consultamos a Google qué modelos están activos en esta cuenta
+           const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+           if (!listRes.ok) {
+               const errTxt = await listRes.text();
+               throw new Error(errTxt);
+           }
+           const listData = await listRes.json();
+           const available = (listData.models || [])
+               .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+               .map(m => m.name.replace('models/', ''));
+
+           const preferredOrder = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+           let selectedModel = preferredOrder.find(p => available.includes(p)) || available.find(a => a.includes('flash')) || available[0] || 'gemini-2.0-flash';
+
+           localStorage.setItem('DISTRI_GEMINI_MODEL', selectedModel);
+           localStorage.setItem('DISTRI_GEMINI_MODELS_LIST', JSON.stringify(available));
+           
+           if(statusEl) {
+               statusEl.className = 'text-[10px] font-mono text-emerald-700 mt-2 block bg-emerald-50 p-2 rounded-lg border border-emerald-300';
+               statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i> ¡Conexión Exitosa!<br><span class="text-emerald-800 font-black">Modelo enlazado: ${selectedModel}</span>`;
+           }
+           window.showNotification('¡API Key validada y enlazada!', 'success');
+           
+       } catch (err) {
+           console.error(err);
+           if(statusEl) {
+               statusEl.className = 'text-[10px] font-mono text-rose-700 mt-2 block bg-rose-50 p-2 rounded-lg border border-rose-300 break-all';
+               statusEl.innerHTML = `<strong>Error de Google:</strong> ${err.message}`;
+           }
+           window.showNotification('Error al validar la clave API.', 'error');
+       }
     };
 
     window.processFirebaseImageAndSave = async function(event) {
@@ -2192,61 +2266,80 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          // Forzar actualización de caché obligatoria
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
+          if (!apiKey) throw new Error("Falta la Clave API de Gemini en Ajustes.");
+
+          const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.5-flash';
+          let savedList = [];
+          try { savedList = JSON.parse(localStorage.getItem('DISTRI_GEMINI_MODELS_LIST') || '[]'); } catch(err) {}
+          
+          const fallbackCandidates = [
+              'gemini-2.5-flash',
+              'gemini-2.0-flash',
+              savedModel,
+              'gemini-1.5-flash',
+              ...savedList.filter(m => m.includes('gemini'))
+          ];
+          const uniqueModels = [...new Set(fallbackCandidates.filter(Boolean))];
 
           const payload = {
             contents: [{
               role: "user",
               parts: [
-                { text: "Extract the firebaseConfig details from this image. Return a JSON object with these keys exactly: apiKey, authDomain, projectId, storageBucket, appId" },
+                { text: "Extract the firebase config variables from this image. You MUST return ONLY a strictly valid JSON object. Ensure all keys (apiKey, authDomain, projectId, storageBucket, appId) and string values are enclosed in double quotes. Do not include variable declarations like 'const' or markdown backticks. Just the JSON object." },
                 { inlineData: { mimeType: file.type, data: base64String } }
               ]
             }],
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "OBJECT",
-                    properties: {
-                        apiKey: { type: "STRING" },
-                        authDomain: { type: "STRING" },
-                        projectId: { type: "STRING" },
-                        storageBucket: { type: "STRING" },
-                        appId: { type: "STRING" }
-                    }
-                }
-            }
+            generationConfig: { temperature: 0.1 }
           };
 
-          const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          let result = null;
+          let lastErrorText = '';
 
-          if (!res.ok) throw new Error("API Request Failed");
-          
-          const result = await res.json();
-          if (result.candidates && result.candidates.length > 0) {
-             const jsonText = result.candidates[0].content.parts[0].text;
-             const config = JSON.parse(jsonText);
-
-             if(config.projectId) localStorage.setItem('DISTRI_FB_PROJECT_ID', config.projectId);
-             if(config.apiKey) localStorage.setItem('DISTRI_FB_API_KEY', config.apiKey);
-             if(config.authDomain) localStorage.setItem('DISTRI_FB_AUTH_DOMAIN', config.authDomain);
-             if(config.appId) localStorage.setItem('DISTRI_FB_APP_ID', config.appId);
-             if(config.storageBucket) localStorage.setItem('DISTRI_FB_STORAGE_BUCKET', config.storageBucket);
-             
-             window.showNotification('Credenciales extraídas. Conectando a la nube...', 'success');
-             initFirebaseClient(); // Conecta inmediatamente a Firebase
-          } else {
-             window.showNotification('No se detectaron credenciales en la imagen.', 'warning');
+          for (const modelName of uniqueModels) {
+              try {
+                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                  const res = await fetch(apiUrl, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                  });
+                  
+                  if (res.ok) {
+                      result = await res.json();
+                      break;
+                  } else {
+                      const errData = await res.json().catch(() => ({}));
+                      lastErrorText = errData.error?.message || `HTTP ${res.status}`;
+                  }
+              } catch(netErr) {
+                  lastErrorText = netErr.message;
+              }
           }
+
+          if (!result || !result.candidates) {
+              throw new Error(lastErrorText || "No se recibió respuesta del servidor de Google.");
+          }
+
+          let jsonText = result.candidates[0].content.parts[0].text || '';
+          jsonText = jsonText.replace(/```json/gi, '').replace(/```javascript/gi, '').replace(/```/g, '').trim();
+          const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) jsonText = jsonMatch[0];
+
+          const config = JSON.parse(jsonText);
+
+          if(config.projectId) localStorage.setItem('DISTRI_FB_PROJECT_ID', config.projectId);
+          if(config.apiKey) localStorage.setItem('DISTRI_FB_API_KEY', config.apiKey);
+          if(config.authDomain) localStorage.setItem('DISTRI_FB_AUTH_DOMAIN', config.authDomain);
+          if(config.appId) localStorage.setItem('DISTRI_FB_APP_ID', config.appId);
+          if(config.storageBucket) localStorage.setItem('DISTRI_FB_STORAGE_BUCKET', config.storageBucket);
+          
+          window.showNotification('Credenciales extraídas. Conectando a la nube...', 'success');
+          initFirebaseClient(); 
         } catch (err) {
           console.error(err);
-          window.showNotification('Error. Verifica tu conexión o revisa que tu clave de Gemini sea válida.', 'error');
+          window.showNotification('Error al escanear: ' + err.message, 'error');
         } finally {
-          event.target.value = ''; // Resetea el input para poder subir otra foto después
+          event.target.value = '';
         }
       };
       reader.readAsDataURL(file);
@@ -2264,60 +2357,79 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          // Forzar actualización de caché obligatoria
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
+          if (!apiKey) throw new Error("Falta la Clave API de Gemini en Ajustes.");
+
+          const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.5-flash';
+          let savedList = [];
+          try { savedList = JSON.parse(localStorage.getItem('DISTRI_GEMINI_MODELS_LIST') || '[]'); } catch(err) {}
+          
+          const fallbackCandidates = [
+              'gemini-2.5-flash',
+              'gemini-2.0-flash',
+              savedModel,
+              'gemini-1.5-flash',
+              ...savedList.filter(m => m.includes('gemini'))
+          ];
+          const uniqueModels = [...new Set(fallbackCandidates.filter(Boolean))];
 
           const payload = {
             contents: [{
               role: "user",
               parts: [
-                { text: "Extract the firebaseConfig details from this image. Return a JSON object with these keys exactly." },
+                { text: "Extract the firebase config variables from this image. You MUST return ONLY a strictly valid JSON object. Ensure all keys (apiKey, authDomain, projectId, storageBucket, appId) and string values are enclosed in double quotes. Do not include variable declarations like 'const' or markdown backticks. Just the JSON object." },
                 { inlineData: { mimeType: file.type, data: base64String } }
               ]
             }],
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "OBJECT",
-                    properties: {
-                        apiKey: { type: "STRING" },
-                        authDomain: { type: "STRING" },
-                        projectId: { type: "STRING" },
-                        storageBucket: { type: "STRING" },
-                        appId: { type: "STRING" }
-                    }
-                }
-            }
+            generationConfig: { temperature: 0.1 }
           };
 
-          const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          let result = null;
+          let lastErrorText = '';
 
-          if (!res.ok) throw new Error("API Request Failed");
-          
-          const result = await res.json();
-          if (result.candidates && result.candidates.length > 0) {
-             const jsonText = result.candidates[0].content.parts[0].text;
-             const config = JSON.parse(jsonText);
+          for (const modelName of uniqueModels) {
+              try {
+                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                  const res = await fetch(apiUrl, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                  });
 
-             if(config.projectId) document.getElementById('fc-project-id').value = config.projectId;
-             if(config.apiKey) document.getElementById('fc-api-key').value = config.apiKey;
-             if(config.authDomain) document.getElementById('fc-auth-domain').value = config.authDomain;
-             if(config.appId) document.getElementById('fc-app-id-field').value = config.appId;
-             if(config.storageBucket) document.getElementById('fc-storage-bucket').value = config.storageBucket;
-             window.showNotification('Credenciales leídas con éxito desde la imagen.', 'success');
-          } else {
-             window.showNotification('No se detectaron credenciales en la imagen.', 'warning');
+                  if (res.ok) {
+                      result = await res.json();
+                      break;
+                  } else {
+                      const errData = await res.json().catch(() => ({}));
+                      lastErrorText = errData.error?.message || `HTTP ${res.status}`;
+                  }
+              } catch(netErr) {
+                  lastErrorText = netErr.message;
+              }
           }
+
+          if (!result || !result.candidates) {
+              throw new Error(lastErrorText || "Fallo al conectar con Google Vision.");
+          }
+          
+          let jsonText = result.candidates[0].content.parts[0].text || '';
+          jsonText = jsonText.replace(/```json/gi, '').replace(/```javascript/gi, '').replace(/```/g, '').trim();
+          const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) jsonText = jsonMatch[0];
+
+          const config = JSON.parse(jsonText);
+
+          if(config.projectId) document.getElementById('fc-project-id').value = config.projectId;
+          if(config.apiKey) document.getElementById('fc-api-key').value = config.apiKey;
+          if(config.authDomain) document.getElementById('fc-auth-domain').value = config.authDomain;
+          if(config.appId) document.getElementById('fc-app-id-field').value = config.appId;
+          if(config.storageBucket) document.getElementById('fc-storage-bucket').value = config.storageBucket;
+          window.showNotification('Credenciales leídas con éxito desde la imagen.', 'success');
         } catch (err) {
           console.error(err);
-          window.showNotification('Error al analizar la imagen. Asegúrate de tener una Clave API de Gemini válida configurada.', 'error');
+          window.showNotification('Error: ' + err.message, 'error');
         } finally {
           if (statusEl) statusEl.classList.add('hidden');
-          event.target.value = ''; // Reset input
+          event.target.value = ''; 
         }
       };
       reader.readAsDataURL(file);
@@ -5190,30 +5302,175 @@
       }, 150);
     }
 
-    // --- AI Assistant Logic ---
+    // --- AI Assistant Logic (Gemini Mobile UI + Voice) ---
     let aiChatHistory = [];
+    let speechRecognition = null;
+    let isListening = false;
 
-    function toggleAIChat() {
-      const panel = document.getElementById('ai-chat-panel');
-      if (panel.classList.contains('translate-x-full')) {
-        panel.classList.remove('translate-x-full');
-      } else {
-        panel.classList.add('translate-x-full');
-      }
+    function initSpeech() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.warn("Reconocimiento de voz no soportado en este navegador.");
+            return false;
+        }
+        const SpeechReg = window.SpeechRecognition || window.webkitSpeechRecognition;
+        speechRecognition = new SpeechReg();
+        speechRecognition.continuous = false;
+        speechRecognition.interimResults = true;
+        speechRecognition.lang = 'es-PA'; 
+        
+        speechRecognition.onstart = () => {
+            isListening = true;
+            document.getElementById('gemini-status-text').innerText = "Te escucho...";
+            document.getElementById('gemini-glow-1').classList.remove('hidden');
+            document.getElementById('gemini-glow-2').classList.remove('hidden');
+        };
+        
+        speechRecognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            
+            const inputEl = document.getElementById('gemini-input');
+            if (interimTranscript) {
+                inputEl.value = interimTranscript;
+            }
+            if (finalTranscript) {
+                inputEl.value = finalTranscript;
+                stopGeminiListening();
+                // Simular el envío cuando el usuario termina de hablar
+                handleGeminiSubmit(new Event('submit'));
+            }
+        };
+        
+        speechRecognition.onend = () => {
+            isListening = false;
+            document.getElementById('gemini-status-text').innerText = "Toca el micrófono para hablar";
+            document.getElementById('gemini-glow-1').classList.add('hidden');
+            document.getElementById('gemini-glow-2').classList.add('hidden');
+        };
+        
+        speechRecognition.onerror = (event) => {
+            console.warn('Speech error:', event.error);
+            stopGeminiListening();
+        };
+        return true;
     }
 
-    async function handleAISubmit(e) {
+    window.openGeminiSheet = function() {
+        // Actualizar el título dinámico con el nombre de la empresa
+        const fullBrandName = (appSettings.brandPart1 || 'Cerveza') + (appSettings.brandPart2 || 'Logix');
+        const titleEl = document.getElementById('gemini-sheet-title');
+        if(titleEl) titleEl.innerText = fullBrandName + ' AI';
+
+        const backdrop = document.getElementById('gemini-backdrop');
+        const sheet = document.getElementById('gemini-sheet');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+        sheet.classList.remove('translate-y-full');
+        
+        stopGeminiSpeechAndAudio();
+        
+        // Iniciar micrófono automáticamente al abrir el panel
+        if (!speechRecognition) initSpeech();
+        startGeminiListening();
+    };
+
+    window.closeGeminiSheet = function() {
+        const backdrop = document.getElementById('gemini-backdrop');
+        const sheet = document.getElementById('gemini-sheet');
+        sheet.classList.add('translate-y-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+        
+        stopGeminiListening();
+        stopGeminiSpeechAndAudio();
+    };
+
+    window.startGeminiListening = function() {
+        stopGeminiSpeechAndAudio();
+        if (speechRecognition && !isListening) {
+            try {
+                document.getElementById('gemini-input').value = '';
+                document.getElementById('gemini-listening-view').classList.remove('hidden');
+                document.getElementById('gemini-listening-view').classList.remove('opacity-0');
+                document.getElementById('gemini-chat-history').classList.add('hidden');
+                speechRecognition.start();
+            } catch(e) {}
+        }
+    };
+
+    window.stopGeminiListening = function() {
+        if (speechRecognition && isListening) {
+            try { speechRecognition.stop(); } catch(e) {}
+        }
+    };
+
+    window.stopGeminiSpeechAndAudio = function() {
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+        document.getElementById('gemini-stop-btn').classList.add('hidden');
+    };
+
+    // Detener escucha si el usuario hace clic en el input para escribir
+    document.getElementById('gemini-input')?.addEventListener('focus', () => {
+        stopGeminiListening();
+        switchToChatView();
+    });
+
+    function switchToChatView() {
+        document.getElementById('gemini-listening-view').classList.add('opacity-0');
+        setTimeout(() => {
+            document.getElementById('gemini-listening-view').classList.add('hidden');
+            document.getElementById('gemini-chat-history').classList.remove('hidden');
+        }, 300);
+    }
+
+    function speakGeminiText(text) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        
+        // Limpiar el texto de Markdown y emojis para que se lea natural y fluido
+        const cleanText = text.replace(/[*#_]/g, '').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+
+        const utter = new SpeechSynthesisUtterance(cleanText);
+        utter.lang = 'es-ES';
+        utter.rate = 1.05;
+        
+        // Intentar usar una voz amigable por defecto
+        const voices = window.speechSynthesis.getVoices();
+        const esVoices = voices.filter(v => v.lang.startsWith('es'));
+        const femaleVoice = esVoices.find(v => /mujer|female|monica|paulina|helena|sabina|lucia/i.test(v.name));
+        if (femaleVoice) utter.voice = femaleVoice;
+        else if (esVoices.length > 0) utter.voice = esVoices[0];
+        
+        // Mostrar botón de "Detener audio" mientras habla
+        utter.onstart = () => document.getElementById('gemini-stop-btn').classList.remove('hidden');
+        utter.onend = () => document.getElementById('gemini-stop-btn').classList.add('hidden');
+        utter.onerror = () => document.getElementById('gemini-stop-btn').classList.add('hidden');
+
+        window.speechSynthesis.speak(utter);
+    }
+
+    window.handleGeminiSubmit = async function(e) {
       e.preventDefault();
-      const inputEl = document.getElementById('ai-input');
+      const inputEl = document.getElementById('gemini-input');
       const msg = inputEl.value.trim();
       if (!msg) return;
+
+      stopGeminiListening();
+      switchToChatView();
 
       appendChatMessage('user', msg);
       aiChatHistory.push({ role: "user", parts: [{ text: msg }] });
       
       inputEl.value = '';
       inputEl.disabled = true;
-      document.getElementById('ai-submit-btn').disabled = true;
+      document.getElementById('gemini-submit-btn').disabled = true;
 
       const loadingId = appendChatLoading();
 
@@ -5221,9 +5478,10 @@
         const totalSales = orders.filter(o => o.status !== 'Cancelado').reduce((sum, o) => sum + Number(o.total || 0), 0);
         const lowStockProducts = products.filter(p => Number(p.stock) <= Number(p.minStock));
         const activeDrivers = drivers.filter(d => d.status === 'En Ruta');
+        const fullBrandName = (appSettings.brandPart1 || 'Cerveza') + (appSettings.brandPart2 || 'Logix');
 
         const contextStr = `
-Datos actuales del sistema (CervezaLogix ERP):
+Datos actuales del sistema (${fullBrandName} ERP):
 - Ventas Totales Facturadas: $${totalSales.toFixed(2)}
 - Órdenes Totales: ${orders.length}
 - Órdenes Pendientes o En Preparación: ${orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación').length}
@@ -5232,83 +5490,114 @@ Datos actuales del sistema (CervezaLogix ERP):
 - Productos con Bajo Stock (Crítico): ${lowStockProducts.length} (${lowStockProducts.map(p => p.name).join(', ')})
         `;
 
-        const systemPrompt = "Eres un asistente inteligente de ERP llamado CervezaLogix AI, impulsado por Gemini. Ayudas al administrador de la distribuidora respondiendo preguntas sobre ventas, inventario, logística y uso del sistema basándote en los datos proporcionados. Sé breve, amable y muy profesional. Evita respuestas excesivamente largas.\n\n" + contextStr;
+        const systemPrompt = `Eres un asistente inteligente de ERP de la empresa "${fullBrandName}". Te llamas "${fullBrandName} AI". Ayudas al administrador respondiendo preguntas sobre ventas, inventario y logística basándote en estos datos. Tu prioridad es hablar, así que sé breve, muy conversacional, cálido y amable. Responde en 1 o 2 párrafos cortos máximo.\n\n` + contextStr;
 
         const payload = {
-          contents: aiChatHistory,
-          systemInstruction: { parts: [{ text: systemPrompt }] }
+          contents: [
+            { role: "user", parts: [{ text: systemPrompt }] },
+            { role: "model", parts: [{ text: "Entendido, utilizaré estos datos para responderte brevemente." }] },
+            ...aiChatHistory
+          ]
         };
 
         const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
         if (!apiKey) {
-          throw new Error("Falta la Clave API de Gemini. Por favor configúrala en la pestaña de Ajustes.");
+          throw new Error("Falta la Clave API de Gemini. Por favor configúrala en Ajustes.");
         }
 
-        // Forzar actualización de caché obligatoria
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.0-flash';
+        let savedList = [];
+        try { savedList = JSON.parse(localStorage.getItem('DISTRI_GEMINI_MODELS_LIST') || '[]'); } catch(err) {}
         
-        if (!response.ok) {
-           const errData = await response.json();
-           throw new Error(errData.error?.message || "Error al conectar con la API de Google.");
+        const fallbackCandidates = [
+            'gemini-2.0-flash',
+            savedModel,
+            'gemini-2.5-flash',
+            'gemini-2.0-flash-lite',
+            'gemini-1.5-flash',
+            ...savedList.filter(m => m.includes('gemini'))
+        ];
+        const uniqueModels = [...new Set(fallbackCandidates.filter(Boolean))];
+
+        let result = null;
+        let lastErrorText = '';
+
+        for (const modelName of uniqueModels) {
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    result = await response.json();
+                    localStorage.setItem('DISTRI_GEMINI_MODEL', modelName);
+                    break;
+                } else {
+                    const errData = await response.json().catch(() => ({}));
+                    lastErrorText = errData.error?.message || `HTTP ${response.status}`;
+                }
+            } catch (netErr) {
+                lastErrorText = netErr.message;
+            }
         }
 
-        const result = await response.json();
+        if (!result) {
+            throw new Error(lastErrorText || "Error al conectar con la API tras probar todos los modelos disponibles.");
+        }
+
         const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!aiText) {
-           throw new Error("La API no devolvió texto. Puede deberse a un bloqueo de seguridad.");
+           throw new Error("La API no devolvió texto.");
         }
         
         aiChatHistory.push({ role: "model", parts: [{ text: aiText }] });
         
         removeChatLoading(loadingId);
         appendChatMessage('ai', aiText);
+        speakGeminiText(aiText);
 
       } catch (err) {
         console.error("AI API Error:", err);
         removeChatLoading(loadingId);
         appendChatMessage('ai', "Error: " + err.message);
-        aiChatHistory.pop(); // Remove the user message from history if API call failed
+        aiChatHistory.pop();
+        speakGeminiText("Lo siento, tuve un problema conectándome al servidor. Por favor, intenta de nuevo.");
       } finally {
         inputEl.disabled = false;
-        document.getElementById('ai-submit-btn').disabled = false;
-        inputEl.focus();
+        document.getElementById('gemini-submit-btn').disabled = false;
       }
-    }
+    };
 
     function appendChatMessage(sender, text) {
-      const container = document.getElementById('ai-chat-history');
+      const container = document.getElementById('gemini-chat-history');
       const div = document.createElement('div');
       
       if (sender === 'user') {
         div.className = "flex items-start gap-3 flex-row-reverse";
         div.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
             <i class="fa-solid fa-user text-xs"></i>
           </div>
-          <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-sm">
+          <div class="bg-slate-800 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm text-sm font-medium">
             ${escapeHtml(text)}
           </div>
         `;
       } else {
         div.className = "flex items-start gap-3";
-        // format text: bold formatting and line breaks
         let formattedText = escapeHtml(text)
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/\n/g, '<br>');
         
         div.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-robot text-xs"></i>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
           </div>
-          <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-sm text-slate-700">
+          <div class="bg-slate-50 p-3.5 rounded-2xl rounded-tl-none border border-slate-100 text-sm text-slate-700 shadow-sm font-medium">
             ${formattedText}
           </div>
         `;
@@ -5320,18 +5609,18 @@ Datos actuales del sistema (CervezaLogix ERP):
 
     function appendChatLoading() {
       const id = 'loading-' + Date.now();
-      const container = document.getElementById('ai-chat-history');
+      const container = document.getElementById('gemini-chat-history');
       const div = document.createElement('div');
       div.id = id;
       div.className = "flex items-start gap-3";
       div.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-          <i class="fa-solid fa-robot text-xs"></i>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
         </div>
-        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-sm text-slate-700 flex items-center gap-1.5">
-          <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></div>
-          <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
-          <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+        <div class="bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100 text-sm flex items-center gap-2 shadow-sm">
+          <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+          <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+          <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
         </div>
       `;
       container.appendChild(div);
@@ -5342,6 +5631,13 @@ Datos actuales del sistema (CervezaLogix ERP):
     function removeChatLoading(id) {
       const el = document.getElementById(id);
       if (el) el.remove();
+    }
+
+    // Asegurarnos de que las voces se carguen apenas abre la página
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
     }
 
     // App Initialization
