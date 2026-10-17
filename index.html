@@ -5476,54 +5476,76 @@
 
       try {
         const totalSales = orders.filter(o => o.status !== 'Cancelado').reduce((sum, o) => sum + Number(o.total || 0), 0);
-        const lowStockProducts = products.filter(p => Number(p.stock) <= Number(p.minStock));
         const activeDrivers = drivers.filter(d => d.status === 'En Ruta');
         const fullBrandName = (appSettings.brandPart1 || 'Cerveza') + (appSettings.brandPart2 || 'Logix');
 
-        const inventoryDetail = products.map(p => `- [${p.sku}] ${p.name} | Stock: ${p.stock} (Mín: ${p.minStock}) | Precio: $${Number(p.wholesalePrice||0).toFixed(2)}`).join('\n');
-        const clientsDetail = clients.map(c => `- ${c.name} | Deuda: $${Number(c.currentDebt||0).toFixed(2)} (Límite: $${Number(c.creditLimit||0).toFixed(2)}) | Ruta: ${c.route}`).join('\n');
+        const inventoryDetail = products.map(p => `- [${p.sku}] ${p.name} | Stock: ${p.stock} | Precio Base: $${Number(p.wholesalePrice||0).toFixed(2)}`).join('\n');
+        const clientsDetail = clients.map(c => `- ${c.name} | Deuda: $${Number(c.currentDebt||0).toFixed(2)} | Ruta: ${c.route}`).join('\n');
 
         const contextStr = `
 Datos actuales del sistema (${fullBrandName} ERP):
-
 [RESUMEN OPERATIVO]
 - Ventas Totales: $${totalSales.toFixed(2)}
-- Órdenes Totales: ${orders.length} (Pendientes: ${orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación').length})
-- Choferes en Ruta: ${activeDrivers.length} (${activeDrivers.map(d => d.name).join(', ')})
-
-[INVENTARIO DETALLADO (STOCK Y SKU)]
+- Órdenes Totales: ${orders.length}
+[INVENTARIO Y PRECIOS]
 ${inventoryDetail || 'Sin productos.'}
-
-[CARTERA DE CLIENTES Y CUENTAS POR COBRAR]
+[CLIENTES]
 ${clientsDetail || 'Sin clientes.'}
         `;
 
-        const systemPrompt = `Eres un asistente inteligente de ERP de la empresa "${fullBrandName}". Te llamas "${fullBrandName} AI". Ayudas al administrador respondiendo preguntas sobre ventas, inventario y logística basándote en estos datos. Puedes analizar deudas de clientes específicos o el stock exacto de productos particulares gracias a la información detallada provista en tu contexto. Tu prioridad es hablar, así que sé breve, muy conversacional, cálido y amable. Responde en 1 o 2 párrafos cortos máximo.\n\n` + contextStr;
+        const systemPrompt = `Eres el asistente inteligente del sistema "${fullBrandName}". Tienes permisos administrativos para facturar. 
+Si el usuario te pide crear una factura, orden o pedido (ej: "factúrale a Bar La Reina 3 cajas de Atlas a 30 dólares"), OBLIGATORIAMENTE debes usar la herramienta 'generar_factura_pedido' extrayendo el cliente y la lista de productos con sus cantidades.
+Si es una pregunta normal sobre el stock o el sistema, responde de forma amigable y conversacional en 1 o 2 párrafos cortos basados en los datos del contexto.\n\n` + contextStr;
+
+        // AQUÍ LE DAMOS EL SUPERPODER A GEMINI (FUNCTION CALLING)
+        const tools = [{
+          functionDeclarations: [
+            {
+              name: "generar_factura_pedido",
+              description: "Crea, registra e imprime una factura o pedido de venta para un cliente específico con los productos solicitados.",
+              parameters: {
+                type: "OBJECT",
+                properties: {
+                  nombre_cliente: { type: "STRING", description: "Nombre del cliente, bar, tienda o 'Consumidor Final' a facturar" },
+                  productos: {
+                    type: "ARRAY",
+                    description: "Lista de las cervezas, bebidas o snacks solicitados",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        nombre_producto: { type: "STRING", description: "Nombre o marca del producto (ej: Solana, Atlas Golden, Manga Larga)" },
+                        cantidad: { type: "NUMBER", description: "Cantidad de cajas o bultos a facturar" },
+                        precio_unitario: { type: "NUMBER", description: "Precio unitario indicado por el usuario. Si no se indica, déjalo vacío." }
+                      },
+                      required: ["nombre_producto", "cantidad"]
+                    }
+                  }
+                },
+                required: ["nombre_cliente", "productos"]
+              }
+            }
+          ]
+        }];
 
         const payload = {
           contents: [
             { role: "user", parts: [{ text: systemPrompt }] },
-            { role: "model", parts: [{ text: "Entendido, utilizaré estos datos para responderte brevemente." }] },
+            { role: "model", parts: [{ text: "Entendido, estoy conectado al sistema ERP y listo para analizar datos o generar facturas." }] },
             ...aiChatHistory
-          ]
+          ],
+          tools: tools,
+          generationConfig: { temperature: 0.2 }
         };
 
         const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-        if (!apiKey) {
-          throw new Error("Falta la Clave API de Gemini. Por favor configúrala en Ajustes.");
-        }
+        if (!apiKey) throw new Error("Falta la Clave API de Gemini. Por favor configúrala en Ajustes.");
 
         const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.0-flash';
         let savedList = [];
         try { savedList = JSON.parse(localStorage.getItem('DISTRI_GEMINI_MODELS_LIST') || '[]'); } catch(err) {}
         
         const fallbackCandidates = [
-            'gemini-2.0-flash',
-            savedModel,
-            'gemini-2.5-flash',
-            'gemini-2.0-flash-lite',
-            'gemini-1.5-flash',
-            ...savedList.filter(m => m.includes('gemini'))
+            'gemini-2.0-flash', savedModel, 'gemini-2.5-flash', 'gemini-1.5-flash', ...savedList.filter(m => m.includes('gemini'))
         ];
         const uniqueModels = [...new Set(fallbackCandidates.filter(Boolean))];
 
@@ -5552,28 +5574,132 @@ ${clientsDetail || 'Sin clientes.'}
             }
         }
 
-        if (!result) {
-            throw new Error(lastErrorText || "Error al conectar con la API tras probar todos los modelos disponibles.");
+        if (!result || !result.candidates) {
+            throw new Error(lastErrorText || "Error de conexión. Intenta de nuevo.");
         }
 
-        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!aiText) {
-           throw new Error("La API no devolvió texto.");
+        const responsePart = result.candidates[0].content.parts[0];
+
+        // 1. EVALUAR SI GEMINI DECIDIÓ EJECUTAR LA HERRAMIENTA DE FACTURACIÓN
+        if (responsePart.functionCall && responsePart.functionCall.name === "generar_factura_pedido") {
+           const args = responsePart.functionCall.args;
+           
+           // A. Encontrar al cliente
+           let matchedClient = clients.find(c => c.name.toLowerCase().includes(args.nombre_cliente.toLowerCase()));
+           let clientId = matchedClient ? matchedClient.id : 'GENERICO';
+           let clientName = matchedClient ? matchedClient.name : args.nombre_cliente;
+
+           let cartItems = [];
+           let subtotal = 0;
+
+           // B. Procesar la lista de productos dictados por la IA
+           if (args.productos && args.productos.length > 0) {
+             args.productos.forEach(pReq => {
+                // Buscamos coincidencia aproximada en inventario
+                let matchedProd = products.find(p => p.name.toLowerCase().includes(pReq.nombre_producto.toLowerCase()) || p.sku.toLowerCase().includes(pReq.nombre_producto.toLowerCase()));
+                
+                // Si la IA no pasa precio, usamos el del sistema. Si lo pasa, usamos el que dictaste.
+                let priceToUse = pReq.precio_unitario || (matchedProd ? matchedProd.wholesalePrice : 0);
+                
+                if (matchedProd) {
+                   cartItems.push({
+                     id: matchedProd.id,
+                     sku: matchedProd.sku,
+                     name: matchedProd.name,
+                     price: priceToUse,
+                     quantity: pReq.cantidad,
+                     batchAssigned: 'L-IA-BOT',
+                     isCold: false,
+                     requiresEmpty: false,
+                     note: 'Facturado vía Voz/IA',
+                     isCustom: false
+                   });
+                   // Descontamos del inventario físico
+                   matchedProd.stock = Math.max(0, matchedProd.stock - pReq.cantidad);
+                } else {
+                   // Si el producto no existe, lo agrega como "Artículo Libre"
+                   cartItems.push({
+                     id: 'CUSTOM-IA-' + Date.now(),
+                     sku: 'ART-LIBRE',
+                     name: pReq.nombre_producto,
+                     price: priceToUse,
+                     quantity: pReq.cantidad,
+                     batchAssigned: 'N/A',
+                     isCold: false,
+                     requiresEmpty: false,
+                     note: 'Artículo dictado fuera de catálogo',
+                     isCustom: true
+                   });
+                }
+                subtotal += (pReq.cantidad * priceToUse);
+             });
+           }
+
+           // C. Cálculos financieros y creación de la orden
+           const tax = subtotal * 0.16;
+           const total = subtotal + tax;
+           const newId = `ORD-${1000 + orders.length + 1}`;
+
+           const newOrder = {
+              id: newId,
+              clientId: clientId,
+              clientName: clientName,
+              clientTax: matchedClient ? matchedClient.taxId : 'C/F',
+              clientAddress: matchedClient ? matchedClient.address : 'Facturación Rápida IA',
+              date: new Date().toISOString().split('T')[0],
+              driver: 'Retiro en Bodega',
+              paymentMethod: 'Efectivo',
+              status: 'En Preparación',
+              items: cartItems,
+              subtotal: subtotal,
+              discountRate: 0,
+              discountAmount: 0,
+              tax: tax,
+              total: total,
+              pod: null
+           };
+
+           // Guardamos la orden en el sistema y en la nube
+           orders.unshift(newOrder);
+           persistAll();
+           if (window.syncDocToCloud) window.syncDocToCloud('orders', newId, newOrder);
+           
+           // Refrescamos las vistas para que se vea reflejado el cambio de inventario y pedidos
+           renderDashboard();
+           renderOrdersList();
+           renderInventoryTable();
+
+           // D. Confirmación por voz y apertura de la factura
+           const successMsg = `¡Hecho! He generado la orden ${newId} para ${clientName} por un total de $${total.toFixed(2)}. Abriendo la factura ahora.`;
+           
+           // Mantenemos la lógica de la conversación para que Gemini sepa lo que hizo
+           aiChatHistory.push({ role: "model", parts: [{ functionCall: responsePart.functionCall }] });
+           aiChatHistory.push({ role: "function", parts: [{ functionResponse: { name: "generar_factura_pedido", response: { status: "success", order_id: newId, total: total } } }] });
+           
+           removeChatLoading(loadingId);
+           appendChatMessage('ai', successMsg);
+           speakGeminiText(successMsg);
+           
+           // ¡Magia! Cerramos la hoja de Gemini y abrimos la factura generada
+           closeGeminiSheet();
+           viewInvoice(newId);
+
+        } else if (responsePart.text) {
+           // 2. SI ES UNA CONVERSACIÓN NORMAL
+           const aiText = responsePart.text;
+           aiChatHistory.push({ role: "model", parts: [{ text: aiText }] });
+           
+           removeChatLoading(loadingId);
+           appendChatMessage('ai', aiText);
+           speakGeminiText(aiText);
         }
-        
-        aiChatHistory.push({ role: "model", parts: [{ text: aiText }] });
-        
-        removeChatLoading(loadingId);
-        appendChatMessage('ai', aiText);
-        speakGeminiText(aiText);
 
       } catch (err) {
         console.error("AI API Error:", err);
         removeChatLoading(loadingId);
         appendChatMessage('ai', "Error: " + err.message);
         aiChatHistory.pop();
-        speakGeminiText("Lo siento, tuve un problema conectándome al servidor. Por favor, intenta de nuevo.");
+        speakGeminiText("Lo siento, tuve un problema ejecutando la acción. Por favor, intenta de nuevo.");
       } finally {
         inputEl.disabled = false;
         document.getElementById('gemini-submit-btn').disabled = false;
