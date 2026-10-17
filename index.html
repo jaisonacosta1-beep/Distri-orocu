@@ -3576,46 +3576,50 @@
 
       activeCart.forEach(item => {
         const itemRow = document.createElement('div');
-        itemRow.className = "flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200 text-xs";
+        // PARCHE VISUAL: Convertimos la fila en un flex-col (columna) con mejor distribución
+        itemRow.className = "flex flex-col bg-white p-3 rounded-xl border border-slate-200 text-xs gap-3 mb-2 shadow-sm";
         
         const conditionText = getConditionText(item.isCold);
         
         itemRow.innerHTML = `
-          <div class="flex-1 min-w-0 pr-2">
-            <p class="font-bold text-slate-800 truncate">${escapeHtml(item.name)} <span class="ml-1 ${item.isCold ? 'text-blue-600' : 'text-slate-500'}">${conditionText}</span></p>
-            <div class="flex items-center gap-2 text-[10px] text-slate-400">
-              <span>$${item.price.toFixed(2)} c/u</span>
-                ${item.isCustom ? `<span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">Art. Libre</span>` : `<span class="text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Lote: ${item.batchAssigned}</span>`}
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-slate-800 leading-tight">
+                ${escapeHtml(item.name)} 
+                <span class="ml-1 ${item.isCold ? 'text-blue-600' : 'text-slate-500'}">${conditionText}</span>
+              </p>
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1">
+                <span class="font-medium">$${item.price.toFixed(2)} c/u</span>
+                ${item.isCustom ? `<span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Art. Libre</span>` : `<span class="text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">Lote: ${item.batchAssigned}</span>`}
               </div>
             </div>
-            <button onclick="modifyCartQuantity('${item.id}', -9999)" class="text-rose-400 hover:text-rose-600 p-1.5 bg-rose-50 hover:bg-rose-100 rounded-lg transition">
+            <button onclick="modifyCartQuantity('${item.id}', -9999)" class="shrink-0 text-rose-500 hover:text-rose-700 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition" title="Quitar">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
           
-          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <button onclick="toggleItemCold('${item.id}')" class="px-2 py-1 rounded-lg border text-[10px] font-bold transition-colors ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
-                <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
-              </button>
-              <button onclick="toggleItemEmpty('${item.id}')" class="px-2 py-1 rounded-lg border text-[10px] font-bold transition-colors ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
-                <i class="fa-solid fa-bottle-droplet ${item.requiresEmpty ? 'animate-bounce-short' : ''}"></i> ${item.requiresEmpty ? 'Trae Vacío' : 'Sin Vacío'}
-              </button>
-              <button onclick="promptItemNote('${item.id}')" class="px-2 py-1 rounded-lg border border-slate-200 bg-slate-100 text-slate-600 text-[10px] font-bold hover:bg-slate-200 transition-colors" title="${item.note ? escapeHtml(item.note) : 'Añadir nota'}">
-                <i class="fa-solid fa-comment-dots"></i> ${item.note ? 'Ver Nota' : 'Nota'}
-              </button>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50 shadow-sm overflow-hidden">
-                <button onclick="modifyCartQuantity('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-r border-slate-200">-</button>
-                <span class="w-8 text-center font-bold text-slate-800 text-xs">${item.quantity}</span>
-                <button onclick="modifyCartQuantity('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-l border-slate-200">+</button>
-              </div>
-              <span class="font-black text-slate-900 w-14 text-right text-sm">$${(item.quantity * item.price).toFixed(2)}</span>
-            </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="toggleItemCold('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
+              <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
+            </button>
+            <button onclick="toggleItemEmpty('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
+              <i class="fa-solid fa-bottle-droplet"></i> ${item.requiresEmpty ? 'Trae Vacío' : 'Sin Vacío'}
+            </button>
+            <button onclick="promptItemNote('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.note ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}" title="${item.note ? escapeHtml(item.note) : 'Añadir nota'}">
+              <i class="fa-solid fa-comment-dots"></i> ${item.note ? 'Ver Nota' : 'Nota'}
+            </button>
           </div>
-          ${item.note ? `<div class="text-[10px] text-slate-600 bg-amber-50 p-2 rounded-lg border border-amber-100 mt-2 font-medium italic"><i class="fa-solid fa-pen-clip text-amber-500 mr-1.5"></i>${escapeHtml(item.note)}</div>` : ''}
+
+          ${item.note ? `<div class="text-[10px] text-slate-700 bg-amber-50 p-2 rounded-lg border border-amber-200 leading-snug break-words whitespace-normal w-full"><i class="fa-solid fa-pen-clip text-amber-500 mr-1.5"></i>${escapeHtml(item.note)}</div>` : ''}
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50 shadow-sm overflow-hidden h-8">
+              <button onclick="modifyCartQuantity('${item.id}', -1)" class="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-r border-slate-200">-</button>
+              <span class="w-10 text-center font-bold text-slate-800 text-xs">${item.quantity}</span>
+              <button onclick="modifyCartQuantity('${item.id}', 1)" class="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-l border-slate-200">+</button>
+            </div>
+            <span class="font-black text-blue-600 text-sm">$${(item.quantity * item.price).toFixed(2)}</span>
+          </div>
         `;
         container.appendChild(itemRow);
       });
@@ -5588,14 +5592,30 @@ REGLAS VITALES PARA FACTURAR:
         if (responsePart.functionCall && responsePart.functionCall.name === "preparar_borrador_factura") {
            const args = responsePart.functionCall.args;
            
-           // A. Encontrar al cliente o asignarlo como Venta Rápida (Cliente Nuevo)
-           let matchedClient = clients.find(c => c.name.toLowerCase() === args.nombre_cliente.toLowerCase());
+           // A. Lógica Inteligente para Encontrar al Cliente o asignarlo como Venta Rápida (Cliente Nuevo)
+           // Limpiamos los nombres (sin tildes, minúsculas, sin espacios extra) para hacer la búsqueda precisa
+           const normalizeStr = (str) => String(str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+           const searchStr = normalizeStr(args.nombre_cliente);
+           
+           let matchedClient = clients.find(c => normalizeStr(c.name) === searchStr);
+           
            if (!matchedClient) {
-             matchedClient = clients.find(c => c.name.toLowerCase().includes(args.nombre_cliente.toLowerCase()));
+             matchedClient = clients.find(c => normalizeStr(c.name).includes(searchStr) || searchStr.includes(normalizeStr(c.name)));
+           }
+           
+           if (!matchedClient) {
+             const searchWords = searchStr.split(' ').filter(w => w.length > 3);
+             matchedClient = clients.find(c => {
+                 const clientNameNorm = normalizeStr(c.name);
+                 return searchWords.some(word => clientNameNorm.includes(word));
+             });
            }
            
            let clientId = matchedClient ? matchedClient.id : 'GENERICO';
            let genericName = matchedClient ? matchedClient.name : args.nombre_cliente;
+
+           // D. Actualizar la interfaz, navegar al POS PRIMERO! (Así se inicializan las opciones)
+           navigateTab('pos');
 
            // B. Preparar la pantalla de Preventa (Limpiar carrito anterior)
            clearCurrentCart();
@@ -5610,6 +5630,8 @@ REGLAS VITALES PARA FACTURAR:
                  if(genericInputContainer) genericInputContainer.classList.remove('hidden');
                  if(genericInput) genericInput.value = genericName;
              }
+             // Forzar a que la app y cualquier plugin detecten el cambio visualmente
+             clientSelect.dispatchEvent(new Event('change'));
            }
 
            // C. Procesar la lista de productos dictados por la IA
@@ -5650,9 +5672,8 @@ REGLAS VITALES PARA FACTURAR:
              });
            }
 
-           // D. Actualizar la interfaz, navegar al POS y confirmar a voz
+           // E. Actualizar el carrito visualmente
            renderCartUI();
-           navigateTab('pos');
 
            const successMsg = `¡Hecho! He preparado el pedido para ${genericName} en la pantalla de Preventa. Por favor, revisa que el carrito esté correcto y presiona "Generar Pedido" para confirmar.`;
            
