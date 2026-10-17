@@ -5493,29 +5493,33 @@ ${inventoryDetail || 'Sin productos.'}
 ${clientsDetail || 'Sin clientes.'}
         `;
 
-        const systemPrompt = `Eres el asistente inteligente del sistema "${fullBrandName}". Tienes permisos administrativos para facturar. 
-Si el usuario te pide crear una factura, orden o pedido (ej: "factúrale a Bar La Reina 3 cajas de Atlas a 30 dólares"), OBLIGATORIAMENTE debes usar la herramienta 'generar_factura_pedido' extrayendo el cliente y la lista de productos con sus cantidades.
-Si es una pregunta normal sobre el stock o el sistema, responde de forma amigable y conversacional en 1 o 2 párrafos cortos basados en los datos del contexto.\n\n` + contextStr;
+        const systemPrompt = `Eres el asistente inteligente del sistema "${fullBrandName}". Tienes permisos para preparar borradores de facturación y armar el carrito de compras.
+Si el usuario te pide crear una factura, orden o pedido, OBLIGATORIAMENTE debes usar la herramienta 'preparar_borrador_factura'.
+REGLAS VITALES PARA FACTURAR:
+1. Si el nombre del cliente se parece a varios en la base de datos y no estás seguro de cuál es, NO llames a la herramienta; pregúntale primero al usuario a cuál se refiere.
+2. Si el cliente no existe definitivamente en la base de datos, asume que es un cliente nuevo y llama a la herramienta con el nombre que te dictaron. El sistema lo agregará como Venta Rápida.
+3. Puedes facturar productos que no estén en el inventario. Si el usuario te pide algo que no ves en el stock (ej. hielo, vasos, servicio), añádelo de igual forma y el sistema lo registrará como artículo libre.
+4. Tu acción armará el carrito en la pantalla de Punto de Venta para que el usuario confirme todo antes de emitir la factura final.\n\n` + contextStr;
 
         // AQUÍ LE DAMOS EL SUPERPODER A GEMINI (FUNCTION CALLING)
         const tools = [{
           functionDeclarations: [
             {
-              name: "generar_factura_pedido",
-              description: "Crea, registra e imprime una factura o pedido de venta para un cliente específico con los productos solicitados.",
+              name: "preparar_borrador_factura",
+              description: "Prepara un carrito de compras en la pantalla de Punto de Venta con los productos y el cliente para que el usuario lo revise y confirme.",
               parameters: {
                 type: "OBJECT",
                 properties: {
-                  nombre_cliente: { type: "STRING", description: "Nombre del cliente, bar, tienda o 'Consumidor Final' a facturar" },
+                  nombre_cliente: { type: "STRING", description: "Nombre del cliente a facturar. Si no existe, pon el nombre exacto que dictó el usuario." },
                   productos: {
                     type: "ARRAY",
-                    description: "Lista de las cervezas, bebidas o snacks solicitados",
+                    description: "Lista de productos o artículos solicitados",
                     items: {
                       type: "OBJECT",
                       properties: {
-                        nombre_producto: { type: "STRING", description: "Nombre o marca del producto (ej: Solana, Atlas Golden, Manga Larga)" },
-                        cantidad: { type: "NUMBER", description: "Cantidad de cajas o bultos a facturar" },
-                        precio_unitario: { type: "NUMBER", description: "Precio unitario indicado por el usuario. Si no se indica, déjalo vacío." }
+                        nombre_producto: { type: "STRING", description: "Nombre del producto (ej: Atlas, Hielo, Vasos)" },
+                        cantidad: { type: "NUMBER", description: "Cantidad solicitada" },
+                        precio_unitario: { type: "NUMBER", description: "Precio unitario (opcional, el sistema lo buscará en el catálogo si no se envía)" }
                       },
                       required: ["nombre_producto", "cantidad"]
                     }
@@ -5530,14 +5534,14 @@ Si es una pregunta normal sobre el stock o el sistema, responde de forma amigabl
         const payload = {
           contents: [
             { role: "user", parts: [{ text: systemPrompt }] },
-            { role: "model", parts: [{ text: "Entendido, estoy conectado al sistema ERP y listo para analizar datos o generar facturas." }] },
+            { role: "model", parts: [{ text: "Entendido, estoy conectado al sistema ERP y listo para analizar datos o preparar borradores de factura." }] },
             ...aiChatHistory
           ],
           tools: tools,
           generationConfig: { temperature: 0.2 }
         };
 
-        const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
+        const apiKey = ((appSettings && appSettings.geminiKey) ? appSettings.geminiKey : localStorage.getItem('DISTRI_GEMINI_KEY') || "").trim().replace(/[\s\n\r]/g, '');
         if (!apiKey) throw new Error("Falta la Clave API de Gemini. Por favor configúrala en Ajustes.");
 
         const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.0-flash';
@@ -5581,28 +5585,42 @@ Si es una pregunta normal sobre el stock o el sistema, responde de forma amigabl
         const responsePart = result.candidates[0].content.parts[0];
 
         // 1. EVALUAR SI GEMINI DECIDIÓ EJECUTAR LA HERRAMIENTA DE FACTURACIÓN
-        if (responsePart.functionCall && responsePart.functionCall.name === "generar_factura_pedido") {
+        if (responsePart.functionCall && responsePart.functionCall.name === "preparar_borrador_factura") {
            const args = responsePart.functionCall.args;
            
-           // A. Encontrar al cliente
-           let matchedClient = clients.find(c => c.name.toLowerCase().includes(args.nombre_cliente.toLowerCase()));
+           // A. Encontrar al cliente o asignarlo como Venta Rápida (Cliente Nuevo)
+           let matchedClient = clients.find(c => c.name.toLowerCase() === args.nombre_cliente.toLowerCase());
+           if (!matchedClient) {
+             matchedClient = clients.find(c => c.name.toLowerCase().includes(args.nombre_cliente.toLowerCase()));
+           }
+           
            let clientId = matchedClient ? matchedClient.id : 'GENERICO';
-           let clientName = matchedClient ? matchedClient.name : args.nombre_cliente;
+           let genericName = matchedClient ? matchedClient.name : args.nombre_cliente;
 
-           let cartItems = [];
-           let subtotal = 0;
+           // B. Preparar la pantalla de Preventa (Limpiar carrito anterior)
+           clearCurrentCart();
+           const clientSelect = document.getElementById('posClientSelect');
+           if (clientSelect) {
+             clientSelect.value = clientId;
+             updatePosClientDetails();
+             if (clientId === 'GENERICO') {
+                 // Si es un cliente inventado o nuevo, lo escribimos en el contenedor dinámico
+                 const genericInputContainer = document.getElementById('posGenericNameContainer');
+                 const genericInput = document.getElementById('posGenericClientName');
+                 if(genericInputContainer) genericInputContainer.classList.remove('hidden');
+                 if(genericInput) genericInput.value = genericName;
+             }
+           }
 
-           // B. Procesar la lista de productos dictados por la IA
+           // C. Procesar la lista de productos dictados por la IA
            if (args.productos && args.productos.length > 0) {
              args.productos.forEach(pReq => {
-                // Buscamos coincidencia aproximada en inventario
                 let matchedProd = products.find(p => p.name.toLowerCase().includes(pReq.nombre_producto.toLowerCase()) || p.sku.toLowerCase().includes(pReq.nombre_producto.toLowerCase()));
                 
-                // Si la IA no pasa precio, usamos el del sistema. Si lo pasa, usamos el que dictaste.
-                let priceToUse = pReq.precio_unitario || (matchedProd ? matchedProd.wholesalePrice : 0);
+                let priceToUse = pReq.precio_unitario || (matchedProd ? matchedProd.wholesalePrice : 1.00);
                 
                 if (matchedProd) {
-                   cartItems.push({
+                   activeCart.push({
                      id: matchedProd.id,
                      sku: matchedProd.sku,
                      name: matchedProd.name,
@@ -5611,15 +5629,13 @@ Si es una pregunta normal sobre el stock o el sistema, responde de forma amigabl
                      batchAssigned: 'L-IA-BOT',
                      isCold: false,
                      requiresEmpty: false,
-                     note: 'Facturado vía Voz/IA',
+                     note: 'Agregado vía Asistente de Voz',
                      isCustom: false
                    });
-                   // Descontamos del inventario físico
-                   matchedProd.stock = Math.max(0, matchedProd.stock - pReq.cantidad);
                 } else {
-                   // Si el producto no existe, lo agrega como "Artículo Libre"
-                   cartItems.push({
-                     id: 'CUSTOM-IA-' + Date.now(),
+                   // Si el producto no está en el catálogo, lo agrega como ARTÍCULO LIBRE
+                   activeCart.push({
+                     id: 'CUSTOM-IA-' + Date.now() + Math.random(),
                      sku: 'ART-LIBRE',
                      name: pReq.nombre_producto,
                      price: priceToUse,
@@ -5627,65 +5643,32 @@ Si es una pregunta normal sobre el stock o el sistema, responde de forma amigabl
                      batchAssigned: 'N/A',
                      isCold: false,
                      requiresEmpty: false,
-                     note: 'Artículo dictado fuera de catálogo',
+                     note: 'Artículo fuera de catálogo (Voz)',
                      isCustom: true
                    });
                 }
-                subtotal += (pReq.cantidad * priceToUse);
              });
            }
 
-           // C. Cálculos financieros y creación de la orden
-           const tax = subtotal * 0.16;
-           const total = subtotal + tax;
-           const newId = `ORD-${1000 + orders.length + 1}`;
+           // D. Actualizar la interfaz, navegar al POS y confirmar a voz
+           renderCartUI();
+           navigateTab('pos');
 
-           const newOrder = {
-              id: newId,
-              clientId: clientId,
-              clientName: clientName,
-              clientTax: matchedClient ? matchedClient.taxId : 'C/F',
-              clientAddress: matchedClient ? matchedClient.address : 'Facturación Rápida IA',
-              date: new Date().toISOString().split('T')[0],
-              driver: 'Retiro en Bodega',
-              paymentMethod: 'Efectivo',
-              status: 'En Preparación',
-              items: cartItems,
-              subtotal: subtotal,
-              discountRate: 0,
-              discountAmount: 0,
-              tax: tax,
-              total: total,
-              pod: null
-           };
-
-           // Guardamos la orden en el sistema y en la nube
-           orders.unshift(newOrder);
-           persistAll();
-           if (window.syncDocToCloud) window.syncDocToCloud('orders', newId, newOrder);
+           const successMsg = `¡Hecho! He preparado el pedido para ${genericName} en la pantalla de Preventa. Por favor, revisa que el carrito esté correcto y presiona "Generar Pedido" para confirmar.`;
            
-           // Refrescamos las vistas para que se vea reflejado el cambio de inventario y pedidos
-           renderDashboard();
-           renderOrdersList();
-           renderInventoryTable();
-
-           // D. Confirmación por voz y apertura de la factura
-           const successMsg = `¡Hecho! He generado la orden ${newId} para ${clientName} por un total de $${total.toFixed(2)}. Abriendo la factura ahora.`;
-           
-           // Mantenemos la lógica de la conversación para que Gemini sepa lo que hizo
+           // Retroalimentamos a la IA para que guarde en memoria lo que acaba de hacer
            aiChatHistory.push({ role: "model", parts: [{ functionCall: responsePart.functionCall }] });
-           aiChatHistory.push({ role: "function", parts: [{ functionResponse: { name: "generar_factura_pedido", response: { status: "success", order_id: newId, total: total } } }] });
+           aiChatHistory.push({ role: "function", parts: [{ functionResponse: { name: "preparar_borrador_factura", response: { status: "draft_prepared" } } }] });
            
            removeChatLoading(loadingId);
            appendChatMessage('ai', successMsg);
            speakGeminiText(successMsg);
            
-           // ¡Magia! Cerramos la hoja de Gemini y abrimos la factura generada
+           // Cerramos la hoja de Gemini para que el usuario vea el carrito
            closeGeminiSheet();
-           viewInvoice(newId);
 
         } else if (responsePart.text) {
-           // 2. SI ES UNA CONVERSACIÓN NORMAL
+           // 2. SI ES UNA CONVERSACIÓN NORMAL O ESTÁ PIDIENDO ACLARACIÓN DE CLIENTES
            const aiText = responsePart.text;
            aiChatHistory.push({ role: "model", parts: [{ text: aiText }] });
            
