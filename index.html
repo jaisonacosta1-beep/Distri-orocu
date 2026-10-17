@@ -818,9 +818,13 @@
                 <p class="text-xs text-slate-500" id="settings-cloud-description">Ingresa las credenciales de tu proyecto de Firebase para habilitar la sincronización en la nube.</p>
               </div>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2 justify-end">
+              <label class="cursor-pointer px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-camera"></i> Escanear Foto
+                <input type="file" accept="image/*" class="hidden" onchange="processFirebaseImageAndSave(event)">
+              </label>
               <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
-                <i class="fa-solid fa-gear"></i> Configurar Firebase
+                <i class="fa-solid fa-gear"></i> Manual
               </button>
               <button onclick="testFirebaseConnection()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
                 <i class="fa-solid fa-arrows-rotate mr-1"></i> Probar Conexión
@@ -841,6 +845,24 @@
               <span class="text-slate-400 uppercase font-bold text-[10px]">Estado de Sincronización</span>
               <p class="font-semibold text-slate-600" id="settings-sync-status">Desconectado (Ingresa tus credenciales)</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Configuración de Gemini API -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> Clave API de Gemini
+              </h4>
+              <p class="text-xs text-slate-500 mt-1">Necesario para el asistente virtual y la lectura de credenciales de Firebase por foto.</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <input type="password" id="pref-gemini-key" placeholder="AIzaSy..." class="flex-1 text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button onclick="saveGeminiKey()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2 shrink-0">
+              <i class="fa-solid fa-save"></i> Guardar
+            </button>
           </div>
         </div>
 
@@ -1596,6 +1618,21 @@
       </div>
 
       <form onsubmit="saveCustomFirebaseConfig(event)" class="space-y-3">
+        <!-- Scanner Firebase -->
+        <div class="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900 flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <p class="font-bold flex items-center gap-1">
+              <i class="fa-solid fa-camera-retro"></i> Autocompletar con Foto
+            </p>
+            <span id="fb-scan-status" class="text-[10px] text-purple-600 font-semibold hidden"><i class="fa-solid fa-spinner fa-spin"></i> Analizando...</span>
+          </div>
+          <p class="text-[10px] text-purple-700">Sube una captura de tu Firebase Config y la IA rellenará los datos.</p>
+          <label class="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-center font-bold py-2 rounded-lg transition shadow-sm relative">
+            Subir Captura de Credenciales
+            <input type="file" id="fbScreenshotInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="processFirebaseImage(event)">
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-semibold text-slate-700">Project ID <span class="text-rose-500">*</span></label>
           <input type="text" id="fc-project-id" required placeholder="ej: distribuidora-cervezas-12345" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none">
@@ -2138,6 +2175,152 @@
       }
     };
 
+    window.saveGeminiKey = function() {
+       const key = document.getElementById('pref-gemini-key').value.trim();
+       localStorage.setItem('DISTRI_GEMINI_KEY', key);
+       window.showNotification('Clave API de Gemini guardada correctamente.', 'success');
+    };
+
+    window.processFirebaseImageAndSave = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      window.showNotification('Analizando imagen con Inteligencia Artificial...', 'info');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64String = e.target.result.split(',')[1];
+        try {
+          const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+          const payload = {
+            contents: [{
+              role: "user",
+              parts: [
+                { text: "Extract the firebaseConfig details from this image. Return a JSON object with these keys exactly: apiKey, authDomain, projectId, storageBucket, appId" },
+                { inlineData: { mimeType: file.type, data: base64String } }
+              ]
+            }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        apiKey: { type: "STRING" },
+                        authDomain: { type: "STRING" },
+                        projectId: { type: "STRING" },
+                        storageBucket: { type: "STRING" },
+                        appId: { type: "STRING" }
+                    }
+                }
+            }
+          };
+
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) throw new Error("API Request Failed");
+          
+          const result = await res.json();
+          if (result.candidates && result.candidates.length > 0) {
+             const jsonText = result.candidates[0].content.parts[0].text;
+             const config = JSON.parse(jsonText);
+
+             if(config.projectId) localStorage.setItem('DISTRI_FB_PROJECT_ID', config.projectId);
+             if(config.apiKey) localStorage.setItem('DISTRI_FB_API_KEY', config.apiKey);
+             if(config.authDomain) localStorage.setItem('DISTRI_FB_AUTH_DOMAIN', config.authDomain);
+             if(config.appId) localStorage.setItem('DISTRI_FB_APP_ID', config.appId);
+             if(config.storageBucket) localStorage.setItem('DISTRI_FB_STORAGE_BUCKET', config.storageBucket);
+             
+             window.showNotification('Credenciales extraídas. Conectando a la nube...', 'success');
+             initFirebaseClient(); // Conecta inmediatamente a Firebase
+          } else {
+             window.showNotification('No se detectaron credenciales en la imagen.', 'warning');
+          }
+        } catch (err) {
+          console.error(err);
+          window.showNotification('Error. Verifica tu conexión o revisa que tu clave de Gemini sea válida.', 'error');
+        } finally {
+          event.target.value = ''; // Resetea el input para poder subir otra foto después
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.processFirebaseImage = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById('fb-scan-status');
+      if (statusEl) statusEl.classList.remove('hidden');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64String = e.target.result.split(',')[1];
+        try {
+          const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+          const payload = {
+            contents: [{
+              role: "user",
+              parts: [
+                { text: "Extract the firebaseConfig details from this image. Return a JSON object with these keys exactly." },
+                { inlineData: { mimeType: file.type, data: base64String } }
+              ]
+            }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        apiKey: { type: "STRING" },
+                        authDomain: { type: "STRING" },
+                        projectId: { type: "STRING" },
+                        storageBucket: { type: "STRING" },
+                        appId: { type: "STRING" }
+                    }
+                }
+            }
+          };
+
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) throw new Error("API Request Failed");
+          
+          const result = await res.json();
+          if (result.candidates && result.candidates.length > 0) {
+             const jsonText = result.candidates[0].content.parts[0].text;
+             const config = JSON.parse(jsonText);
+
+             if(config.projectId) document.getElementById('fc-project-id').value = config.projectId;
+             if(config.apiKey) document.getElementById('fc-api-key').value = config.apiKey;
+             if(config.authDomain) document.getElementById('fc-auth-domain').value = config.authDomain;
+             if(config.appId) document.getElementById('fc-app-id-field').value = config.appId;
+             if(config.storageBucket) document.getElementById('fc-storage-bucket').value = config.storageBucket;
+             window.showNotification('Credenciales leídas con éxito desde la imagen.', 'success');
+          } else {
+             window.showNotification('No se detectaron credenciales en la imagen.', 'warning');
+          }
+        } catch (err) {
+          console.error(err);
+          window.showNotification('Error al analizar la imagen. Asegúrate de tener una Clave API de Gemini válida configurada.', 'error');
+        } finally {
+          if (statusEl) statusEl.classList.add('hidden');
+          event.target.value = ''; // Reset input
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
     // Initialize immediately
     initFirebaseClient();
   </script>
@@ -2508,6 +2691,9 @@
       // Preferences
       document.getElementById('pref-non-cold-label').value = appSettings.nonColdLabel || 'AL CLIMA';
       document.getElementById('pref-credit-days').value = appSettings.defaultCreditDays || 15;
+
+      const geminiInput = document.getElementById('pref-gemini-key');
+      if (geminiInput) geminiInput.value = localStorage.getItem('DISTRI_GEMINI_KEY') || '';
 
       // Render Bots List
       const botsList = document.getElementById('settings-bots-list');
@@ -5052,7 +5238,7 @@ Datos actuales del sistema (CervezaLogix ERP):
           tools: [{ "google_search": {} }]
         };
 
-        const apiKey = "";
+        const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
