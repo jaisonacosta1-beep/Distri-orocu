@@ -3576,50 +3576,48 @@
 
       activeCart.forEach(item => {
         const itemRow = document.createElement('div');
-        // PARCHE VISUAL: Convertimos la fila en un flex-col (columna) con mejor distribución
-        itemRow.className = "flex flex-col bg-white p-3 rounded-xl border border-slate-200 text-xs gap-3 mb-2 shadow-sm";
+        // PARCHE VISUAL: Convertimos la fila en un flex-col (columna) para que en móviles no se aplaste
+        itemRow.className = "flex flex-col bg-white p-3 rounded-xl border border-slate-200 text-xs gap-2 shadow-sm mb-2";
         
         const conditionText = getConditionText(item.isCold);
         
         itemRow.innerHTML = `
-          <div class="flex justify-between items-start gap-2">
+          <div class="flex justify-between items-start w-full gap-2">
             <div class="flex-1 min-w-0">
-              <p class="font-bold text-slate-800 leading-tight">
-                ${escapeHtml(item.name)} 
-                <span class="ml-1 ${item.isCold ? 'text-blue-600' : 'text-slate-500'}">${conditionText}</span>
-              </p>
-              <div class="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1">
-                <span class="font-medium">$${item.price.toFixed(2)} c/u</span>
-                ${item.isCustom ? `<span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Art. Libre</span>` : `<span class="text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">Lote: ${item.batchAssigned}</span>`}
+              <p class="font-bold text-slate-800 whitespace-normal leading-tight">${escapeHtml(item.name)} <span class="inline-block ml-1 ${item.isCold ? 'text-blue-600' : 'text-slate-500'}">${conditionText}</span></p>
+              <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mt-1">
+                <span>$${item.price.toFixed(2)} c/u</span>
+                ${item.isCustom ? `<span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Art. Libre</span>` : `<span class="text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">Lote: ${item.batchAssigned}</span>`}
               </div>
             </div>
-            <button onclick="modifyCartQuantity('${item.id}', -9999)" class="shrink-0 text-rose-500 hover:text-rose-700 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition" title="Quitar">
+            <button onclick="modifyCartQuantity('${item.id}', -9999)" class="shrink-0 text-rose-400 hover:text-rose-600 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition" title="Quitar">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
           
-          <div class="flex flex-wrap gap-1.5">
-            <button onclick="toggleItemCold('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
-              <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
-            </button>
-            <button onclick="toggleItemEmpty('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
-              <i class="fa-solid fa-bottle-droplet"></i> ${item.requiresEmpty ? 'Trae Vacío' : 'Sin Vacío'}
-            </button>
-            <button onclick="promptItemNote('${item.id}')" class="px-2 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.note ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}" title="${item.note ? escapeHtml(item.note) : 'Añadir nota'}">
-              <i class="fa-solid fa-comment-dots"></i> ${item.note ? 'Ver Nota' : 'Nota'}
-            </button>
-          </div>
-
-          ${item.note ? `<div class="text-[10px] text-slate-700 bg-amber-50 p-2 rounded-lg border border-amber-200 leading-snug break-words whitespace-normal w-full"><i class="fa-solid fa-pen-clip text-amber-500 mr-1.5"></i>${escapeHtml(item.note)}</div>` : ''}
-
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-            <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50 shadow-sm overflow-hidden h-8">
-              <button onclick="modifyCartQuantity('${item.id}', -1)" class="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-r border-slate-200">-</button>
-              <span class="w-10 text-center font-bold text-slate-800 text-xs">${item.quantity}</span>
-              <button onclick="modifyCartQuantity('${item.id}', 1)" class="w-8 h-full flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-l border-slate-200">+</button>
+          <div class="mt-2 pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button onclick="toggleItemCold('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
+                <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
+              </button>
+              <button onclick="toggleItemEmpty('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
+                <i class="fa-solid fa-bottle-droplet ${item.requiresEmpty ? 'animate-bounce-short' : ''}"></i> ${item.requiresEmpty ? 'Trae Vacío' : 'Sin Vacío'}
+              </button>
+              <button onclick="promptItemNote('${item.id}')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-600 text-[10px] font-bold hover:bg-slate-200 transition-colors flex items-center gap-1" title="${item.note ? escapeHtml(item.note) : 'Añadir nota'}">
+                <i class="fa-solid fa-comment-dots"></i> ${item.note ? 'Ver Nota' : 'Nota'}
+              </button>
             </div>
-            <span class="font-black text-blue-600 text-sm">$${(item.quantity * item.price).toFixed(2)}</span>
+
+            <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+              <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50 shadow-sm overflow-hidden shrink-0">
+                <button onclick="modifyCartQuantity('${item.id}', -1)" class="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-r border-slate-200">-</button>
+                <span class="w-10 text-center font-bold text-slate-800 text-xs">${item.quantity}</span>
+                <button onclick="modifyCartQuantity('${item.id}', 1)" class="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold border-l border-slate-200">+</button>
+              </div>
+              <span class="font-black text-slate-900 text-right text-sm sm:text-base shrink-0">$${(item.quantity * item.price).toFixed(2)}</span>
+            </div>
           </div>
+          ${item.note ? `<div class="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-2 font-medium italic break-words w-full"><i class="fa-solid fa-pen-clip text-amber-500 mr-1.5"></i>${escapeHtml(item.note)}</div>` : ''}
         `;
         container.appendChild(itemRow);
       });
@@ -5614,10 +5612,10 @@ REGLAS VITALES PARA FACTURAR:
            let clientId = matchedClient ? matchedClient.id : 'GENERICO';
            let genericName = matchedClient ? matchedClient.name : args.nombre_cliente;
 
-           // D. Actualizar la interfaz, navegar al POS PRIMERO! (Así se inicializan las opciones)
+           // B. NAVEGAR AL POS PRIMERO: Esto renderiza los "select" antes de intentar asignarles un valor.
            navigateTab('pos');
 
-           // B. Preparar la pantalla de Preventa (Limpiar carrito anterior)
+           // C. Preparar la pantalla de Preventa (Limpiar carrito anterior)
            clearCurrentCart();
            const clientSelect = document.getElementById('posClientSelect');
            if (clientSelect) {
@@ -5634,7 +5632,7 @@ REGLAS VITALES PARA FACTURAR:
              clientSelect.dispatchEvent(new Event('change'));
            }
 
-           // C. Procesar la lista de productos dictados por la IA
+           // D. Procesar la lista de productos dictados por la IA
            if (args.productos && args.productos.length > 0) {
              args.productos.forEach(pReq => {
                 let matchedProd = products.find(p => p.name.toLowerCase().includes(pReq.nombre_producto.toLowerCase()) || p.sku.toLowerCase().includes(pReq.nombre_producto.toLowerCase()));
@@ -5672,7 +5670,7 @@ REGLAS VITALES PARA FACTURAR:
              });
            }
 
-           // E. Actualizar el carrito visualmente
+           // E. Actualizar la interfaz gráfica del carrito
            renderCartUI();
 
            const successMsg = `¡Hecho! He preparado el pedido para ${genericName} en la pantalla de Preventa. Por favor, revisa que el carrito esté correcto y presiona "Generar Pedido" para confirmar.`;
