@@ -5480,17 +5480,25 @@
         const activeDrivers = drivers.filter(d => d.status === 'En Ruta');
         const fullBrandName = (appSettings.brandPart1 || 'Cerveza') + (appSettings.brandPart2 || 'Logix');
 
+        const inventoryDetail = products.map(p => `- [${p.sku}] ${p.name} | Stock: ${p.stock} (Mín: ${p.minStock}) | Precio: $${Number(p.wholesalePrice||0).toFixed(2)}`).join('\n');
+        const clientsDetail = clients.map(c => `- ${c.name} | Deuda: $${Number(c.currentDebt||0).toFixed(2)} (Límite: $${Number(c.creditLimit||0).toFixed(2)}) | Ruta: ${c.route}`).join('\n');
+
         const contextStr = `
 Datos actuales del sistema (${fullBrandName} ERP):
-- Ventas Totales Facturadas: $${totalSales.toFixed(2)}
-- Órdenes Totales: ${orders.length}
-- Órdenes Pendientes o En Preparación: ${orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación').length}
+
+[RESUMEN OPERATIVO]
+- Ventas Totales: $${totalSales.toFixed(2)}
+- Órdenes Totales: ${orders.length} (Pendientes: ${orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación').length})
 - Choferes en Ruta: ${activeDrivers.length} (${activeDrivers.map(d => d.name).join(', ')})
-- Total Productos en Catálogo: ${products.length}
-- Productos con Bajo Stock (Crítico): ${lowStockProducts.length} (${lowStockProducts.map(p => p.name).join(', ')})
+
+[INVENTARIO DETALLADO (STOCK Y SKU)]
+${inventoryDetail || 'Sin productos.'}
+
+[CARTERA DE CLIENTES Y CUENTAS POR COBRAR]
+${clientsDetail || 'Sin clientes.'}
         `;
 
-        const systemPrompt = `Eres un asistente inteligente de ERP de la empresa "${fullBrandName}". Te llamas "${fullBrandName} AI". Ayudas al administrador respondiendo preguntas sobre ventas, inventario y logística basándote en estos datos. Tu prioridad es hablar, así que sé breve, muy conversacional, cálido y amable. Responde en 1 o 2 párrafos cortos máximo.\n\n` + contextStr;
+        const systemPrompt = `Eres un asistente inteligente de ERP de la empresa "${fullBrandName}". Te llamas "${fullBrandName} AI". Ayudas al administrador respondiendo preguntas sobre ventas, inventario y logística basándote en estos datos. Puedes analizar deudas de clientes específicos o el stock exacto de productos particulares gracias a la información detallada provista en tu contexto. Tu prioridad es hablar, así que sé breve, muy conversacional, cálido y amable. Responde en 1 o 2 párrafos cortos máximo.\n\n` + contextStr;
 
         const payload = {
           contents: [
