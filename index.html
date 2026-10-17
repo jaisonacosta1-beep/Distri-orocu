@@ -2192,8 +2192,8 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          // Forzar actualización de caché v2
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+          // Forzar actualización de caché obligatoria
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
 
           const payload = {
             contents: [{
@@ -2264,8 +2264,8 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          // Forzar actualización de caché v2
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+          // Forzar actualización de caché obligatoria
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
 
           const payload = {
             contents: [{
@@ -5244,8 +5244,8 @@ Datos actuales del sistema (CervezaLogix ERP):
           throw new Error("Falta la Clave API de Gemini. Por favor configúrala en la pestaña de Ajustes.");
         }
 
-        // Forzar actualización de caché v2
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Forzar actualización de caché obligatoria
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&t=${Date.now()}`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
