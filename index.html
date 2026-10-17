@@ -2192,7 +2192,8 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+          // Forzar actualización de caché v2
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
           const payload = {
             contents: [{
@@ -2263,7 +2264,8 @@
         const base64String = e.target.result.split(',')[1];
         try {
           const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+          // Forzar actualización de caché v2
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
           const payload = {
             contents: [{
@@ -5234,21 +5236,34 @@ Datos actuales del sistema (CervezaLogix ERP):
 
         const payload = {
           contents: aiChatHistory,
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          tools: [{ "google_search": {} }]
+          systemInstruction: { parts: [{ text: systemPrompt }] }
         };
 
         const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        if (!apiKey) {
+          throw new Error("Falta la Clave API de Gemini. Por favor configúrala en la pestaña de Ajustes.");
+        }
+
+        // Forzar actualización de caché v2
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        
+        if (!response.ok) {
+           const errData = await response.json();
+           throw new Error(errData.error?.message || "Error al conectar con la API de Google.");
+        }
 
         const result = await response.json();
-        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Lo siento, no pude generar una respuesta.";
+        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!aiText) {
+           throw new Error("La API no devolvió texto. Puede deberse a un bloqueo de seguridad.");
+        }
         
         aiChatHistory.push({ role: "model", parts: [{ text: aiText }] });
         
@@ -5258,7 +5273,7 @@ Datos actuales del sistema (CervezaLogix ERP):
       } catch (err) {
         console.error("AI API Error:", err);
         removeChatLoading(loadingId);
-        appendChatMessage('ai', "Error de conexión con Gemini API. Revisa tu conexión de red o vuelve a intentarlo más tarde.");
+        appendChatMessage('ai', "Error: " + err.message);
         aiChatHistory.pop(); // Remove the user message from history if API call failed
       } finally {
         inputEl.disabled = false;
