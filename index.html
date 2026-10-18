@@ -557,12 +557,15 @@
             </h3>
             <p class="text-xs text-slate-500">Pedidos ingresados por clientes desde el portal B2B, pendientes de revisión de stock y aprobación.</p>
           </div>
-          <button onclick="simulateIncomingOrder()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm px-4 py-2 rounded-xl flex items-center gap-2 transition shadow-sm active:scale-95 shrink-0">
+          <button id="btn-simulate-order" onclick="simulateIncomingOrder()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm px-4 py-2 rounded-xl flex items-center gap-2 transition shadow-sm active:scale-95 shrink-0">
             <i class="fa-solid fa-magic"></i> Simular Pedido de Cliente
           </button>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-bell text-rose-500"></i> Nuevos Pedidos (Por Aprobar)</h4>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
               <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold tracking-wider">
@@ -577,6 +580,29 @@
                 </tr>
               </thead>
               <tbody id="online-orders-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- NUEVO: Historial de Pedidos en Línea -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-8">
+          <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Historial de Pedidos B2B Procesados</h4>
+            <span class="text-xs text-slate-500">Pedidos previamente aprobados o rechazados</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Folio</th>
+                  <th class="py-3 px-4">Cliente</th>
+                  <th class="py-3 px-4">Fecha</th>
+                  <th class="py-3 px-4">Total</th>
+                  <th class="py-3 px-4 text-center">Estado Actual</th>
+                  <th class="py-3 px-4 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="online-orders-history-body" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
@@ -962,10 +988,33 @@
                 </button>
               </div>
             </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Botón "Simular Pedido"</label>
+              <select id="pref-enable-simulator" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none">
+                <option value="true">Activo (Mostrar botón)</option>
+                <option value="false">Oculto (Modo Producción)</option>
+              </select>
+            </div>
           </div>
           <button onclick="saveAppPreferences()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
             Guardar Preferencias
           </button>
+        </div>
+
+        <!-- Base de Datos y Mantenimiento (NUEVO) -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <h4 class="font-bold text-rose-600 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-database"></i> Mantenimiento y Limpieza del Sistema
+          </h4>
+          <p class="text-xs text-slate-500">Herramientas para limpiar el sistema de datos de prueba o empezar a trabajar con datos reales.</p>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button onclick="wipeAllData()" class="px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-trash-can"></i> Vaciar Todo el Sistema
+            </button>
+            <button onclick="resetDefaultData()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-rotate"></i> Restaurar Datos de Prueba
+            </button>
+          </div>
         </div>
 
         <!-- Personalizar Marca en Ajustes -->
@@ -2593,7 +2642,7 @@
     let html5QrScanner = null;
     let leafletMapInstance = null;
     let mapMarkers = [];
-    let appSettings = { nonColdLabel: 'AL CLIMA', defaultCreditDays: 15, alarmSound: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg' };
+    let appSettings = { nonColdLabel: 'AL CLIMA', defaultCreditDays: 15, alarmSound: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg', simulatorEnabled: true };
 
     // POD Drawing state
     let isDrawingSignature = false;
@@ -2792,6 +2841,11 @@
       if (sSettings) {
         try { appSettings = JSON.parse(sSettings); } catch(e){}
       }
+      
+      // Check default simulator state
+      if (appSettings.simulatorEnabled === undefined) {
+        appSettings.simulatorEnabled = true;
+      }
 
       // Initialize alarm audio source based on saved settings
       if (typeof orderAlarmAudio !== 'undefined') {
@@ -2799,6 +2853,7 @@
       }
 
       applyBrandSettings();
+      applySimulatorVisibility();
       persistAll();
     }
 
@@ -2937,6 +2992,7 @@
       document.getElementById('pref-non-cold-label').value = appSettings.nonColdLabel || 'AL CLIMA';
       document.getElementById('pref-credit-days').value = appSettings.defaultCreditDays || 15;
       document.getElementById('pref-alarm-sound').value = appSettings.alarmSound || 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
+      document.getElementById('pref-enable-simulator').value = appSettings.simulatorEnabled === false ? 'false' : 'true';
 
       const geminiInput = document.getElementById('pref-gemini-key');
       if (geminiInput) geminiInput.value = localStorage.getItem('DISTRI_GEMINI_KEY') || '';
@@ -3070,6 +3126,7 @@
       appSettings.nonColdLabel = document.getElementById('pref-non-cold-label').value;
       appSettings.defaultCreditDays = parseInt(document.getElementById('pref-credit-days').value) || 15;
       appSettings.alarmSound = document.getElementById('pref-alarm-sound').value;
+      appSettings.simulatorEnabled = document.getElementById('pref-enable-simulator').value === 'true';
       
       localStorage.setItem('DISTRI_APP_SETTINGS_V1', JSON.stringify(appSettings));
       
@@ -3078,8 +3135,35 @@
         orderAlarmAudio.src = appSettings.alarmSound;
       }
       
+      applySimulatorVisibility();
       showNotification('Preferencias generales guardadas.', 'success');
       renderCartUI();
+    };
+    
+    window.applySimulatorVisibility = function() {
+      const btn = document.getElementById('btn-simulate-order');
+      if (btn) {
+        btn.style.display = appSettings.simulatorEnabled === false ? 'none' : 'flex';
+      }
+    };
+    
+    window.wipeAllData = function() {
+      if (confirm('⚠️ ¡ADVERTENCIA PELIGROSA!\n\nEsto borrará de inmediato TODOS los productos, clientes, facturas, historial, lotes y choferes.\nEl sistema quedará completamente vacío para que empieces a cargar tus datos reales.\n\n¿Estás absolutamente seguro de continuar?')) {
+        products = [];
+        clients = [];
+        orders = [];
+        drivers = [];
+        purchases = [];
+        batches = [];
+        suppliers = [];
+        cashouts = [];
+        activeCart = [];
+        currentViewingOrder = null;
+        
+        persistAll();
+        refreshActiveViews();
+        showNotification('Sistema vaciado correctamente. Listo para usarse en producción.', 'success');
+      }
     };
 
     window.testSelectedAlarm = function() {
@@ -3313,7 +3397,8 @@
         case 'En Ruta':
           return `<span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-truck-fast text-[10px]"></i> En Ruta</span>`;
         case 'Entregado':
-          return `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-check text-[10px]"></i> Entregado</span>`;
+        case 'Entrega Realizada':
+          return `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-check-double text-[10px]"></i> Entrega Realizada</span>`;
         case 'Cancelado':
           return `<span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-ban text-[10px]"></i> Cancelado</span>`;
         default:
@@ -3389,7 +3474,7 @@
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      const flow = ['Pendiente', 'Despachando', 'En Ruta', 'Entregado'];
+      const flow = ['Pendiente', 'Despachando', 'En Ruta', 'Entrega Realizada'];
       const currentIdx = flow.indexOf(order.status);
       if (currentIdx !== -1 && currentIdx < flow.length - 1) {
         order.status = flow[currentIdx + 1];
@@ -3407,48 +3492,77 @@
 
     function renderOnlineOrders() {
       const tbody = document.getElementById('online-orders-table-body');
-      if(!tbody) return;
+      const tbodyHistory = document.getElementById('online-orders-history-body');
+      if(!tbody || !tbodyHistory) return;
+      
       tbody.innerHTML = '';
+      tbodyHistory.innerHTML = '';
 
       const pendingApproval = orders.filter(o => o.status === 'Por Aprobar');
+      // Filtramos para el historial: pedidos que NO están por aprobar y que pertenecen a clientes fijos (B2B)
+      const historyOrders = orders.filter(o => o.status !== 'Por Aprobar' && o.clientId !== 'GENERICO').slice(0, 30);
 
+      // 1. Renderizar Pedidos Pendientes
       if (pendingApproval.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400 font-medium"><i class="fa-solid fa-check-circle text-emerald-500 text-xl block mb-2"></i> No hay pedidos pendientes de revisión.</td></tr>`;
-        return;
+      } else {
+        pendingApproval.forEach(ord => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
+
+          const itemsCount = ord.items.reduce((s, it) => s + Number(it.quantity || 0), 0);
+
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
+            <td class="py-3 px-4">
+              <span class="font-bold text-slate-900 block">${escapeHtml(ord.clientName)}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${ord.date}</span>
+            </td>
+            <td class="py-3 px-4 text-slate-800 font-semibold">${itemsCount} bultos</td>
+            <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
+            <td class="py-3 px-4 text-xs font-semibold text-slate-600">${ord.paymentMethod}</td>
+            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 border border-blue-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-eye"></i> Ver
+                </button>
+                <button onclick="approveOrder('${ord.id}')" title="Aprobar Pedido" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-600 border border-emerald-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-check"></i> Aprobar
+                </button>
+                <button onclick="rejectOrder('${ord.id}')" title="Rechazar Pedido" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-xmark"></i> Rechazar
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
       }
 
-      pendingApproval.forEach(ord => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
-
-        const itemsCount = ord.items.reduce((s, it) => s + Number(it.quantity || 0), 0);
-
-        tr.innerHTML = `
-          <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
-          <td class="py-3 px-4">
-            <span class="font-bold text-slate-900 block">${escapeHtml(ord.clientName)}</span>
-            <span class="text-[10px] text-slate-400 font-mono">${ord.date}</span>
-          </td>
-          <td class="py-3 px-4 text-slate-800 font-semibold">${itemsCount} bultos</td>
-          <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
-          <td class="py-3 px-4 text-xs font-semibold text-slate-600">${ord.paymentMethod}</td>
-          <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
-          <td class="py-3 px-4 text-center">
-            <div class="flex items-center justify-center gap-2">
-              <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 border border-blue-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-eye"></i> Ver
+      // 2. Renderizar Historial de Pedidos B2B
+      if (historyOrders.length === 0) {
+        tbodyHistory.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 font-medium">Aún no hay historial de pedidos procesados.</td></tr>`;
+      } else {
+        historyOrders.forEach(ord => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
+          
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono font-bold text-slate-600">${ord.id}</td>
+            <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(ord.clientName)}</td>
+            <td class="py-3 px-4 text-xs text-slate-500">${ord.date}</td>
+            <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
+            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="viewInvoice('${ord.id}')" title="Ver Guía / Factura" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition flex items-center justify-center gap-1 mx-auto">
+                <i class="fa-solid fa-file-invoice"></i> Detalles
               </button>
-              <button onclick="approveOrder('${ord.id}')" title="Aprobar Pedido" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-600 border border-emerald-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-check"></i> Aprobar
-              </button>
-              <button onclick="rejectOrder('${ord.id}')" title="Rechazar Pedido" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-xmark"></i> Rechazar
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+            </td>
+          `;
+          tbodyHistory.appendChild(tr);
+        });
+      }
     }
 
     function approveOrder(orderId) {
