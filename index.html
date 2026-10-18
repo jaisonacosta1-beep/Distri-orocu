@@ -1,4 +1,3 @@
-Distri
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -88,10 +87,27 @@ Distri
 <body class="bg-slate-50 text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
 
   <!-- Mobile Backdrop Overlay for Sidebar -->
-  <div id="sidebar-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-25 hidden transition-opacity duration-300"></div>
+  <div id="sidebar-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-40 hidden transition-opacity duration-300 pointer-events-auto"></div>
+
+  <!-- ALARMA PANTALLA COMPLETA PARA PEDIDOS EN LÍNEA -->
+  <div id="full-screen-alarm" class="fixed inset-0 z-[100] bg-rose-600/95 backdrop-blur-sm flex-col items-center justify-center text-white hidden">
+    <div class="text-center animate-bounce">
+      <i class="fa-solid fa-bell text-8xl mb-6 shadow-rose-900 drop-shadow-2xl"></i>
+    </div>
+    <h1 class="text-4xl md:text-6xl font-black mb-4 text-center tracking-tight drop-shadow-lg">¡NUEVO PEDIDO!</h1>
+    <p class="text-xl md:text-2xl mb-10 text-center font-medium drop-shadow-md">Tienes solicitudes B2B por revisar y aprobar.</p>
+    <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md px-6">
+      <button onclick="acknowledgeAlarmAndGo()" class="flex-1 py-4 bg-white text-rose-700 font-black rounded-2xl text-xl hover:bg-slate-100 transition shadow-2xl active:scale-95 flex justify-center items-center gap-2">
+        <i class="fa-solid fa-eye"></i> Ver Pedidos
+      </button>
+      <button onclick="silenceAlarm()" class="flex-1 py-4 bg-rose-900 text-white font-bold rounded-2xl text-xl hover:bg-rose-950 transition shadow-xl active:scale-95 flex justify-center items-center gap-2">
+        <i class="fa-solid fa-volume-xmark"></i> Silenciar
+      </button>
+    </div>
+  </div>
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex flex-col shrink-0 transition-transform duration-300 z-30 fixed inset-y-0 left-0 md:static -translate-x-full md:translate-x-0 shadow-xl">
+  <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex flex-col shrink-0 transition-transform duration-300 z-50 fixed inset-y-0 left-0 md:static -translate-x-full md:translate-x-0 shadow-xl">
     <!-- Brand Header -->
     <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800">
       <div class="flex items-center space-x-3">
@@ -115,6 +131,14 @@ Distri
       <button onclick="navigateTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-white bg-blue-600 shadow-sm">
         <i class="fa-solid fa-chart-pie w-5 text-center"></i>
         <span>Panel General</span>
+      </button>
+
+      <button onclick="navigateTab('online-orders')" id="nav-online-orders" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-globe w-5 text-center text-blue-400"></i>
+        <div class="flex-1 flex justify-between items-center text-left">
+          <span>Pedidos en Línea</span>
+          <span id="badge-online-orders" class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+        </div>
       </button>
 
       <button onclick="navigateTab('orders')" id="nav-orders" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:text-white hover:bg-slate-800">
@@ -485,7 +509,7 @@ Distri
                   </div>
                 </div>
                 <div class="flex justify-between text-slate-600">
-                  <span>Impuesto (IVA 16%)</span>
+                  <span>Impuesto (ITBMS 7%)</span>
                   <span id="pos-tax" class="font-medium">$0.00</span>
                 </div>
                 <div class="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
@@ -520,6 +544,40 @@ Distri
                 <i class="fa-solid fa-file-invoice-dollar"></i> Generar Pedido e Imprimir Factura
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: ONLINE ORDERS (PEDIDOS EN LÍNEA B2B) -->
+      <section id="view-online-orders" class="space-y-6 hidden">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+              <i class="fa-solid fa-globe text-blue-600"></i> Solicitudes de Pedido en Línea
+            </h3>
+            <p class="text-xs text-slate-500">Pedidos ingresados por clientes desde el portal B2B, pendientes de revisión de stock y aprobación.</p>
+          </div>
+          <button onclick="simulateIncomingOrder()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm px-4 py-2 rounded-xl flex items-center gap-2 transition shadow-sm active:scale-95 shrink-0">
+            <i class="fa-solid fa-magic"></i> Simular Pedido de Cliente
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Folio</th>
+                  <th class="py-3 px-4">Cliente</th>
+                  <th class="py-3 px-4">Artículos</th>
+                  <th class="py-3 px-4">Total</th>
+                  <th class="py-3 px-4">Método Pago</th>
+                  <th class="py-3 px-4 text-center">Estado</th>
+                  <th class="py-3 px-4 text-center">Acciones (Aprobar / Rechazar)</th>
+                </tr>
+              </thead>
+              <tbody id="online-orders-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -876,7 +934,7 @@ Distri
           <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
             <i class="fa-solid fa-gear text-slate-600"></i> Preferencias de Facturación y Preventa
           </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-600">Etiqueta para artículos NO fríos</label>
               <select id="pref-non-cold-label" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none">
@@ -888,6 +946,21 @@ Distri
             <div>
               <label class="block text-xs font-semibold text-slate-600">Días de crédito predeterminados</label>
               <input type="number" id="pref-credit-days" value="15" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Sonido de Alarma B2B</label>
+              <div class="flex gap-2 mt-1">
+                <select id="pref-alarm-sound" class="flex-1 text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none">
+                  <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">Despertador Clásico (Fuerte)</option>
+                  <option value="https://actions.google.com/sounds/v1/alarms/beeping_alarm.ogg">Alarma Industrial (Muy Fuerte)</option>
+                  <option value="https://actions.google.com/sounds/v1/alarms/buzzer_alarm.ogg">Chicharra / Buzzer (Molesta)</option>
+                  <option value="https://actions.google.com/sounds/v1/emergency/ambulance_siren_distant.ogg">Sirena de Emergencia</option>
+                  <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Reloj Digital (Suave)</option>
+                </select>
+                <button onclick="testSelectedAlarm()" type="button" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition" title="Probar Sonido">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+              </div>
             </div>
           </div>
           <button onclick="saveAppPreferences()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
@@ -1457,7 +1530,7 @@ Distri
               <span id="inv-discount" class="font-medium">$0.00</span>
             </div>
             <div class="flex justify-between text-slate-600">
-              <span>Impuesto (16%):</span>
+              <span>Impuesto (ITBMS 7%):</span>
               <span id="inv-tax" class="font-medium">$0.00</span>
             </div>
             <div class="flex justify-between text-sm font-black text-slate-900 border-t border-slate-300 pt-1">
@@ -1489,15 +1562,26 @@ Distri
       </div>
 
       <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2 print:hidden">
-        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-print"></i> Imprimir Guía / Factura
-        </button>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-print"></i> Imprimir Normal
+          </button>
+          <button onclick="openThermalReceiptModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs md:text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-receipt"></i> Ticket Térmico
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2">
           <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-signature"></i> Registrar POD
+            <i class="fa-solid fa-signature"></i> POD
+          </button>
+          <button id="btn-approve-action" onclick="approveOrderFromInvoice()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-semibold px-3 py-2 rounded-xl hidden flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Aprobar
           </button>
           <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-semibold px-3 py-2 rounded-xl">
-            Avanzar Estado
+            Avanzar
+          </button>
+          <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs md:text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-pen"></i> Editar
           </button>
           <button onclick="closeModal('modal-invoice')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs md:text-sm font-semibold px-4 py-2 rounded-xl">
             Cerrar
@@ -1620,6 +1704,12 @@ Distri
             <label class="block text-xs font-semibold text-slate-600">Límite de Crédito ($ USD)</label>
             <input type="number" id="cli-credit" required value="2500" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
           </div>
+        </div>
+        <div class="col-span-2 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer bg-blue-50 p-3 rounded-xl border border-blue-100">
+            <input type="checkbox" id="cli-exempt" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+            <span class="text-xs font-bold text-blue-800">Cliente Exento de Impuesto (Sin ITBMS)</span>
+          </label>
         </div>
         <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
           <button type="button" onclick="closeModal('modal-client')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
@@ -1825,7 +1915,7 @@ Distri
           <p class="text-[10px] text-slate-500 mt-1 text-right">Disponible: <span id="mac-product-stock" class="font-bold">0</span></p>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
           <label class="cursor-pointer relative">
             <input type="checkbox" id="mac-cold" onchange="updateMacPrice()" class="peer sr-only">
             <div class="rounded-xl border-2 border-slate-200 px-2 py-2.5 bg-slate-50 text-slate-600 font-bold text-[10px] sm:text-xs flex items-center justify-center gap-1.5 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 shadow-sm hover:bg-slate-100">
@@ -1833,13 +1923,6 @@ Distri
             </div>
           </label>
           
-          <label class="cursor-pointer relative">
-            <input type="checkbox" id="mac-empty" class="peer sr-only">
-            <div class="rounded-xl border-2 border-slate-200 px-2 py-2.5 bg-slate-50 text-slate-600 font-bold text-[10px] sm:text-xs flex items-center justify-center gap-1.5 transition-all peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 shadow-sm hover:bg-slate-100">
-              <i class="fa-solid fa-bottle-droplet"></i> Vacío
-            </div>
-          </label>
-
           <button type="button" onclick="document.getElementById('mac-note-container').classList.toggle('hidden')" class="rounded-xl border border-slate-200 px-2 py-2.5 bg-white text-slate-600 font-bold text-[10px] sm:text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 transition shadow-sm">
             <i class="fa-solid fa-pen"></i> Nota
           </button>
@@ -1889,18 +1972,11 @@ Distri
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1">
+        <div class="grid grid-cols-1 gap-2 pt-1">
           <label class="cursor-pointer relative">
             <input type="checkbox" id="mci-cold" class="peer sr-only">
             <div class="rounded-xl border-2 border-slate-200 px-2 py-2.5 bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1.5 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 shadow-sm hover:bg-slate-100">
               <i class="fa-solid fa-snowflake"></i> Frío
-            </div>
-          </label>
-          
-          <label class="cursor-pointer relative">
-            <input type="checkbox" id="mci-empty" class="peer sr-only">
-            <div class="rounded-xl border-2 border-slate-200 px-2 py-2.5 bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1.5 transition-all peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 shadow-sm hover:bg-slate-100">
-              <i class="fa-solid fa-bottle-droplet"></i> Retorna Vacío
             </div>
           </label>
         </div>
@@ -1949,40 +2025,25 @@ Distri
     </div>
   </div>
 
-  <!-- MODAL: PRECIOS ESPECIALES B2B -->
-  <div id="modal-special-prices" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-tags text-rose-600"></i>
-          <div>
-            <h3 class="font-bold text-slate-900 text-base">Precios Especiales B2B</h3>
-            <p class="text-xs text-slate-500" id="sp-client-name">Cliente</p>
-          </div>
-        </div>
-        <button onclick="closeModal('modal-special-prices')" class="text-slate-400 hover:text-slate-700">
+  <!-- MODAL: THERMAL RECEIPT -->
+  <div id="modal-thermal-receipt" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2"><i class="fa-solid fa-receipt text-slate-600"></i> Impresión Térmica</h3>
+        <button onclick="closeModal('modal-thermal-receipt')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
-      
-      <div class="space-y-3 shrink-0">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
-          <div class="sm:col-span-2">
-            <label class="block text-[11px] font-semibold text-slate-600">Producto</label>
-            <select id="sp-product-select" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1"></select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600">Precio ($)</label>
-            <input type="number" step="0.01" id="sp-price-input" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1" placeholder="Ej: 16.50">
-          </div>
-        </div>
-        <button onclick="addSpecialPrice()" class="w-full py-2 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-plus"></i> Asignar Precio Especial
-        </button>
+      <div class="bg-slate-100 p-4 rounded-xl max-h-64 overflow-y-auto shadow-inner border border-slate-200">
+          <pre id="thermal-receipt-text" class="text-[10px] font-mono whitespace-pre-wrap text-slate-800 leading-tight"></pre>
       </div>
-
-      <div class="flex-1 overflow-y-auto pt-2 border-t border-slate-100" id="sp-list-container">
-        <!-- Precios cargados por JS -->
+      <div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
+          <button onclick="sendToRawBT()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95">
+              <i class="fa-brands fa-bluetooth"></i> Enviar a RawBT / Bluetooth
+          </button>
+          <button onclick="copyThermalText()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95">
+              <i class="fa-solid fa-copy"></i> Copiar Texto
+          </button>
       </div>
     </div>
   </div>
@@ -2532,7 +2593,7 @@ Distri
     let html5QrScanner = null;
     let leafletMapInstance = null;
     let mapMarkers = [];
-    let appSettings = { nonColdLabel: 'AL CLIMA', defaultCreditDays: 15 };
+    let appSettings = { nonColdLabel: 'AL CLIMA', defaultCreditDays: 15, alarmSound: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg' };
 
     // POD Drawing state
     let isDrawingSignature = false;
@@ -2600,10 +2661,10 @@ Distri
     ];
 
     const defaultClients = [
-      { id: 'c1', name: 'Bar & Grill El Taburete Cervecero', taxId: 'J-29831923', phone: '+507 6821-4455', address: 'Calle 4ta y Av. Obaldía, David', route: 'Ruta Nocturna - Bares & Pubs', creditLimit: 4500, currentDebt: 1150, lat: 8.4275, lng: -82.4312 },
-      { id: 'c2', name: 'Licorería & Bodega La Espuma', taxId: 'J-48192031', phone: '+507 6912-3321', address: 'Vía Boquete, Plaza San Cristóbal', route: 'Ruta Licorerías Norte', creditLimit: 6000, currentDebt: 1820, lat: 8.4485, lng: -82.4380 },
-      { id: 'c3', name: 'Restaurante & Terraza Mar del Sur', taxId: 'J-94829104', phone: '+507 6390-1122', address: 'Puerto Pedregal, Sector Muelle', route: 'Ruta Sur Costa', creditLimit: 3000, currentDebt: 0, lat: 8.3582, lng: -82.4371 },
-      { id: 'c4', name: 'Minimarket & Abarrotes Los Compadres', taxId: 'J-58392019', phone: '+507 6223-9988', address: 'Las Lomas, Barriada 20 de Diciembre', route: 'Ruta Tiendas & Kioscos', creditLimit: 2000, currentDebt: 420, lat: 8.4350, lng: -82.3980 }
+      { id: 'c1', name: 'Bar & Grill El Taburete Cervecero', taxId: 'J-29831923', phone: '+507 6821-4455', address: 'Calle 4ta y Av. Obaldía, David', route: 'Ruta Nocturna - Bares & Pubs', creditLimit: 4500, currentDebt: 1150, lat: 8.4275, lng: -82.4312, isExempt: false },
+      { id: 'c2', name: 'Licorería & Bodega La Espuma', taxId: 'J-48192031', phone: '+507 6912-3321', address: 'Vía Boquete, Plaza San Cristóbal', route: 'Ruta Licorerías Norte', creditLimit: 6000, currentDebt: 1820, lat: 8.4485, lng: -82.4380, isExempt: false },
+      { id: 'c3', name: 'Restaurante & Terraza Mar del Sur', taxId: 'J-94829104', phone: '+507 6390-1122', address: 'Puerto Pedregal, Sector Muelle', route: 'Ruta Sur Costa', creditLimit: 3000, currentDebt: 0, lat: 8.3582, lng: -82.4371, isExempt: true },
+      { id: 'c4', name: 'Minimarket & Abarrotes Los Compadres', taxId: 'J-58392019', phone: '+507 6223-9988', address: 'Las Lomas, Barriada 20 de Diciembre', route: 'Ruta Tiendas & Kioscos', creditLimit: 2000, currentDebt: 420, lat: 8.4350, lng: -82.3980, isExempt: false }
     ];
 
     const defaultDrivers = [
@@ -2681,6 +2742,26 @@ Distri
         tax: 61.04,
         total: 933.04,
         pod: null
+      },
+      {
+        id: 'ORD-1003',
+        clientId: 'c3',
+        clientName: 'Restaurante & Terraza Mar del Sur',
+        clientTax: 'J-94829104',
+        clientAddress: 'Puerto Pedregal, Sector Muelle',
+        date: new Date().toISOString().split('T')[0],
+        driver: 'Retiro en Bodega',
+        paymentMethod: 'Transferencia Bancaria',
+        status: 'Por Aprobar',
+        items: [
+          { id: '4', sku: 'CERV-COR-24', name: 'Cerveza Corona Extra 355ml (Caja x 24 Botellas)', quantity: 10, price: 29.50, batchAssigned: 'L-GENERAL', isCold: false, requiresEmpty: false, note: 'Entregar urgente para evento' }
+        ],
+        subtotal: 295.00,
+        discountRate: 0,
+        discountAmount: 0,
+        tax: 0.00, // Exento
+        total: 295.00,
+        pod: null
       }
     ];
 
@@ -2710,6 +2791,11 @@ Distri
 
       if (sSettings) {
         try { appSettings = JSON.parse(sSettings); } catch(e){}
+      }
+
+      // Initialize alarm audio source based on saved settings
+      if (typeof orderAlarmAudio !== 'undefined') {
+        orderAlarmAudio.src = appSettings.alarmSound || 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
       }
 
       applyBrandSettings();
@@ -2767,6 +2853,7 @@ Distri
     function refreshActiveViews() {
       renderDashboard();
       renderOrdersList();
+      renderOnlineOrders();
       renderPurchases();
       renderBatches();
       renderInventoryTable();
@@ -2774,12 +2861,14 @@ Distri
       renderLogistics();
       renderCashouts();
       renderSettingsView();
+      checkPendingApprovals();
     }
 
     function navigateTab(tabId) {
-      const sections = ['dashboard', 'orders', 'pos', 'purchases', 'fefo', 'inventory', 'clients', 'logistics', 'cashout', 'settings'];
+      const sections = ['dashboard', 'online-orders', 'orders', 'pos', 'purchases', 'fefo', 'inventory', 'clients', 'logistics', 'cashout', 'settings'];
       const titles = {
         'dashboard': 'Panel de Control Distribuidora',
+        'online-orders': 'Pedidos en Línea (Portal B2B)',
         'orders': 'Gestión de Pedidos & Despacho',
         'pos': 'Punto de Venta / Preventa Mayorista',
         'purchases': 'Compras, Proveedores y Recepción',
@@ -2793,6 +2882,7 @@ Distri
 
       const subtitles = {
         'dashboard': 'Monitoreo de despachos, almacén central y flujo comercial',
+        'online-orders': 'Aprobación y rechazo de órdenes ingresadas por los clientes',
         'orders': 'Control de picking, facturación y estados de ruta',
         'pos': 'Carga rápida con escaneo de código de barras y cálculo de impuestos',
         'purchases': 'Emisión de órdenes de compra y recepción con ajuste de Costo Promedio (PPP)',
@@ -2826,6 +2916,7 @@ Distri
       document.getElementById('page-subtitle').innerText = subtitles[tabId] || '';
 
       if (tabId === 'dashboard') renderDashboard();
+      if (tabId === 'online-orders') renderOnlineOrders();
       if (tabId === 'orders') renderOrdersList();
       if (tabId === 'pos') renderPosWorkspace();
       if (tabId === 'purchases') renderPurchases();
@@ -2845,6 +2936,7 @@ Distri
       // Preferences
       document.getElementById('pref-non-cold-label').value = appSettings.nonColdLabel || 'AL CLIMA';
       document.getElementById('pref-credit-days').value = appSettings.defaultCreditDays || 15;
+      document.getElementById('pref-alarm-sound').value = appSettings.alarmSound || 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
 
       const geminiInput = document.getElementById('pref-gemini-key');
       if (geminiInput) geminiInput.value = localStorage.getItem('DISTRI_GEMINI_KEY') || '';
@@ -2977,9 +3069,23 @@ Distri
     window.saveAppPreferences = function() {
       appSettings.nonColdLabel = document.getElementById('pref-non-cold-label').value;
       appSettings.defaultCreditDays = parseInt(document.getElementById('pref-credit-days').value) || 15;
+      appSettings.alarmSound = document.getElementById('pref-alarm-sound').value;
+      
       localStorage.setItem('DISTRI_APP_SETTINGS_V1', JSON.stringify(appSettings));
+      
+      // Update current audio alarm source
+      if (typeof orderAlarmAudio !== 'undefined') {
+        orderAlarmAudio.src = appSettings.alarmSound;
+      }
+      
       showNotification('Preferencias generales guardadas.', 'success');
       renderCartUI();
+    };
+
+    window.testSelectedAlarm = function() {
+      const soundUrl = document.getElementById('pref-alarm-sound').value;
+      const testAudio = new Audio(soundUrl);
+      testAudio.play().catch(e => showNotification('No se pudo reproducir. Verifica el volumen o haz clic en la página antes de probar.', 'warning'));
     };
 
     window.getConditionText = function(isCold) {
@@ -3042,10 +3148,10 @@ Distri
 
     function renderDashboard() {
       const totalSales = orders
-        .filter(o => o.status !== 'Cancelado')
+        .filter(o => o.status !== 'Cancelado' && o.status !== 'Por Aprobar')
         .reduce((sum, o) => sum + Number(o.total || 0), 0);
       
-      const pendingOrders = orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación').length;
+      const pendingOrders = orders.filter(o => o.status === 'Pendiente' || o.status === 'Despachando').length;
       const onRouteCount = orders.filter(o => o.status === 'En Ruta').length;
       const lowStockCount = products.filter(p => Number(p.stock) <= Number(p.minStock)).length;
 
@@ -3202,8 +3308,8 @@ Distri
           return `<span class="bg-fuchsia-100 text-fuchsia-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-bell text-[10px] animate-pulse"></i> Por Aprobar</span>`;
         case 'Pendiente':
           return `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-hourglass-start text-[10px]"></i> Pendiente</span>`;
-        case 'En Preparación':
-          return `<span class="bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-box text-[10px]"></i> Preparación</span>`;
+        case 'Despachando':
+          return `<span class="bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-box text-[10px]"></i> Despachando</span>`;
         case 'En Ruta':
           return `<span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-truck-fast text-[10px]"></i> En Ruta</span>`;
         case 'Entregado':
@@ -3283,7 +3389,7 @@ Distri
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      const flow = ['Pendiente', 'En Preparación', 'En Ruta', 'Entregado'];
+      const flow = ['Pendiente', 'Despachando', 'En Ruta', 'Entregado'];
       const currentIdx = flow.indexOf(order.status);
       if (currentIdx !== -1 && currentIdx < flow.length - 1) {
         order.status = flow[currentIdx + 1];
@@ -3295,7 +3401,103 @@ Distri
       if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
       renderOrdersList();
       renderDashboard();
+      renderLogistics();
       showNotification(`Pedido ${order.id} actualizado a "${order.status}"`);
+    }
+
+    function renderOnlineOrders() {
+      const tbody = document.getElementById('online-orders-table-body');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+
+      const pendingApproval = orders.filter(o => o.status === 'Por Aprobar');
+
+      if (pendingApproval.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400 font-medium"><i class="fa-solid fa-check-circle text-emerald-500 text-xl block mb-2"></i> No hay pedidos pendientes de revisión.</td></tr>`;
+        return;
+      }
+
+      pendingApproval.forEach(ord => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
+
+        const itemsCount = ord.items.reduce((s, it) => s + Number(it.quantity || 0), 0);
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
+          <td class="py-3 px-4">
+            <span class="font-bold text-slate-900 block">${escapeHtml(ord.clientName)}</span>
+            <span class="text-[10px] text-slate-400 font-mono">${ord.date}</span>
+          </td>
+          <td class="py-3 px-4 text-slate-800 font-semibold">${itemsCount} bultos</td>
+          <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
+          <td class="py-3 px-4 text-xs font-semibold text-slate-600">${ord.paymentMethod}</td>
+          <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 border border-blue-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-eye"></i> Ver
+              </button>
+              <button onclick="approveOrder('${ord.id}')" title="Aprobar Pedido" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-600 border border-emerald-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-check"></i> Aprobar
+              </button>
+              <button onclick="rejectOrder('${ord.id}')" title="Rechazar Pedido" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Rechazar
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function approveOrder(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order || order.status !== 'Por Aprobar') return;
+      
+      // Deducir el Stock ahora que sí está aprobado
+      let stockError = false;
+      for (const item of order.items) {
+        if (!item.isCustom) {
+          const prod = products.find(p => p.id === item.id);
+          if (prod && prod.stock < item.quantity) {
+            showNotification(`Stock insuficiente para aprobar: ${prod.name} (Faltan ${item.quantity - prod.stock})`, 'error');
+            stockError = true;
+          }
+        }
+      }
+
+      if (stockError) return;
+
+      // Realizar descuento efectivo
+      order.items.forEach(item => {
+        if (!item.isCustom) {
+          const prod = products.find(p => p.id === item.id);
+          if (prod) prod.stock = Math.max(0, prod.stock - item.quantity);
+          const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
+          if (batchItem) batchItem.quantity = Math.max(0, batchItem.quantity - item.quantity);
+        }
+      });
+
+      // Cambiar a Despachando
+      order.status = 'Despachando';
+      persistAll();
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
+
+      showNotification(`Pedido ${order.id} aprobado y guardado en el historial de facturas.`, 'success');
+      refreshActiveViews();
+    }
+
+    function rejectOrder(orderId) {
+      if(confirm('¿Estás seguro de que deseas rechazar y cancelar este pedido en línea?')) {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        order.status = 'Cancelado';
+        persistAll();
+        if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
+        showNotification(`Pedido ${order.id} ha sido cancelado.`, 'info');
+        refreshActiveViews();
+      }
     }
 
     function renderPosWorkspace() {
@@ -3445,7 +3647,6 @@ Distri
       const coldCheckbox = document.getElementById('mac-cold');
       coldCheckbox.checked = false;
 
-      if (document.getElementById('mac-empty')) document.getElementById('mac-empty').checked = false;
       document.getElementById('mac-note').value = '';
       document.getElementById('mac-note-container').classList.add('hidden');
 
@@ -3468,7 +3669,6 @@ Distri
       document.getElementById('mci-price').value = '';
       document.getElementById('mci-qty').value = '1';
       document.getElementById('mci-cold').checked = false;
-      document.getElementById('mci-empty').checked = false;
       openModal('modal-custom-item');
     }
 
@@ -3478,7 +3678,7 @@ Distri
       const price = parseFloat(document.getElementById('mci-price').value);
       const qty = parseInt(document.getElementById('mci-qty').value);
       const isCold = document.getElementById('mci-cold').checked;
-      const requiresEmpty = document.getElementById('mci-empty').checked;
+      const requiresEmpty = false; // Removido de la interfaz
 
       if (!name || isNaN(price) || isNaN(qty) || qty < 1) return;
 
@@ -3505,7 +3705,7 @@ Distri
       const productId = document.getElementById('mac-product-id').value;
       const qty = parseInt(document.getElementById('mac-qty').value);
       const isCold = document.getElementById('mac-cold').checked;
-      const requiresEmpty = document.getElementById('mac-empty') ? document.getElementById('mac-empty').checked : false;
+      const requiresEmpty = false; // Removido de la interfaz
       const note = document.getElementById('mac-note').value.trim();
       const customPrice = parseFloat(document.getElementById('mac-product-price-input').value);
 
@@ -3645,9 +3845,6 @@ Distri
               <button onclick="toggleItemCold('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
                 <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
               </button>
-              <button onclick="toggleItemEmpty('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
-                <i class="fa-solid fa-bottle-droplet ${item.requiresEmpty ? 'animate-bounce-short' : ''}"></i> ${item.requiresEmpty ? 'Trae Vacío' : 'Sin Vacío'}
-              </button>
               <button onclick="promptItemNote('${item.id}')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-600 text-[10px] font-bold hover:bg-slate-200 transition-colors flex items-center gap-1" title="${item.note ? escapeHtml(item.note) : 'Añadir nota'}">
                 <i class="fa-solid fa-comment-dots"></i> ${item.note ? 'Ver Nota' : 'Nota'}
               </button>
@@ -3676,7 +3873,17 @@ Distri
       const discountRate = Math.min(100, Math.max(0, Number(discountInput?.value || 0)));
       const discountAmount = subtotal * (discountRate / 100);
       const taxable = subtotal - discountAmount;
-      const tax = taxable * 0.16;
+      
+      let taxRate = 0.07; // 7% ITBMS
+      const clientId = document.getElementById('posClientSelect')?.value;
+      if (clientId && clientId !== 'GENERICO') {
+        const client = clients.find(c => c.id === clientId);
+        if (client && client.isExempt) {
+          taxRate = 0;
+        }
+      }
+      
+      const tax = taxable * taxRate;
       const total = taxable + tax;
 
       document.getElementById('pos-subtotal').innerText = `$${subtotal.toFixed(2)}`;
@@ -3738,7 +3945,14 @@ Distri
       const subtotal = activeCart.reduce((s, it) => s + (it.quantity * it.price), 0);
       const discountAmount = subtotal * (discountRate / 100);
       const taxable = subtotal - discountAmount;
-      const tax = taxable * 0.16;
+      
+      let taxRate = 0.07;
+      if (clientId !== 'GENERICO') {
+        const client = clients.find(c => c.id === clientId);
+        if (client && client.isExempt) taxRate = 0;
+      }
+      
+      const tax = taxable * taxRate;
       const total = taxable + tax;
 
       // Deduct stock from physical product & batch
@@ -3762,7 +3976,7 @@ Distri
       }
 
       const isClientMode = new URLSearchParams(window.location.search).get('role') === 'cliente';
-      const newStatus = isClientMode ? 'Por Aprobar' : (driver.includes('Bodega') ? 'Entregado' : 'En Preparación');
+      const newStatus = isClientMode ? 'Por Aprobar' : (driver.includes('Bodega') ? 'Entregado' : 'Despachando');
 
       const newId = `ORD-${1000 + orders.length + 1}`;
       const newOrder = {
@@ -4913,7 +5127,7 @@ Distri
 
     function openClientModal() {
       document.getElementById('clientForm').reset();
-      
+      document.getElementById('cli-exempt').checked = false;
       // Si estaba en cliente genérico y escribió un nombre, lo arrastramos al formulario
       const clientId = document.getElementById('posClientSelect')?.value;
       if (clientId === 'GENERICO') {
@@ -4934,6 +5148,7 @@ Distri
       const address = document.getElementById('cli-address').value.trim();
       const route = document.getElementById('cli-route').value;
       const creditLimit = parseFloat(document.getElementById('cli-credit').value) || 2000;
+      const isExempt = document.getElementById('cli-exempt').checked;
 
       const newClient = {
         id: 'c_' + Date.now(),
@@ -4943,7 +5158,8 @@ Distri
         address,
         route,
         creditLimit,
-        currentDebt: 0
+        currentDebt: 0,
+        isExempt
       };
 
       clients.push(newClient);
@@ -4960,7 +5176,7 @@ Distri
       driversGrid.innerHTML = '';
 
       drivers.forEach(d => {
-        const assignedDeliveries = orders.filter(o => o.driver === d.name && (o.status === 'En Ruta' || o.status === 'En Preparación')).length;
+        const assignedDeliveries = orders.filter(o => o.driver === d.name && (o.status === 'En Ruta' || o.status === 'Despachando')).length;
         const card = document.createElement('div');
         card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start justify-between";
         card.innerHTML = `
@@ -4982,7 +5198,7 @@ Distri
       boardContainer.innerHTML = '';
 
       const columns = [
-        { title: 'En Preparación / Almacén', status: 'En Preparación' },
+        { title: 'En Preparación / Almacén', status: 'Despachando' },
         { title: 'En Reparto / Camión', status: 'En Ruta' },
         { title: 'Completados Hoy', status: 'Entregado' }
       ];
@@ -5970,32 +6186,68 @@ REGLAS VITALES PARA FACTURAR:
     }
 
     // --- LOGICA DE ALARMA SONORA Y APROBACION DE PEDIDOS B2B ---
-    let orderAlarmAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+    let orderAlarmAudio = new Audio();
     orderAlarmAudio.loop = true;
     let isAlarmPlaying = false;
+    let alarmSilencedManually = false;
 
     function checkPendingApprovals() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('role') === 'cliente') return; // Los clientes no escuchan su propia alarma
 
       const pending = orders.filter(o => o.status === 'Por Aprobar');
-      const banner = document.getElementById('alarm-banner');
+      const fullScreenAlarm = document.getElementById('full-screen-alarm');
+      const badge = document.getElementById('badge-online-orders');
       
       if (pending.length > 0) {
-        if (banner) banner.classList.remove('hidden');
-        if (!isAlarmPlaying) {
-          orderAlarmAudio.play().catch(e => console.warn("Auto-play de audio bloqueado por el navegador. Haga clic en la pantalla primero."));
-          isAlarmPlaying = true;
+        if (badge) {
+          badge.classList.remove('hidden');
+          badge.innerText = pending.length;
+        }
+        
+        // Show Full Screen Alarm if not silenced
+        if (fullScreenAlarm && !alarmSilencedManually) {
+          fullScreenAlarm.classList.remove('hidden');
+          fullScreenAlarm.classList.add('flex');
+          
+          if (!isAlarmPlaying) {
+            orderAlarmAudio.play().catch(e => console.warn("Auto-play de audio bloqueado por el navegador. Haga clic en la pantalla primero."));
+            isAlarmPlaying = true;
+          }
         }
       } else {
-        if (banner) banner.classList.add('hidden');
+        if (fullScreenAlarm) {
+          fullScreenAlarm.classList.add('hidden');
+          fullScreenAlarm.classList.remove('flex');
+        }
+        if (badge) badge.classList.add('hidden');
         if (isAlarmPlaying) {
           orderAlarmAudio.pause();
           orderAlarmAudio.currentTime = 0;
           isAlarmPlaying = false;
         }
+        alarmSilencedManually = false; // Reset if all approved
       }
     }
+
+    window.acknowledgeAlarmAndGo = function() {
+      silenceAlarm();
+      navigateTab('online-orders');
+    };
+
+    window.silenceAlarm = function() {
+      const fullScreenAlarm = document.getElementById('full-screen-alarm');
+      if (fullScreenAlarm) {
+        fullScreenAlarm.classList.add('hidden');
+        fullScreenAlarm.classList.remove('flex');
+      }
+      alarmSilencedManually = true;
+      if (isAlarmPlaying) {
+        orderAlarmAudio.pause();
+        orderAlarmAudio.currentTime = 0;
+        isAlarmPlaying = false;
+      }
+    };
 
     // Interceptar la renderización de la tabla para chequear si hay pedidos que aprueban la alarma
     const originalRenderOrdersList = renderOrdersList;
@@ -6006,44 +6258,148 @@ REGLAS VITALES PARA FACTURAR:
 
     window.approveOrderFromInvoice = function() {
       if (!currentViewingOrder || currentViewingOrder.status !== 'Por Aprobar') return;
-      
-      // 1. Deducir el Stock ahora que sí está aprobado
-      let stockError = false;
-      for (const item of currentViewingOrder.items) {
-        if (!item.isCustom) {
-          const prod = products.find(p => p.id === item.id);
-          if (prod && prod.stock < item.quantity) {
-            showNotification(`Stock insuficiente para aprobar: ${prod.name} (Faltan ${item.quantity - prod.stock})`, 'error');
-            stockError = true;
-          }
-        }
-      }
-
-      if (stockError) return;
-
-      // Realizar descuento efectivo
-      currentViewingOrder.items.forEach(item => {
-        if (!item.isCustom) {
-          const prod = products.find(p => p.id === item.id);
-          if (prod) prod.stock = Math.max(0, prod.stock - item.quantity);
-          const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
-          if (batchItem) batchItem.quantity = Math.max(0, batchItem.quantity - item.quantity);
-        }
-      });
-
-      // 2. Cambiar a En Preparación (Manda al chofer y cajero)
-      currentViewingOrder.status = 'En Preparación';
-      persistAll();
-      if (window.syncDocToCloud) window.syncDocToCloud('orders', currentViewingOrder.id, currentViewingOrder);
-
-      showNotification('Pedido B2B aprobado y stock descontado. Imprimiendo factura...', 'success');
-      renderOrdersList();
-      renderDashboard();
-      
+      approveOrder(currentViewingOrder.id);
       viewInvoice(currentViewingOrder.id); // Recargar ventana
       
       // Intentar auto-abrir la impresora térmica Bluetooth
       try { openThermalReceiptModal(); } catch(e){}
+    };
+
+    // --- SIMULADOR DE PEDIDOS EN LÍNEA ---
+    window.simulateIncomingOrder = function() {
+      if (clients.length === 0 || products.length === 0) {
+        showNotification('Necesitas al menos un cliente y un producto en el sistema para simular.', 'warning');
+        return;
+      }
+
+      const randomClient = clients[Math.floor(Math.random() * clients.length)];
+      const randomProd1 = products[Math.floor(Math.random() * products.length)];
+      const randomProd2 = products[Math.floor(Math.random() * products.length)];
+      
+      const qty1 = Math.floor(Math.random() * 5) + 1;
+      const qty2 = Math.floor(Math.random() * 3) + 1;
+      
+      const items = [{
+        id: randomProd1.id,
+        sku: randomProd1.sku,
+        name: randomProd1.name,
+        quantity: qty1,
+        price: randomProd1.wholesalePrice,
+        batchAssigned: 'L-GENERAL',
+        isCold: false,
+        requiresEmpty: false,
+        note: 'Generado desde portal B2B',
+        isCustom: false
+      }];
+
+      if (randomProd1.id !== randomProd2.id) {
+        items.push({
+          id: randomProd2.id,
+          sku: randomProd2.sku,
+          name: randomProd2.name,
+          quantity: qty2,
+          price: randomProd2.wholesalePrice,
+          batchAssigned: 'L-GENERAL',
+          isCold: false,
+          requiresEmpty: false,
+          note: '',
+          isCustom: false
+        });
+      }
+
+      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const taxRate = randomClient.isExempt ? 0 : 0.07;
+      const tax = subtotal * taxRate;
+      const total = subtotal + tax;
+
+      const newOrder = {
+        id: `ORD-${1000 + orders.length + 1}`,
+        clientId: randomClient.id,
+        clientName: randomClient.name,
+        clientTax: randomClient.taxId,
+        clientAddress: randomClient.address,
+        date: new Date().toISOString().split('T')[0],
+        driver: 'Por asignar',
+        paymentMethod: 'Transferencia Bancaria (Pendiente)',
+        status: 'Por Aprobar',
+        items: items,
+        subtotal: subtotal,
+        discountRate: 0,
+        discountAmount: 0,
+        tax: tax,
+        total: total,
+        pod: null
+      };
+
+      // Agregar a la base de datos
+      orders.unshift(newOrder);
+      persistAll();
+      if(window.syncDocToCloud) window.syncDocToCloud('orders', newOrder.id, newOrder);
+      
+      // Forzar que la alarma suene de nuevo
+      alarmSilencedManually = false;
+      refreshActiveViews(); 
+      showNotification('¡Un cliente acaba de enviar un pedido desde su celular!', 'info');
+    };
+
+    window.editInvoiceFromModal = function() {
+      if (!currentViewingOrder) return;
+      
+      if(confirm('¿Deseas editar esta factura? Los productos regresarán al inventario y se cargarán en el carrito de Preventa para que los modifiques. Se sobrescribirá y eliminará la factura actual al guardar.')) {
+        
+        // 1. Revertir el stock de la bodega
+        currentViewingOrder.items.forEach(item => {
+          if (!item.isCustom) {
+            const prod = products.find(p => p.id === item.id);
+            if (prod) prod.stock += item.quantity;
+            const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
+            if (batchItem) batchItem.quantity += item.quantity;
+          }
+        });
+
+        // 2. Revertir deuda del cliente si era a crédito
+        if (currentViewingOrder.paymentMethod.includes('Crédito') && currentViewingOrder.clientId !== 'GENERICO') {
+          const client = clients.find(c => c.id === currentViewingOrder.clientId);
+          if (client) {
+            client.currentDebt = Math.max(0, client.currentDebt - currentViewingOrder.total);
+          }
+        }
+
+        // 3. Eliminar la orden actual del historial
+        orders = orders.filter(o => o.id !== currentViewingOrder.id);
+        persistAll();
+
+        // 4. Cargar los items en el carrito activo
+        activeCart = currentViewingOrder.items.map(item => ({...item}));
+        
+        // 5. Configurar la vista POS
+        navigateTab('pos');
+        
+        setTimeout(() => {
+          const clientSelect = document.getElementById('posClientSelect');
+          if (clientSelect) {
+            clientSelect.value = currentViewingOrder.clientId;
+            updatePosClientDetails();
+            
+            if (currentViewingOrder.clientId === 'GENERICO') {
+              const genericInputContainer = document.getElementById('posGenericNameContainer');
+              const genericInput = document.getElementById('posGenericClientName');
+              if(genericInputContainer) genericInputContainer.classList.remove('hidden');
+              if(genericInput) genericInput.value = currentViewingOrder.clientName;
+            }
+          }
+          
+          const driverSelect = document.getElementById('posAssignedDriver');
+          if (driverSelect) driverSelect.value = currentViewingOrder.driver;
+          
+          const discountInput = document.getElementById('pos-discount-rate');
+          if (discountInput) discountInput.value = currentViewingOrder.discountRate || 0;
+
+          renderCartUI();
+          closeModal('modal-invoice');
+          showNotification('Factura cargada en Preventa. Edita el carrito y vuelve a guardarla.', 'info');
+        }, 100);
+      }
     };
 
     // Actualizar la ventana de factura para que muestre el botón de APROBAR
@@ -6053,6 +6409,7 @@ REGLAS VITALES PARA FACTURAR:
       const order = orders.find(o => o.id === orderId);
       const approveBtn = document.getElementById('btn-approve-action');
       const advanceBtn = document.getElementById('btn-advance-status');
+      const editBtn = document.getElementById('btn-edit-invoice');
       
       if (order && order.status === 'Por Aprobar') {
         if (approveBtn) approveBtn.classList.remove('hidden');
@@ -6060,6 +6417,13 @@ REGLAS VITALES PARA FACTURAR:
       } else {
         if (approveBtn) approveBtn.classList.add('hidden');
         if (advanceBtn) advanceBtn.classList.remove('hidden');
+      }
+
+      if (order && (order.status === 'Cancelado' || order.status === 'Entregado')) {
+        if (editBtn) editBtn.classList.add('hidden');
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+      } else {
+        if (editBtn) editBtn.classList.remove('hidden');
       }
     };
 
@@ -6128,8 +6492,17 @@ REGLAS VITALES PARA FACTURAR:
       initDatabase();
       refreshActiveViews();
       applyRoleRestrictionsAndPWA();
+      
+      // Intentar reproducir el audio de la alarma automáticamente al primer clic del usuario
+      // (Los navegadores bloquean el sonido si el usuario no ha interactuado primero)
+      document.body.addEventListener('click', () => {
+        const pending = orders.filter(o => o.status === 'Por Aprobar');
+        if (pending.length > 0 && !alarmSilencedManually && !isAlarmPlaying) {
+          orderAlarmAudio.play().catch(e => console.warn(e));
+          isAlarmPlaying = true;
+        }
+      }, { once: true });
     });
   </script>
 </body>
 </html>
-```
