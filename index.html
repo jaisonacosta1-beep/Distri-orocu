@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -354,6 +355,7 @@
             </div>
             <select id="orderStatusFilter" onchange="renderOrdersList()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="ALL">Todos los Estados</option>
+              <option value="Por Aprobar">Por Aprobar (Nuevos)</option>
               <option value="Pendiente">Pendiente de Preparación</option>
               <option value="En Preparación">En Preparación / Picking</option>
               <option value="En Ruta">En Ruta de Entrega</option>
@@ -392,7 +394,7 @@
       <!-- VIEW: POS / NUEVA ORDEN DE VENTA -->
       <section id="view-pos" class="space-y-6 hidden">
         <!-- Step 1: Client Selection Header (Mandatory First Step) -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-6">
+        <div id="pos-step-1-container" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-6">
           <div class="flex-1 w-full min-w-0">
             <label class="block text-[11px] font-black text-blue-600 uppercase tracking-wider mb-2"><i class="fa-solid fa-1 mr-1"></i> Paso 1: Seleccionar Cliente</label>
             <div class="flex flex-col sm:flex-row gap-2 w-full">
@@ -514,7 +516,7 @@
               </div>
 
               <!-- Submit Button -->
-              <button onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98">
+              <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Generar Pedido e Imprimir Factura
               </button>
             </div>
@@ -1947,6 +1949,44 @@
     </div>
   </div>
 
+  <!-- MODAL: PRECIOS ESPECIALES B2B -->
+  <div id="modal-special-prices" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-tags text-rose-600"></i>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Precios Especiales B2B</h3>
+            <p class="text-xs text-slate-500" id="sp-client-name">Cliente</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-special-prices')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-3 shrink-0">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] font-semibold text-slate-600">Producto</label>
+            <select id="sp-product-select" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600">Precio ($)</label>
+            <input type="number" step="0.01" id="sp-price-input" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1" placeholder="Ej: 16.50">
+          </div>
+        </div>
+        <button onclick="addSpecialPrice()" class="w-full py-2 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-plus"></i> Asignar Precio Especial
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pt-2 border-t border-slate-100" id="sp-list-container">
+        <!-- Precios cargados por JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase SDK Modules for Real-time Cloud Synchronization -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -3158,6 +3198,8 @@
 
     function getStatusBadge(status) {
       switch (status) {
+        case 'Por Aprobar':
+          return `<span class="bg-fuchsia-100 text-fuchsia-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-bell text-[10px] animate-pulse"></i> Por Aprobar</span>`;
         case 'Pendiente':
           return `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-hourglass-start text-[10px]"></i> Pendiente</span>`;
         case 'En Preparación':
@@ -3313,6 +3355,9 @@
           badge.className = 'px-3 py-1 rounded-lg font-bold text-[10px] bg-emerald-100 text-emerald-700 uppercase tracking-wider shadow-sm';
         }
       }
+      
+      // Actualizar catálogo para reflejar los precios especiales B2B del cliente seleccionado
+      filterPosCatalog();
     }
 
     function filterPosCatalog() {
@@ -3373,7 +3418,7 @@
           </div>
           <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-400">Mayorista</span>
-            <span class="text-sm font-black text-blue-600">$${Number(p.wholesalePrice).toFixed(2)}</span>
+            <span class="text-sm font-black text-blue-600">$${getClientPrice(p.id, p.wholesalePrice).toFixed(2)}</span>
           </div>
         `;
         container.appendChild(card);
@@ -3389,7 +3434,7 @@
       document.getElementById('mac-product-sku').innerText = `SKU: ${prod.sku}`;
       
       const priceInput = document.getElementById('mac-product-price-input');
-      priceInput.value = Number(prod.wholesalePrice).toFixed(2);
+      priceInput.value = getClientPrice(prod.id, prod.wholesalePrice).toFixed(2);
       
       document.getElementById('mac-product-stock').innerText = prod.stock;
       
@@ -3716,6 +3761,9 @@
         client.currentDebt = (Number(client.currentDebt) || 0) + total;
       }
 
+      const isClientMode = new URLSearchParams(window.location.search).get('role') === 'cliente';
+      const newStatus = isClientMode ? 'Por Aprobar' : (driver.includes('Bodega') ? 'Entregado' : 'En Preparación');
+
       const newId = `ORD-${1000 + orders.length + 1}`;
       const newOrder = {
         id: newId,
@@ -3726,7 +3774,7 @@
         date: new Date().toISOString().split('T')[0],
         driver: driver,
         paymentMethod: paymentMethod,
-        status: driver.includes('Bodega') ? 'Entregado' : 'En Preparación', // Asume entrega directa si es retiro
+        status: newStatus,
         // Deep copy items to preserve isCold and note attributes securely
         items: activeCart.map(item => ({...item})),
         subtotal: subtotal,
@@ -3748,45 +3796,13 @@
         }
       }
 
-      showNotification(`Pedido ${newId} generado con éxito.`, 'success');
-      clearCurrentCart();
-      viewInvoice(newId);
-    }
-
-    function openBarcodeScannerModal() {
-      openModal('modal-barcode-scanner');
-      startHtml5Scanner();
-    }
-
-    function closeBarcodeScannerModal() {
-      stopHtml5Scanner();
-      closeModal('modal-barcode-scanner');
-    }
-
-    function startHtml5Scanner() {
-      const qrRegionId = "scanner-reader";
-      if (!html5QrScanner && typeof Html5Qrcode !== 'undefined') {
-        html5QrScanner = new Html5Qrcode(qrRegionId);
-      }
-
-      if (html5QrScanner) {
-        html5QrScanner.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          (decodedText) => {
-            onBarcodeScanned(decodedText);
-          },
-          (errorMessage) => {
-            // Ignore scan loop noise
-          }
-        ).catch(err => {
-          document.getElementById(qrRegionId).innerHTML = `
-            <div class="p-4 text-center text-slate-400">
-              <i class="fa-solid fa-video-slash text-2xl mb-2 block"></i>
-              Cámara no disponible o permisos no concedidos.<br>Use el ingreso manual por código.
-            </div>
-          `;
-        });
+      if (isClientMode) {
+        showNotification(`Tu pedido ${newId} ha sido enviado a la distribuidora para su aprobación.`, 'success');
+        clearCurrentCart();
+      } else {
+        showNotification(`Pedido ${newId} generado con éxito.`, 'success');
+        clearCurrentCart();
+        viewInvoice(newId);
       }
     }
 
@@ -4740,6 +4756,15 @@
                 Venta Rápida
               </button>
             </div>
+            <!-- Botonera B2B (Nuevo) -->
+            <div class="flex gap-2 pt-1">
+              <button onclick="openSpecialPricesModal('${c.id}')" class="flex-1 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-tags"></i> Precios B2B
+              </button>
+              <button onclick="copyClientPortalLink('${c.id}')" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-link"></i> Link Portal
+              </button>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -4781,6 +4806,110 @@
         updatePosClientDetails();
       }
     }
+
+    // --- NUEVO: LOGICA DE PRECIOS B2B Y PORTAL CLIENTE ---
+    let currentB2BClient = null;
+
+    function copyClientPortalLink(clientId) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', 'cliente');
+      url.searchParams.set('cid', clientId);
+      const tempTextarea = document.createElement('textarea');
+      tempTextarea.value = url.toString();
+      document.body.appendChild(tempTextarea);
+      tempTextarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempTextarea);
+      showNotification('Link único del portal de cliente copiado al portapapeles.', 'success');
+    }
+
+    function openSpecialPricesModal(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      currentB2BClient = client;
+      
+      document.getElementById('sp-client-name').innerText = client.name;
+      const prodSelect = document.getElementById('sp-product-select');
+      prodSelect.innerHTML = products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (Base: $${p.wholesalePrice.toFixed(2)})</option>`).join('');
+      document.getElementById('sp-price-input').value = '';
+      
+      renderSpecialPricesList();
+      openModal('modal-special-prices');
+    }
+
+    function addSpecialPrice() {
+      if (!currentB2BClient) return;
+      const prodId = document.getElementById('sp-product-select').value;
+      const price = parseFloat(document.getElementById('sp-price-input').value);
+      
+      if (isNaN(price) || price < 0) {
+        showNotification('Ingrese un precio válido.', 'warning');
+        return;
+      }
+      
+      if (!currentB2BClient.specialPrices) currentB2BClient.specialPrices = {};
+      currentB2BClient.specialPrices[prodId] = price;
+      
+      persistAll();
+      if (window.syncDocToCloud) window.syncDocToCloud('clients', currentB2BClient.id, currentB2BClient);
+      
+      renderSpecialPricesList();
+      showNotification('Precio especial asignado.', 'success');
+      document.getElementById('sp-price-input').value = '';
+    }
+
+    function removeSpecialPrice(prodId) {
+      if (!currentB2BClient || !currentB2BClient.specialPrices) return;
+      delete currentB2BClient.specialPrices[prodId];
+      
+      persistAll();
+      if (window.syncDocToCloud) window.syncDocToCloud('clients', currentB2BClient.id, currentB2BClient);
+      
+      renderSpecialPricesList();
+    }
+
+    function renderSpecialPricesList() {
+      const container = document.getElementById('sp-list-container');
+      container.innerHTML = '';
+      
+      if (!currentB2BClient || !currentB2BClient.specialPrices || Object.keys(currentB2BClient.specialPrices).length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Este cliente no tiene precios especiales asignados. Se usarán los precios del catálogo general.</p>';
+        return;
+      }
+      
+      Object.entries(currentB2BClient.specialPrices).forEach(([prodId, price]) => {
+        const prod = products.find(p => p.id === prodId);
+        if (!prod) return;
+        
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center p-2 border-b border-slate-100 bg-slate-50 rounded-lg mb-2";
+        row.innerHTML = `
+          <div class="min-w-0 pr-2">
+            <p class="text-[11px] font-bold text-slate-800 truncate">${escapeHtml(prod.name)}</p>
+            <p class="text-[10px] text-slate-500">Normal: $${prod.wholesalePrice.toFixed(2)}</p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-sm font-black text-rose-600">$${Number(price).toFixed(2)}</span>
+            <button onclick="removeSpecialPrice('${prodId}')" class="text-rose-400 hover:text-rose-700 bg-white border border-slate-200 rounded p-1.5 transition">
+              <i class="fa-solid fa-trash-can text-[10px]"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function getClientPrice(productId, basePrice) {
+      const clientId = document.getElementById('posClientSelect')?.value;
+      if (clientId && clientId !== 'GENERICO') {
+        const client = clients.find(c => c.id === clientId);
+        if (client && client.specialPrices && client.specialPrices[productId] !== undefined) {
+          return Number(client.specialPrices[productId]);
+        }
+      }
+      return Number(basePrice);
+    }
+    // --- FIN LOGICA B2B ---
 
     function openClientModal() {
       document.getElementById('clientForm').reset();
@@ -5267,7 +5396,8 @@
 
       const allowedTabs = {
         'cajero': ['pos', 'orders', 'clients'],
-        'repartidor': ['logistics', 'orders', 'cashout']
+        'repartidor': ['logistics', 'orders', 'cashout'],
+        'cliente': ['pos']
       };
 
       const userAllowed = allowedTabs[role];
@@ -5281,6 +5411,68 @@
           btn.style.display = 'none';
         }
       });
+
+      // Lógica EXCLUSIVA para el Portal de Cliente B2B
+      if (role === 'cliente') {
+        const cid = urlParams.get('cid');
+        
+        // Esconder toda la administración y menús
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        
+        const toggleBtn = document.getElementById('btn-toggle-sidebar');
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        
+        const quickActions = document.querySelector('header .flex.items-center.gap-2.w-full');
+        if (quickActions) quickActions.style.display = 'none';
+
+        // Ocultar buscador y filtros en el POS para que sea más limpio
+        const posHeader = document.querySelector('#view-pos h3');
+        if (posHeader) posHeader.innerText = 'Catálogo B2B (Tus Precios Especiales)';
+
+        // Modificar el POS visualmente al instante
+        setTimeout(() => {
+          const clientSelect = document.getElementById('posClientSelect');
+          if (clientSelect && cid) {
+            clientSelect.value = cid;
+            updatePosClientDetails();
+            
+            // Ocultar el recuadro del paso 1 (Selección de cliente)
+            const step1Container = document.getElementById('pos-step-1-container');
+            if(step1Container) step1Container.style.display = 'none';
+            
+            // Inyectar un mensaje de bienvenida bonito
+            const posSection = document.getElementById('view-pos');
+            const clienteObj = clients.find(c => c.id === cid);
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = "bg-blue-600 text-white p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center";
+            welcomeDiv.innerHTML = `
+              <div>
+                <h2 class="text-xl font-black">Bienvenido, ${clienteObj ? escapeHtml(clienteObj.name) : 'Cliente'}</h2>
+                <p class="text-blue-100 text-xs mt-1"><i class="fa-solid fa-store mr-1"></i> Portal Exclusivo de Pedidos</p>
+              </div>
+              <div class="text-right hidden sm:block">
+                <p class="text-[10px] text-blue-200 uppercase font-bold">Límite de Crédito</p>
+                <p class="font-bold">$${clienteObj ? Number(clienteObj.creditLimit).toLocaleString() : '0'}</p>
+              </div>
+            `;
+            posSection.insertBefore(welcomeDiv, posSection.firstChild);
+          }
+
+          // Ocultar selector de Chofer
+          const driverSelect = document.getElementById('posAssignedDriver');
+          if (driverSelect && driverSelect.parentElement) {
+            driverSelect.parentElement.style.display = 'none';
+          }
+
+          // Transformar el botón de envío
+          const submitBtn = document.getElementById('btn-submit-order');
+          if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Pedido para Aprobación';
+            submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-95";
+          }
+        }, 500);
+      }
 
       // Ocultar títulos de categorías en el menú lateral para limpieza visual
       const pTags = document.querySelectorAll('#sidebar nav p');
@@ -5301,6 +5493,7 @@
       setTimeout(() => {
         if (role === 'cajero') navigateTab('pos');
         if (role === 'repartidor') navigateTab('logistics');
+        if (role === 'cliente') navigateTab('pos');
       }, 150);
     }
 
@@ -5785,3 +5978,4 @@ REGLAS VITALES PARA FACTURAR:
   </script>
 </body>
 </html>
+```
