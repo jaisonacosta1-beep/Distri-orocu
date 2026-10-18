@@ -3555,9 +3555,14 @@
             <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
             <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
             <td class="py-3 px-4 text-center">
-              <button onclick="viewInvoice('${ord.id}')" title="Ver Guía / Factura" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition flex items-center justify-center gap-1 mx-auto">
-                <i class="fa-solid fa-file-invoice"></i> Detalles
-              </button>
+              <div class="flex items-center justify-center gap-2">
+                <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-file-invoice"></i> Ver
+                </button>
+                <button onclick="cycleOrderStatus('${ord.id}')" title="Avanzar Estado" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+              </div>
             </td>
           `;
           tbodyHistory.appendChild(tr);
@@ -4655,18 +4660,14 @@
       document.getElementById('inv-tax').innerText = `$${taxVal.toFixed(2)}`;
       document.getElementById('inv-total').innerText = `$${productTotalVal.toFixed(2)}`;
 
-      // Calculate segregated financial balance: Product vs Empties deposit
-      // Standard deposits: $5.00 per returnable beer crate (24 bottles + plastic crate), $45.00 per stainless keg
       const emptiesRatePerCrate = 5.00;
       const emptiesRatePerKeg = 45.00;
       const emptiesDepositTotal = (returnableCratesCount * emptiesRatePerCrate) + (returnableKegsCount * emptiesRatePerKeg);
 
-      // Populate Segregated Breakdown
       document.getElementById('inv-seg-product-total').innerText = `$${productTotalVal.toFixed(2)}`;
       document.getElementById('inv-seg-crates-qty').innerText = `${returnableCratesCount} Cajas (${returnableKegsCount > 0 ? returnableKegsCount + ' Kegs' : '0 Kegs'})`;
       document.getElementById('inv-seg-empties-total').innerText = `$${emptiesDepositTotal.toFixed(2)}`;
 
-      // Store in current order object for thermal printing
       order._segregated = {
         productTotal: productTotalVal,
         cratesQty: returnableCratesCount,
@@ -4674,7 +4675,6 @@
         emptiesDepositTotal: emptiesDepositTotal
       };
 
-      // POD Visuals
       const sigContainer = document.getElementById('inv-signature-container');
       const photoContainer = document.getElementById('inv-photo-container');
       const podMeta = document.getElementById('inv-pod-meta');
@@ -4693,12 +4693,32 @@
         photoContainer.innerHTML = `<span class="text-xs text-slate-400">Sin foto adjunta</span>`;
       }
 
+      openModal('modal-invoice');
+
+      // Gestión de botones
+      const approveBtn = document.getElementById('btn-approve-action');
+      const advanceBtn = document.getElementById('btn-advance-status');
+      const editBtn = document.getElementById('btn-edit-invoice');
       const podBtn = document.getElementById('btn-pod-action');
-      if (podBtn) {
-        podBtn.style.display = order.status === 'Entregado' ? 'none' : 'inline-flex';
+
+      if (order.status === 'Por Aprobar') {
+        if (approveBtn) approveBtn.classList.remove('hidden');
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+      } else {
+        if (approveBtn) approveBtn.classList.add('hidden');
+        if (advanceBtn) advanceBtn.classList.remove('hidden');
       }
 
-      openModal('modal-invoice');
+      if (order.status === 'Cancelado' || order.status === 'Entregado' || order.status === 'Entrega Realizada') {
+        if (editBtn) editBtn.classList.add('hidden');
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+      } else {
+        if (editBtn) editBtn.classList.remove('hidden');
+      }
+
+      if (podBtn) {
+        podBtn.style.display = (order.status === 'Entregado' || order.status === 'Entrega Realizada') ? 'none' : 'inline-flex';
+      }
     }
 
     // ==========================================
@@ -6307,7 +6327,7 @@ REGLAS VITALES PARA FACTURAR:
 
     function checkPendingApprovals() {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('role') === 'cliente') return; // Los clientes no escuchan su propia alarma
+      if (urlParams.get('role') === 'cliente') return;
 
       const pending = orders.filter(o => o.status === 'Por Aprobar');
       const fullScreenAlarm = document.getElementById('full-screen-alarm');
@@ -6319,14 +6339,20 @@ REGLAS VITALES PARA FACTURAR:
           badge.innerText = pending.length;
         }
         
-        // Show Full Screen Alarm if not silenced
         if (fullScreenAlarm && !alarmSilencedManually) {
           fullScreenAlarm.classList.remove('hidden');
           fullScreenAlarm.classList.add('flex');
           
           if (!isAlarmPlaying) {
-            orderAlarmAudio.play().catch(e => console.warn("Auto-play de audio bloqueado por el navegador. Haga clic en la pantalla primero."));
-            isAlarmPlaying = true;
+            const playPromise = orderAlarmAudio.play();
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                isAlarmPlaying = true;
+              }).catch(e => {
+                console.warn("Navegador bloqueó el audio automático. El banner rojo sí aparece. Haz clic en la pantalla para permitir audio.");
+                isAlarmPlaying = false; 
+              });
+            }
           }
         }
       } else {
@@ -6335,12 +6361,12 @@ REGLAS VITALES PARA FACTURAR:
           fullScreenAlarm.classList.remove('flex');
         }
         if (badge) badge.classList.add('hidden');
-        if (isAlarmPlaying) {
+        if (isAlarmPlaying || !orderAlarmAudio.paused) {
           orderAlarmAudio.pause();
           orderAlarmAudio.currentTime = 0;
           isAlarmPlaying = false;
         }
-        alarmSilencedManually = false; // Reset if all approved
+        alarmSilencedManually = false;
       }
     }
 
@@ -6445,15 +6471,14 @@ REGLAS VITALES PARA FACTURAR:
         pod: null
       };
 
-      // Agregar a la base de datos
       orders.unshift(newOrder);
       persistAll();
       if(window.syncDocToCloud) window.syncDocToCloud('orders', newOrder.id, newOrder);
       
-      // Forzar que la alarma suene de nuevo
       alarmSilencedManually = false;
       refreshActiveViews(); 
       showNotification('¡Un cliente acaba de enviar un pedido desde su celular!', 'info');
+      checkPendingApprovals(); // Forzar el audio del pedido si fue accionado por el botón
     };
 
     window.editInvoiceFromModal = function() {
@@ -6513,31 +6538,6 @@ REGLAS VITALES PARA FACTURAR:
           closeModal('modal-invoice');
           showNotification('Factura cargada en Preventa. Edita el carrito y vuelve a guardarla.', 'info');
         }, 100);
-      }
-    };
-
-    // Actualizar la ventana de factura para que muestre el botón de APROBAR
-    const originalViewInvoice = viewInvoice;
-    viewInvoice = function(orderId) {
-      originalViewInvoice(orderId);
-      const order = orders.find(o => o.id === orderId);
-      const approveBtn = document.getElementById('btn-approve-action');
-      const advanceBtn = document.getElementById('btn-advance-status');
-      const editBtn = document.getElementById('btn-edit-invoice');
-      
-      if (order && order.status === 'Por Aprobar') {
-        if (approveBtn) approveBtn.classList.remove('hidden');
-        if (advanceBtn) advanceBtn.classList.add('hidden');
-      } else {
-        if (approveBtn) approveBtn.classList.add('hidden');
-        if (advanceBtn) advanceBtn.classList.remove('hidden');
-      }
-
-      if (order && (order.status === 'Cancelado' || order.status === 'Entregado')) {
-        if (editBtn) editBtn.classList.add('hidden');
-        if (advanceBtn) advanceBtn.classList.add('hidden');
-      } else {
-        if (editBtn) editBtn.classList.remove('hidden');
       }
     };
 
@@ -6607,15 +6607,12 @@ REGLAS VITALES PARA FACTURAR:
       refreshActiveViews();
       applyRoleRestrictionsAndPWA();
       
-      // Intentar reproducir el audio de la alarma automáticamente al primer clic del usuario
-      // (Los navegadores bloquean el sonido si el usuario no ha interactuado primero)
       document.body.addEventListener('click', () => {
         const pending = orders.filter(o => o.status === 'Por Aprobar');
         if (pending.length > 0 && !alarmSilencedManually && !isAlarmPlaying) {
-          orderAlarmAudio.play().catch(e => console.warn(e));
-          isAlarmPlaying = true;
+          checkPendingApprovals();
         }
-      }, { once: true });
+      });
     });
   </script>
 </body>
