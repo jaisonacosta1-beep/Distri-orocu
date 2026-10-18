@@ -6613,6 +6613,22 @@ REGLAS VITALES PARA FACTURAR:
           checkPendingApprovals();
         }
       });
+
+      // Escuchar cambios en otras pestañas (Cross-Tab) para notificaciones en tiempo real
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY_ORDERS) {
+          const newOrdersData = JSON.parse(e.newValue || '[]');
+          const oldPendingCount = orders.filter(o => o.status === 'Por Aprobar').length;
+          const newPendingCount = newOrdersData.filter(o => o.status === 'Por Aprobar').length;
+          
+          if (newPendingCount > oldPendingCount) {
+             alarmSilencedManually = false; // Reactivar la alarma si hay un pedido nuevo
+          }
+          
+          initDatabase(); // Recargar datos en esta pestaña
+          refreshActiveViews();
+        }
+      });
     });
   </script>
 </body>
