@@ -4664,9 +4664,13 @@
       const emptiesRatePerKeg = 45.00;
       const emptiesDepositTotal = (returnableCratesCount * emptiesRatePerCrate) + (returnableKegsCount * emptiesRatePerKeg);
 
-      document.getElementById('inv-seg-product-total').innerText = `$${productTotalVal.toFixed(2)}`;
-      document.getElementById('inv-seg-crates-qty').innerText = `${returnableCratesCount} Cajas (${returnableKegsCount > 0 ? returnableKegsCount + ' Kegs' : '0 Kegs'})`;
-      document.getElementById('inv-seg-empties-total').innerText = `$${emptiesDepositTotal.toFixed(2)}`;
+      const elProductTotal = document.getElementById('inv-seg-product-total');
+      const elCratesQty = document.getElementById('inv-seg-crates-qty');
+      const elEmptiesTotal = document.getElementById('inv-seg-empties-total');
+      
+      if (elProductTotal) elProductTotal.innerText = `$${productTotalVal.toFixed(2)}`;
+      if (elCratesQty) elCratesQty.innerText = `${returnableCratesCount} Cajas (${returnableKegsCount > 0 ? returnableKegsCount + ' Kegs' : '0 Kegs'})`;
+      if (elEmptiesTotal) elEmptiesTotal.innerText = `$${emptiesDepositTotal.toFixed(2)}`;
 
       order._segregated = {
         productTotal: productTotalVal,
@@ -4706,7 +4710,10 @@
         if (advanceBtn) advanceBtn.classList.add('hidden');
       } else {
         if (approveBtn) approveBtn.classList.add('hidden');
-        if (advanceBtn) advanceBtn.classList.remove('hidden');
+        if (advanceBtn) {
+           advanceBtn.classList.remove('hidden');
+           advanceBtn.value = (order.status === 'Entregado') ? 'Entrega Realizada' : order.status;
+        }
       }
 
       if (order.status === 'Cancelado' || order.status === 'Entregado' || order.status === 'Entrega Realizada') {
@@ -4855,24 +4862,22 @@
       }
     }
 
-    function copyThermalText() {
-      if (!currentThermalReceiptPlainText) return;
-      try {
-        const tempTextarea = document.createElement('textarea');
-        tempTextarea.value = currentThermalReceiptPlainText;
-        document.body.appendChild(tempTextarea);
-        tempTextarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempTextarea);
-        showNotification('Ticket térmico copiado al portapapeles.', 'success');
-      } catch (e) {
-        showNotification('No se pudo copiar automáticamente.', 'warning');
-      }
-    }
+    window.changeOrderStatus = function(orderId, newStatus) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      order.status = newStatus;
+      persistAll();
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
+      renderOrdersList();
+      renderDashboard();
+      renderLogistics();
+      try { renderOnlineOrders(); } catch(e){}
+      showNotification(`Pedido ${order.id} actualizado a "${order.status}"`);
+    };
 
-    function advanceOrderStatusFromModal() {
+    window.changeOrderStatusFromInvoice = function(newStatus) {
       if (!currentViewingOrder) return;
-      cycleOrderStatus(currentViewingOrder.id);
+      window.changeOrderStatus(currentViewingOrder.id, newStatus);
       viewInvoice(currentViewingOrder.id);
     }
 
@@ -6484,61 +6489,58 @@ REGLAS VITALES PARA FACTURAR:
     window.editInvoiceFromModal = function() {
       if (!currentViewingOrder) return;
       
-      if(confirm('¿Deseas editar esta factura? Los productos regresarán al inventario y se cargarán en el carrito de Preventa para que los modifiques. Se sobrescribirá y eliminará la factura actual al guardar.')) {
-        
-        // 1. Revertir el stock de la bodega
-        currentViewingOrder.items.forEach(item => {
-          if (!item.isCustom) {
-            const prod = products.find(p => p.id === item.id);
-            if (prod) prod.stock += item.quantity;
-            const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
-            if (batchItem) batchItem.quantity += item.quantity;
-          }
-        });
+      // 1. Revertir el stock de la bodega
+      currentViewingOrder.items.forEach(item => {
+        if (!item.isCustom) {
+          const prod = products.find(p => p.id === item.id);
+          if (prod) prod.stock += item.quantity;
+          const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
+          if (batchItem) batchItem.quantity += item.quantity;
+        }
+      });
 
-        // 2. Revertir deuda del cliente si era a crédito
-        if (currentViewingOrder.paymentMethod.includes('Crédito') && currentViewingOrder.clientId !== 'GENERICO') {
-          const client = clients.find(c => c.id === currentViewingOrder.clientId);
-          if (client) {
-            client.currentDebt = Math.max(0, client.currentDebt - currentViewingOrder.total);
+      // 2. Revertir deuda del cliente si era a crédito
+      if (currentViewingOrder.paymentMethod.includes('Crédito') && currentViewingOrder.clientId !== 'GENERICO') {
+        const client = clients.find(c => c.id === currentViewingOrder.clientId);
+        if (client) {
+          client.currentDebt = Math.max(0, client.currentDebt - currentViewingOrder.total);
+        }
+      }
+
+      // 3. Eliminar la orden actual del historial
+      orders = orders.filter(o => o.id !== currentViewingOrder.id);
+      persistAll();
+
+      // 4. Cargar los items en el carrito activo
+      activeCart = currentViewingOrder.items.map(item => ({...item}));
+      
+      // 5. Configurar la vista POS
+      navigateTab('pos');
+      
+      setTimeout(() => {
+        const clientSelect = document.getElementById('posClientSelect');
+        if (clientSelect) {
+          clientSelect.value = currentViewingOrder.clientId;
+          updatePosClientDetails();
+          
+          if (currentViewingOrder.clientId === 'GENERICO') {
+            const genericInputContainer = document.getElementById('posGenericNameContainer');
+            const genericInput = document.getElementById('posGenericClientName');
+            if(genericInputContainer) genericInputContainer.classList.remove('hidden');
+            if(genericInput) genericInput.value = currentViewingOrder.clientName;
           }
         }
-
-        // 3. Eliminar la orden actual del historial
-        orders = orders.filter(o => o.id !== currentViewingOrder.id);
-        persistAll();
-
-        // 4. Cargar los items en el carrito activo
-        activeCart = currentViewingOrder.items.map(item => ({...item}));
         
-        // 5. Configurar la vista POS
-        navigateTab('pos');
+        const driverSelect = document.getElementById('posAssignedDriver');
+        if (driverSelect) driverSelect.value = currentViewingOrder.driver;
         
-        setTimeout(() => {
-          const clientSelect = document.getElementById('posClientSelect');
-          if (clientSelect) {
-            clientSelect.value = currentViewingOrder.clientId;
-            updatePosClientDetails();
-            
-            if (currentViewingOrder.clientId === 'GENERICO') {
-              const genericInputContainer = document.getElementById('posGenericNameContainer');
-              const genericInput = document.getElementById('posGenericClientName');
-              if(genericInputContainer) genericInputContainer.classList.remove('hidden');
-              if(genericInput) genericInput.value = currentViewingOrder.clientName;
-            }
-          }
-          
-          const driverSelect = document.getElementById('posAssignedDriver');
-          if (driverSelect) driverSelect.value = currentViewingOrder.driver;
-          
-          const discountInput = document.getElementById('pos-discount-rate');
-          if (discountInput) discountInput.value = currentViewingOrder.discountRate || 0;
+        const discountInput = document.getElementById('pos-discount-rate');
+        if (discountInput) discountInput.value = currentViewingOrder.discountRate || 0;
 
-          renderCartUI();
-          closeModal('modal-invoice');
-          showNotification('Factura cargada en Preventa. Edita el carrito y vuelve a guardarla.', 'info');
-        }, 100);
-      }
+        renderCartUI();
+        closeModal('modal-invoice');
+        showNotification('Factura cargada en Preventa. Edita el carrito y vuelve a guardarla.', 'info');
+      }, 100);
     };
 
     // --- ESTADO DE CUENTA Y PORTAL DEL CLIENTE ---
