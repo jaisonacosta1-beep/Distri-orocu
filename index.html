@@ -1,4 +1,4 @@
-```html hola
+Distri
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5430,6 +5430,10 @@
         const posHeader = document.querySelector('#view-pos h3');
         if (posHeader) posHeader.innerText = 'Catálogo B2B (Tus Precios Especiales)';
 
+        // Ocultar Artículo Libre al cliente
+        const customItemBtn = document.querySelector('button[onclick="openCustomItemModal()"]');
+        if (customItemBtn) customItemBtn.style.display = 'none';
+
         // Modificar el POS visualmente al instante
         setTimeout(() => {
           const clientSelect = document.getElementById('posClientSelect');
@@ -5457,6 +5461,9 @@
               </div>
             `;
             posSection.insertBefore(welcomeDiv, posSection.firstChild);
+            
+            // Renderizar el historial de compras del cliente
+            renderClientHistory(cid);
           }
 
           // Ocultar selector de Chofer
@@ -5960,6 +5967,153 @@ REGLAS VITALES PARA FACTURAR:
     function removeChatLoading(id) {
       const el = document.getElementById(id);
       if (el) el.remove();
+    }
+
+    // --- LOGICA DE ALARMA SONORA Y APROBACION DE PEDIDOS B2B ---
+    let orderAlarmAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+    orderAlarmAudio.loop = true;
+    let isAlarmPlaying = false;
+
+    function checkPendingApprovals() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('role') === 'cliente') return; // Los clientes no escuchan su propia alarma
+
+      const pending = orders.filter(o => o.status === 'Por Aprobar');
+      const banner = document.getElementById('alarm-banner');
+      
+      if (pending.length > 0) {
+        if (banner) banner.classList.remove('hidden');
+        if (!isAlarmPlaying) {
+          orderAlarmAudio.play().catch(e => console.warn("Auto-play de audio bloqueado por el navegador. Haga clic en la pantalla primero."));
+          isAlarmPlaying = true;
+        }
+      } else {
+        if (banner) banner.classList.add('hidden');
+        if (isAlarmPlaying) {
+          orderAlarmAudio.pause();
+          orderAlarmAudio.currentTime = 0;
+          isAlarmPlaying = false;
+        }
+      }
+    }
+
+    // Interceptar la renderización de la tabla para chequear si hay pedidos que aprueban la alarma
+    const originalRenderOrdersList = renderOrdersList;
+    renderOrdersList = function() {
+      originalRenderOrdersList();
+      checkPendingApprovals();
+    };
+
+    window.approveOrderFromInvoice = function() {
+      if (!currentViewingOrder || currentViewingOrder.status !== 'Por Aprobar') return;
+      
+      // 1. Deducir el Stock ahora que sí está aprobado
+      let stockError = false;
+      for (const item of currentViewingOrder.items) {
+        if (!item.isCustom) {
+          const prod = products.find(p => p.id === item.id);
+          if (prod && prod.stock < item.quantity) {
+            showNotification(`Stock insuficiente para aprobar: ${prod.name} (Faltan ${item.quantity - prod.stock})`, 'error');
+            stockError = true;
+          }
+        }
+      }
+
+      if (stockError) return;
+
+      // Realizar descuento efectivo
+      currentViewingOrder.items.forEach(item => {
+        if (!item.isCustom) {
+          const prod = products.find(p => p.id === item.id);
+          if (prod) prod.stock = Math.max(0, prod.stock - item.quantity);
+          const batchItem = batches.find(b => b.batchCode === item.batchAssigned);
+          if (batchItem) batchItem.quantity = Math.max(0, batchItem.quantity - item.quantity);
+        }
+      });
+
+      // 2. Cambiar a En Preparación (Manda al chofer y cajero)
+      currentViewingOrder.status = 'En Preparación';
+      persistAll();
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', currentViewingOrder.id, currentViewingOrder);
+
+      showNotification('Pedido B2B aprobado y stock descontado. Imprimiendo factura...', 'success');
+      renderOrdersList();
+      renderDashboard();
+      
+      viewInvoice(currentViewingOrder.id); // Recargar ventana
+      
+      // Intentar auto-abrir la impresora térmica Bluetooth
+      try { openThermalReceiptModal(); } catch(e){}
+    };
+
+    // Actualizar la ventana de factura para que muestre el botón de APROBAR
+    const originalViewInvoice = viewInvoice;
+    viewInvoice = function(orderId) {
+      originalViewInvoice(orderId);
+      const order = orders.find(o => o.id === orderId);
+      const approveBtn = document.getElementById('btn-approve-action');
+      const advanceBtn = document.getElementById('btn-advance-status');
+      
+      if (order && order.status === 'Por Aprobar') {
+        if (approveBtn) approveBtn.classList.remove('hidden');
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+      } else {
+        if (approveBtn) approveBtn.classList.add('hidden');
+        if (advanceBtn) advanceBtn.classList.remove('hidden');
+      }
+    };
+
+    // --- ESTADO DE CUENTA Y PORTAL DEL CLIENTE ---
+    function renderClientHistory(clientId) {
+      const posSection = document.getElementById('view-pos');
+      let historyDiv = document.getElementById('client-history-panel');
+      
+      if (!historyDiv) {
+        historyDiv = document.createElement('div');
+        historyDiv.id = 'client-history-panel';
+        historyDiv.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mt-6 mb-10';
+        posSection.appendChild(historyDiv);
+      }
+
+      const client = clients.find(c => c.id === clientId);
+      const clientOrders = orders.filter(o => o.clientId === clientId);
+      
+      let empties = 0;
+      clientOrders.forEach(o => {
+        o.items.forEach(it => {
+          if (it.requiresEmpty) empties += Number(it.quantity);
+        });
+      });
+
+      let ordersHtml = clientOrders.map(o => `
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+          <div>
+            <p class="font-bold text-slate-800 text-xs">${o.id} <span class="ml-2 font-normal text-[10px] text-slate-500">${o.date}</span></p>
+            <p class="text-[11px] mt-0.5">${getStatusBadge(o.status)}</p>
+          </div>
+          <span class="font-black text-blue-600 text-sm">$${Number(o.total).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      if (clientOrders.length === 0) ordersHtml = '<p class="text-xs text-slate-400 py-4">No tienes pedidos anteriores.</p>';
+
+      historyDiv.innerHTML = `
+        <h3 class="font-bold text-slate-900 text-base mb-4"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i> Mi Historial y Estado de Cuenta</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+            <p class="text-[10px] uppercase font-bold text-rose-500">Saldo Pendiente</p>
+            <p class="text-lg font-black text-rose-700">$${Number(client?.currentDebt || 0).toFixed(2)}</p>
+          </div>
+          <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+            <p class="text-[10px] uppercase font-bold text-amber-600">Envases Retornables</p>
+            <p class="text-lg font-black text-amber-700">${empties} Cajas</p>
+          </div>
+        </div>
+        <h4 class="font-bold text-slate-800 text-xs mb-2">Últimos Pedidos</h4>
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 max-h-60 overflow-y-auto">
+          ${ordersHtml}
+        </div>
+      `;
     }
 
     // Asegurarnos de que las voces se carguen apenas abre la página
