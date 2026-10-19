@@ -1,4 +1,4 @@
-Ho
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2262,11 +2262,44 @@ Ho
         try {
           const q = collection(db, 'artifacts', currentProjectId, 'public', 'data', colName);
           onSnapshot(q, (snapshot) => {
+            
+            // LÓGICA TIPO "CHILD_ADDED" (Extraída de tu otra App)
+            // Detecta quirúrgicamente si acaba de entrar un documento nuevo en vivo
+            let isNewIncomingOrder = false;
+            snapshot.docChanges().forEach((change) => {
+              if (colName === 'orders' && change.type === 'added') {
+                const newOrder = change.doc.data();
+                // Verificamos si este pedido NO lo teníamos en la memoria local de este teléfono
+                const alreadyExists = orders.some(o => o.id === newOrder.id);
+                if (!alreadyExists && newOrder.status === 'Por Aprobar') {
+                  isNewIncomingOrder = true;
+                }
+              }
+            });
+
             const remoteData = [];
             snapshot.forEach(docSnap => remoteData.push(docSnap.data()));
             if (remoteData.length > 0) {
               window.applyRemoteCollection(colName, remoteData);
             }
+
+            // Forzar la alarma visual y sonora si entró un pedido nuevo en vivo
+            if (isNewIncomingOrder) {
+              alarmSilencedManually = false; // Le quitamos el "silencio"
+              
+              const fullScreenAlarm = document.getElementById('full-screen-alarm');
+              if (fullScreenAlarm) {
+                fullScreenAlarm.classList.remove('hidden');
+                fullScreenAlarm.classList.add('flex');
+              }
+              
+              checkPendingApprovals();
+              
+              if (typeof window.showNotification === 'function') {
+                window.showNotification('¡PEDIDO EN VIVO RECIBIDO DESDE OTRO DISPOSITIVO!', 'warning');
+              }
+            }
+
           }, (err) => {
             console.warn(`Firestore listener error for ${colName}:`, err);
           });
@@ -2873,25 +2906,16 @@ Ho
 
     window.applyRemoteCollection = function(colName, dataList) {
       if (!Array.isArray(dataList) || dataList.length === 0) return;
-      
-      if (colName === 'orders') {
-        const oldPending = orders.filter(o => o.status === 'Por Aprobar').map(o => o.id);
-        const newPending = dataList.filter(o => o.status === 'Por Aprobar').map(o => o.id);
-        const isNewOrderAdded = newPending.some(id => !oldPending.includes(id));
-        
-        if (isNewOrderAdded) {
-          alarmSilencedManually = false;
-        }
-        orders = dataList;
-      } else if (colName === 'products') products = dataList;
-      else if (colName === 'clients') clients = dataList;
-      else if (colName === 'drivers') drivers = dataList;
-      else if (colName === 'purchases') purchases = dataList;
-      else if (colName === 'batches') batches = dataList;
-      else if (colName === 'suppliers') suppliers = dataList;
-      else if (colName === 'cashouts') cashouts = dataList;
-      else if (colName === 'telegram_bots') telegramBots = dataList;
-      else if (colName === 'telegram_chats') telegramChats = dataList;
+      if (colName === 'products') products = dataList;
+      if (colName === 'clients') clients = dataList;
+      if (colName === 'orders') orders = dataList;
+      if (colName === 'drivers') drivers = dataList;
+      if (colName === 'purchases') purchases = dataList;
+      if (colName === 'batches') batches = dataList;
+      if (colName === 'suppliers') suppliers = dataList;
+      if (colName === 'cashouts') cashouts = dataList;
+      if (colName === 'telegram_bots') telegramBots = dataList;
+      if (colName === 'telegram_chats') telegramChats = dataList;
 
       persistAll();
       refreshActiveViews();
@@ -5276,10 +5300,6 @@ Ho
 
     function openClientModal() {
       document.getElementById('clientForm').reset();
-      document.getElementById('cli-id').value = '';
-      document.getElementById('cli-lat').value = '';
-      document.getElementById('cli-lng').value = '';
-      document.getElementById('cli-gps-status').classList.add('hidden');
       document.getElementById('cli-exempt').checked = false;
       // Si estaba en cliente genérico y escribió un nombre, lo arrastramos al formulario
       const clientId = document.getElementById('posClientSelect')?.value;
@@ -5293,64 +5313,8 @@ Ho
       openModal('modal-client');
     }
 
-    function editClientModal(clientId) {
-      const client = clients.find(c => c.id === clientId);
-      if (!client) return;
-
-      document.getElementById('cli-id').value = client.id;
-      document.getElementById('cli-name').value = client.name;
-      document.getElementById('cli-tax').value = client.taxId;
-      document.getElementById('cli-phone').value = client.phone;
-      document.getElementById('cli-address').value = client.address;
-      document.getElementById('cli-route').value = client.route;
-      document.getElementById('cli-credit').value = client.creditLimit;
-      document.getElementById('cli-exempt').checked = client.isExempt;
-      
-      document.getElementById('cli-lat').value = client.lat || '';
-      document.getElementById('cli-lng').value = client.lng || '';
-      
-      const statusEl = document.getElementById('cli-gps-status');
-      if (client.lat && client.lng) {
-        statusEl.innerText = `Coordenadas guardadas: ${client.lat.toFixed(4)}, ${client.lng.toFixed(4)}`;
-        statusEl.classList.remove('hidden', 'text-rose-500', 'text-blue-500');
-        statusEl.classList.add('text-emerald-600');
-      } else {
-        statusEl.classList.add('hidden');
-      }
-
-      openModal('modal-client');
-    }
-
-    function captureClientGPS() {
-      const statusEl = document.getElementById('cli-gps-status');
-      statusEl.classList.remove('hidden', 'text-emerald-600', 'text-rose-500');
-      statusEl.classList.add('text-blue-500');
-      statusEl.innerText = 'Obteniendo ubicación...';
-
-      if (!navigator.geolocation) {
-        statusEl.classList.replace('text-blue-500', 'text-rose-500');
-        statusEl.innerText = 'Geolocalización no soportada.';
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          document.getElementById('cli-lat').value = position.coords.latitude;
-          document.getElementById('cli-lng').value = position.coords.longitude;
-          statusEl.classList.replace('text-blue-500', 'text-emerald-600');
-          statusEl.innerText = `Ubicación capturada con éxito`;
-        },
-        (error) => {
-          statusEl.classList.replace('text-blue-500', 'text-rose-500');
-          statusEl.innerText = 'Error al obtener GPS. Activa los permisos de ubicación.';
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
-
     function saveClient(e) {
       e.preventDefault();
-      const id = document.getElementById('cli-id').value;
       const name = document.getElementById('cli-name').value.trim();
       const taxId = document.getElementById('cli-tax').value.trim();
       const phone = document.getElementById('cli-phone').value.trim();
@@ -5358,48 +5322,26 @@ Ho
       const route = document.getElementById('cli-route').value;
       const creditLimit = parseFloat(document.getElementById('cli-credit').value) || 2000;
       const isExempt = document.getElementById('cli-exempt').checked;
-      const lat = parseFloat(document.getElementById('cli-lat').value) || null;
-      const lng = parseFloat(document.getElementById('cli-lng').value) || null;
 
-      let targetClient;
-      
-      if (id) {
-        targetClient = clients.find(c => c.id === id);
-        if (targetClient) {
-          targetClient.name = name;
-          targetClient.taxId = taxId;
-          targetClient.phone = phone;
-          targetClient.address = address;
-          targetClient.route = route;
-          targetClient.creditLimit = creditLimit;
-          targetClient.isExempt = isExempt;
-          targetClient.lat = lat;
-          targetClient.lng = lng;
-        }
-      } else {
-        targetClient = {
-          id: 'c_' + Date.now(),
-          name,
-          taxId,
-          phone,
-          address,
-          route,
-          creditLimit,
-          currentDebt: 0,
-          isExempt,
-          lat,
-          lng
-        };
-        clients.push(targetClient);
-      }
+      const newClient = {
+        id: 'c_' + Date.now(),
+        name,
+        taxId,
+        phone,
+        address,
+        route,
+        creditLimit,
+        currentDebt: 0,
+        isExempt
+      };
 
+      clients.push(newClient);
       persistAll();
-      if (window.syncDocToCloud && targetClient) window.syncDocToCloud('clients', targetClient.id, targetClient);
+      if (window.syncDocToCloud) window.syncDocToCloud('clients', newClient.id, newClient);
 
       closeModal('modal-client');
       renderClientsTable();
-      try { renderLogistics(); } catch(err){} // Refresca mapa si está abierto
-      showNotification(id ? `Cliente "${name}" actualizado.` : `Cliente "${name}" registrado con éxito.`, 'success');
+      showNotification(`Cliente "${name}" incorporado a la cartera.`, 'success');
     }
 
     function renderLogistics() {
@@ -6727,3 +6669,4 @@ REGLAS VITALES PARA FACTURAR:
   </script>
 </body>
 </html>
+```
