@@ -1,3 +1,4 @@
+Ho
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2872,16 +2873,25 @@
 
     window.applyRemoteCollection = function(colName, dataList) {
       if (!Array.isArray(dataList) || dataList.length === 0) return;
-      if (colName === 'products') products = dataList;
-      if (colName === 'clients') clients = dataList;
-      if (colName === 'orders') orders = dataList;
-      if (colName === 'drivers') drivers = dataList;
-      if (colName === 'purchases') purchases = dataList;
-      if (colName === 'batches') batches = dataList;
-      if (colName === 'suppliers') suppliers = dataList;
-      if (colName === 'cashouts') cashouts = dataList;
-      if (colName === 'telegram_bots') telegramBots = dataList;
-      if (colName === 'telegram_chats') telegramChats = dataList;
+      
+      if (colName === 'orders') {
+        const oldPending = orders.filter(o => o.status === 'Por Aprobar').map(o => o.id);
+        const newPending = dataList.filter(o => o.status === 'Por Aprobar').map(o => o.id);
+        const isNewOrderAdded = newPending.some(id => !oldPending.includes(id));
+        
+        if (isNewOrderAdded) {
+          alarmSilencedManually = false;
+        }
+        orders = dataList;
+      } else if (colName === 'products') products = dataList;
+      else if (colName === 'clients') clients = dataList;
+      else if (colName === 'drivers') drivers = dataList;
+      else if (colName === 'purchases') purchases = dataList;
+      else if (colName === 'batches') batches = dataList;
+      else if (colName === 'suppliers') suppliers = dataList;
+      else if (colName === 'cashouts') cashouts = dataList;
+      else if (colName === 'telegram_bots') telegramBots = dataList;
+      else if (colName === 'telegram_chats') telegramChats = dataList;
 
       persistAll();
       refreshActiveViews();
