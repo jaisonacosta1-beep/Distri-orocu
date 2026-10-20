@@ -1,4 +1,4 @@
-U
+2
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -3662,9 +3662,18 @@ U
       catSelect.innerHTML = uniqueCats.map(c => `<option value="${c}">${c === 'ALL' ? 'Todas las Categorías' : c}</option>`).join('');
 
       const clientSelect = document.getElementById('posClientSelect');
+      const previousValue = clientSelect.value;
+      
       const genericOption = `<option value="GENERICO" class="font-bold text-blue-700">🛒 Consumidor Final / Mostrador</option>`;
       const clientOptions = clients.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${c.route})</option>`).join('');
       clientSelect.innerHTML = genericOption + clientOptions;
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('role') === 'cliente' && urlParams.get('cid')) {
+        clientSelect.value = urlParams.get('cid');
+      } else if (previousValue && previousValue !== 'GENERICO') {
+        clientSelect.value = previousValue;
+      }
       
       updatePosClientDetails();
 
