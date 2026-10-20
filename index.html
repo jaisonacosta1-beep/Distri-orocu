@@ -2277,6 +2277,11 @@
               }
             });
 
+            // ¡MUY IMPORTANTE! Quitar el silencio ANTES de aplicar los datos para que no se ignore
+            if (isNewIncomingOrder) {
+              alarmSilencedManually = false;
+            }
+
             const remoteData = [];
             snapshot.forEach(docSnap => remoteData.push(docSnap.data()));
             if (remoteData.length > 0) {
@@ -2285,8 +2290,6 @@
 
             // Forzar la alarma visual y sonora si entró un pedido nuevo en vivo
             if (isNewIncomingOrder) {
-              alarmSilencedManually = false; // Le quitamos el "silencio"
-              
               const fullScreenAlarm = document.getElementById('full-screen-alarm');
               if (fullScreenAlarm) {
                 fullScreenAlarm.classList.remove('hidden');
