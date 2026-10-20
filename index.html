@@ -1,4 +1,4 @@
-2
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5849,16 +5849,21 @@
             // Inyectar un mensaje de bienvenida bonito
             const posSection = document.getElementById('view-pos');
             const clienteObj = clients.find(c => c.id === cid);
+            
+            const existingWelcome = document.getElementById('b2b-welcome-card');
+            if (existingWelcome) existingWelcome.remove();
+
             const welcomeDiv = document.createElement('div');
+            welcomeDiv.id = 'b2b-welcome-card';
             welcomeDiv.className = "bg-blue-600 text-white p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center";
             welcomeDiv.innerHTML = `
               <div>
-                <h2 class="text-xl font-black">Bienvenido, ${clienteObj ? escapeHtml(clienteObj.name) : 'Cliente'}</h2>
+                <h2 id="b2b-welcome-name" class="text-xl font-black">Bienvenido, ${clienteObj ? escapeHtml(clienteObj.name) : 'Sincronizando...'}</h2>
                 <p class="text-blue-100 text-xs mt-1"><i class="fa-solid fa-store mr-1"></i> Portal Exclusivo de Pedidos</p>
               </div>
               <div class="text-right hidden sm:block">
                 <p class="text-[10px] text-blue-200 uppercase font-bold">Límite de Crédito</p>
-                <p class="font-bold">$${clienteObj ? Number(clienteObj.creditLimit).toLocaleString() : '0'}</p>
+                <p id="b2b-welcome-limit" class="font-bold">$${clienteObj ? Number(clienteObj.creditLimit).toLocaleString() : '0'}</p>
               </div>
             `;
             posSection.insertBefore(welcomeDiv, posSection.firstChild);
