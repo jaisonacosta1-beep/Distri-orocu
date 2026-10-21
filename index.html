@@ -1,3 +1,4 @@
+i
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2200,27 +2201,32 @@
 
     function initFirebaseClient() {
       try {
-        const storedApiKey = localStorage.getItem('DISTRI_FB_API_KEY');
-        const storedProjectId = localStorage.getItem('DISTRI_FB_PROJECT_ID');
-        const storedAuthDomain = localStorage.getItem('DISTRI_FB_AUTH_DOMAIN');
-        const storedAppId = localStorage.getItem('DISTRI_FB_APP_ID');
-        const storedStorageBucket = localStorage.getItem('DISTRI_FB_STORAGE_BUCKET');
+        let firebaseConfig;
+        
+        // Prioridad 1: Usar la configuración inyectada por el entorno (100% Nube Mágica)
+        if (typeof __firebase_config !== 'undefined') {
+          firebaseConfig = JSON.parse(__firebase_config);
+          currentProjectId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        } else {
+          // Prioridad 2: Modo Local Manual (Si se ejecuta fuera de este entorno)
+          const storedApiKey = localStorage.getItem('DISTRI_FB_API_KEY');
+          const storedProjectId = localStorage.getItem('DISTRI_FB_PROJECT_ID');
+          
+          if (!storedApiKey || !storedProjectId || storedApiKey.trim().length < 10 || storedProjectId.trim().length < 3) {
+            currentProjectId = '';
+            updateCloudUI('unconfigured');
+            return;
+          }
 
-        // Check if user has entered real keys
-        if (!storedApiKey || !storedProjectId || storedApiKey.trim().length < 10 || storedProjectId.trim().length < 3) {
-          currentProjectId = '';
-          updateCloudUI('unconfigured');
-          return;
+          currentProjectId = storedProjectId.trim();
+          firebaseConfig = {
+            apiKey: storedApiKey.trim(),
+            projectId: storedProjectId.trim(),
+            authDomain: localStorage.getItem('DISTRI_FB_AUTH_DOMAIN') || `${storedProjectId.trim()}.firebaseapp.com`,
+            appId: localStorage.getItem('DISTRI_FB_APP_ID') || `1:distribuidora:web:${storedProjectId.trim()}`,
+            storageBucket: localStorage.getItem('DISTRI_FB_STORAGE_BUCKET') || `${storedProjectId.trim()}.appspot.com`
+          };
         }
-
-        currentProjectId = storedProjectId.trim();
-        const firebaseConfig = {
-          apiKey: storedApiKey.trim(),
-          projectId: storedProjectId.trim(),
-          authDomain: storedAuthDomain?.trim() || `${storedProjectId.trim()}.firebaseapp.com`,
-          appId: storedAppId?.trim() || `1:distribuidora:web:${storedProjectId.trim()}`,
-          storageBucket: storedStorageBucket?.trim() || `${storedProjectId.trim()}.appspot.com`
-        };
 
         updateCloudUI('connecting');
 
@@ -2230,7 +2236,12 @@
 
         const initAuth = async () => {
           try {
-            await signInAnonymously(auth);
+            // Autenticación obligatoria con el Token del entorno para sincronización global
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(auth);
+            }
 
             if (auth.currentUser) {
               const uid = auth.currentUser.uid;
@@ -2285,6 +2296,14 @@
             snapshot.forEach(docSnap => remoteData.push(docSnap.data()));
             if (remoteData.length > 0) {
               window.applyRemoteCollection(colName, remoteData);
+            } else {
+              // Si la nube está vacía en este entorno, inyectamos los datos locales para que todos los dispositivos lo vean
+              if (colName === 'products' && products.length > 0) products.forEach(item => window.syncDocToCloud(colName, item.id, item));
+              if (colName === 'clients' && clients.length > 0) clients.forEach(item => window.syncDocToCloud(colName, item.id, item));
+              if (colName === 'orders' && orders.length > 0) orders.forEach(item => window.syncDocToCloud(colName, item.id, item));
+              if (colName === 'drivers' && drivers.length > 0) drivers.forEach(item => window.syncDocToCloud(colName, item.id, item));
+              if (colName === 'purchases' && purchases.length > 0) purchases.forEach(item => window.syncDocToCloud(colName, item.id, item));
+              if (colName === 'batches' && batches.length > 0) batches.forEach(item => window.syncDocToCloud(colName, item.id, item));
             }
 
             // Forzar la alarma visual y sonora si entró un pedido nuevo en vivo
@@ -2451,8 +2470,7 @@
       reader.onload = async (e) => {
         const base64String = e.target.result.split(',')[1];
         try {
-          const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          if (!apiKey) throw new Error("Falta la Clave API de Gemini en Ajustes.");
+          const apiKey = ""; // El entorno inyecta la clave automáticamente
 
           const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.5-flash';
           let savedList = [];
@@ -2542,8 +2560,7 @@
       reader.onload = async (e) => {
         const base64String = e.target.result.split(',')[1];
         try {
-          const apiKey = localStorage.getItem('DISTRI_GEMINI_KEY') || "";
-          if (!apiKey) throw new Error("Falta la Clave API de Gemini en Ajustes.");
+          const apiKey = ""; // El entorno inyecta la clave automáticamente
 
           const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.5-flash';
           let savedList = [];
@@ -6148,8 +6165,7 @@ REGLAS VITALES PARA FACTURAR:
           generationConfig: { temperature: 0.2 }
         };
 
-        const apiKey = ((appSettings && appSettings.geminiKey) ? appSettings.geminiKey : localStorage.getItem('DISTRI_GEMINI_KEY') || "").trim().replace(/[\s\n\r]/g, '');
-        if (!apiKey) throw new Error("Falta la Clave API de Gemini. Por favor configúrala en Ajustes.");
+        const apiKey = ""; // El entorno inyecta la clave automáticamente
 
         const savedModel = localStorage.getItem('DISTRI_GEMINI_MODEL') || 'gemini-2.0-flash';
         let savedList = [];
