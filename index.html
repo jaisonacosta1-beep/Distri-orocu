@@ -1,4 +1,3 @@
-45
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5185,15 +5184,24 @@
       filtered.forEach(c => {
         const card = document.createElement('div');
         card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between";
+        const specialCount = c.specialPrices ? Object.keys(c.specialPrices).length : 0;
         card.innerHTML = `
           <div>
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start gap-2">
               <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">${escapeHtml(c.route)}</span>
-              <button onclick="copyRoleLink('cliente', '${c.id}')" title="Copiar enlace B2B para cliente" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-1.5 rounded-md transition shadow-sm"><i class="fa-solid fa-link"></i> Copiar Link</button>
+              <div class="flex items-center gap-1">
+                <button onclick="openSpecialPricesModal('${c.id}')" title="Configurar precios especiales B2B en Firebase" class="text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-tags"></i> Precios (${specialCount})
+                </button>
+                <button onclick="copyRoleLink('cliente', '${c.id}')" title="Copiar enlace B2B para cliente" class="text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-link"></i> Link Cliente
+                </button>
+              </div>
             </div>
             <h5 class="font-bold text-slate-900 text-sm mt-2">${escapeHtml(c.name)}</h5>
             <p class="text-xs text-slate-500 font-mono">${escapeHtml(c.taxId)}</p>
-            <p class="text-xs text-slate-600 mt-2"><i class="fa-solid fa-phone text-slate-400 mr-1"></i> ${escapeHtml(c.phone)}</p>
+            <p class="text-xs text-slate-600 mt-1"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i> ${escapeHtml(c.address || 'Sin dirección')}</p>
+            <p class="text-xs text-slate-600 mt-1"><i class="fa-solid fa-phone text-slate-400 mr-1"></i> ${escapeHtml(c.phone)}</p>
           </div>
           <div class="mt-3 pt-2 border-t border-slate-200 text-xs flex justify-between text-slate-600 font-medium">
             <span>Deuda / Límite:</span>
@@ -5204,6 +5212,642 @@
       });
     }
 
+    let currentSpecialPriceClientId = null;
+
+    window.getClientPrice = function(productId, defaultWholesalePrice) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isClientRole = urlParams.get('role') === 'cliente';
+      const forcedCid = urlParams.get('cid');
+      const selectedClientId = (isClientRole && forcedCid)
+        ? forcedCid
+        : (document.getElementById('posClientSelect')?.value || 'GENERICO');
+
+      if (!selectedClientId || selectedClientId === 'GENERICO') {
+        return Number(defaultWholesalePrice || 0);
+      }
+
+      const client = clients.find(c => c.id === selectedClientId);
+      if (client && client.specialPrices && client.specialPrices[productId] !== undefined) {
+        return Number(client.specialPrices[productId]);
+      }
+      return Number(defaultWholesalePrice || 0);
+    };
+
+    window.openSpecialPricesModal = function(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      currentSpecialPriceClientId = clientId;
+      document.getElementById('sp-client-name').innerText = `${client.name} (${client.taxId})`;
+      const select = document.getElementById('sp-product-select');
+      select.innerHTML = products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (Base: $${Number(p.wholesalePrice).toFixed(2)})</option>`).join('');
+      document.getElementById('sp-price-input').value = '';
+      renderSpecialPricesList();
+      openModal('modal-special-prices');
+    };
+
+    function renderSpecialPricesList() {
+      const container = document.getElementById('sp-list-container');
+      if (!container) return;
+      const client = clients.find(c => c.id === currentSpecialPriceClientId);
+      if (!client || !client.specialPrices || Object.keys(client.specialPrices).length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Sin precios especiales configurados.</p>`;
+        return;
+      }
+      container.innerHTML = Object.entries(client.specialPrices).map(([prodId, price]) => {
+        const prod = products.find(p => p.id === prodId);
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 mb-1.5 text-xs">
+            <span class="font-semibold text-slate-800 truncate pr-2">${prod ? escapeHtml(prod.name) : prodId}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="font-black text-rose-600">$${Number(price).toFixed(2)}</span>
+              <button onclick="removeSpecialPrice('${prodId}')" class="text-slate-400 hover:text-rose-600">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.addSpecialPrice = function() {
+      const client = clients.find(c => c.id === currentSpecialPriceClientId);
+      if (!client) return;
+      const prodId = document.getElementById('sp-product-select').value;
+      const priceVal = parseFloat(document.getElementById('sp-price-input').value);
+      if (!prodId || isNaN(priceVal) || priceVal <= 0) {
+        showNotification('Ingresa un precio válido.', 'warning');
+        return;
+      }
+      if (!client.specialPrices) client.specialPrices = {};
+      client.specialPrices[prodId] = priceVal;
+
+      if (window.syncDocToCloud) window.syncDocToCloud('clients', client.id, client);
+      renderSpecialPricesList();
+      renderClientsTable();
+      filterPosCatalog();
+      showNotification('Precio especial B2B sincronizado en Firebase.', 'success');
+    };
+
+    window.removeSpecialPrice = function(prodId) {
+      const client = clients.find(c => c.id === currentSpecialPriceClientId);
+      if (!client || !client.specialPrices) return;
+      delete client.specialPrices[prodId];
+      if (window.syncDocToCloud) window.syncDocToCloud('clients', client.id, client);
+      renderSpecialPricesList();
+      renderClientsTable();
+      filterPosCatalog();
+    };
+
+    function renderLogistics() {
+      const driversGrid = document.getElementById('logistics-drivers-grid');
+      if (driversGrid) {
+        driversGrid.innerHTML = '';
+        drivers.forEach(d => {
+          const activeOrders = orders.filter(o => o.driver === d.name && o.status === 'En Ruta').length;
+          const card = document.createElement('div');
+          card.className = "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between";
+          card.innerHTML = `
+            <div>
+              <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${d.status === 'En Ruta' ? 'bg-indigo-100 text-indigo-800' : 'bg-emerald-100 text-emerald-800'}">${escapeHtml(d.status || 'Disponible')}</span>
+                <span class="text-xs font-bold text-slate-500">${activeOrders} entregas activas</span>
+              </div>
+              <h5 class="font-bold text-slate-900 text-sm mt-2"><i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> ${escapeHtml(d.name)}</h5>
+              <p class="text-xs text-slate-600 mt-1"><i class="fa-solid fa-truck text-slate-400 mr-1"></i> ${escapeHtml(d.truck)}</p>
+              <p class="text-xs text-amber-700 font-semibold mt-1"><i class="fa-solid fa-route mr-1"></i> ${escapeHtml(d.route)}</p>
+            </div>
+          `;
+          driversGrid.appendChild(card);
+        });
+      }
+
+      const board = document.getElementById('logistics-board-container');
+      if (board) {
+        board.innerHTML = '';
+        const routeOrders = orders.filter(o => o.status === 'En Ruta' || o.status === 'Despachando' || o.status === 'En Preparación');
+        if (routeOrders.length === 0) {
+          board.innerHTML = `<p class="col-span-3 text-center py-6 text-xs text-slate-400">No hay despachos activos en ruta en este momento.</p>`;
+        } else {
+          routeOrders.forEach(o => {
+            const div = document.createElement('div');
+            div.className = "p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-2";
+            div.innerHTML = `
+              <div>
+                <div class="flex justify-between items-center">
+                  <span class="font-mono font-bold text-blue-600 text-xs">${o.id}</span>
+                  ${getStatusBadge(o.status)}
+                </div>
+                <p class="font-bold text-slate-900 text-xs mt-1.5">${escapeHtml(o.clientName)}</p>
+                <p class="text-[11px] text-slate-500"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(o.clientAddress || 'Ruta local')}</p>
+                <p class="text-[11px] text-slate-600 mt-1"><strong>Chofer:</strong> ${escapeHtml(o.driver || 'Por asignar')}</p>
+              </div>
+              <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+                <span class="font-black text-slate-900 text-xs">$${Number(o.total).toFixed(2)}</span>
+                <div class="flex gap-1">
+                  <button onclick="openPodModalForOrder('${o.id}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition">
+                    <i class="fa-solid fa-signature mr-1"></i> Entregar (POD)
+                  </button>
+                </div>
+              </div>
+            `;
+            board.appendChild(div);
+          });
+        }
+      }
+
+      const mapContainer = document.getElementById('logisticsMap');
+      if (mapContainer && !mapContainer.offsetParent === false && typeof L !== 'undefined') {
+        if (!leafletMapInstance) {
+          leafletMapInstance = L.map('logisticsMap').setView([8.4275, -82.4312], 12);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+          }).addTo(leafletMapInstance);
+        }
+        setTimeout(() => leafletMapInstance.invalidateSize(), 150);
+        mapMarkers.forEach(m => m.remove());
+        mapMarkers = [];
+        clients.forEach(c => {
+          if (c.lat && c.lng) {
+            const m = L.marker([c.lat, c.lng]).addTo(leafletMapInstance)
+              .bindPopup(`<b>${escapeHtml(c.name)}</b><br>${escapeHtml(c.address || '')}`);
+            mapMarkers.push(m);
+          }
+        });
+      }
+    }
+
+    window.recenterMap = function() {
+      if (leafletMapInstance) {
+        leafletMapInstance.setView([8.4275, -82.4312], 12);
+      }
+    };
+
+    window.openDriverModal = function() {
+      document.getElementById('driverForm')?.reset();
+      openModal('modal-driver');
+    };
+
+    window.saveDriver = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('drv-name').value.trim();
+      const truck = document.getElementById('drv-truck').value.trim();
+      const route = document.getElementById('drv-route').value.trim();
+      const newDriver = { id: 'd_' + Date.now(), name, truck, route, status: 'En Ruta' };
+      drivers.push(newDriver);
+      if (window.syncDocToCloud) window.syncDocToCloud('drivers', newDriver.id, newDriver);
+      closeModal('modal-driver');
+      refreshActiveViews();
+      showNotification(`Chofer "${name}" sincronizado en Firebase.`, 'success');
+    };
+
+    function renderCashouts() {
+      const tbody = document.getElementById('cashout-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let totalCash = 0;
+      let totalBank = 0;
+      let totalCrates = 0;
+
+      cashouts.forEach(cs => {
+        totalCash += Number(cs.cash || 0);
+        totalBank += Number(cs.bank || 0);
+        totalCrates += Number(cs.crates || 0);
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-emerald-700">${cs.id}</td>
+          <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(cs.driver)}</td>
+          <td class="py-3 px-4 text-xs text-slate-500">${cs.date}</td>
+          <td class="py-3 px-4 font-bold text-emerald-600">$${Number(cs.cash || 0).toFixed(2)}</td>
+          <td class="py-3 px-4 font-bold text-blue-600">$${Number(cs.bank || 0).toFixed(2)}</td>
+          <td class="py-3 px-4 font-semibold text-slate-600">$${Number(cs.credit || 0).toFixed(2)}</td>
+          <td class="py-3 px-4 text-center font-bold text-amber-700">${cs.crates || 0} cajas / ${cs.kegs || 0} barriles</td>
+          <td class="py-3 px-4 text-center"><span class="bg-emerald-100 text-emerald-800 text-[11px] px-2.5 py-1 rounded-full font-bold">${cs.status || 'Validado'}</span></td>
+          <td class="py-3 px-4 text-right text-xs text-slate-500">${escapeHtml(cs.notes || '-')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const elCash = document.getElementById('cashout-total-cash');
+      const elBank = document.getElementById('cashout-total-bank');
+      const elCrates = document.getElementById('cashout-total-crates');
+      if (elCash) elCash.innerText = `$${totalCash.toFixed(2)}`;
+      if (elBank) elBank.innerText = `$${totalBank.toFixed(2)}`;
+      if (elCrates) elCrates.innerText = `${totalCrates} Cajas`;
+    }
+
+    window.openCashoutModal = function() {
+      const drvSelect = document.getElementById('cashout-driver');
+      if (drvSelect) {
+        drvSelect.innerHTML = drivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)} (${escapeHtml(d.truck)})</option>`).join('');
+      }
+      calculateDriverAssignedOrders();
+      openModal('modal-cashout');
+    };
+
+    window.calculateDriverAssignedOrders = function() {
+      const drvName = document.getElementById('cashout-driver')?.value;
+      const drvOrders = orders.filter(o => o.driver === drvName && o.status !== 'Cancelado');
+      const total = drvOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+      const credit = drvOrders.filter(o => (o.paymentMethod || '').includes('Crédito')).reduce((s, o) => s + Number(o.total || 0), 0);
+      const sugTotal = document.getElementById('cashout-suggested-total');
+      const sugCredit = document.getElementById('cashout-suggested-credit');
+      if (sugTotal) sugTotal.innerText = `$${total.toFixed(2)}`;
+      if (sugCredit) sugCredit.innerText = `$${credit.toFixed(2)}`;
+    };
+
+    window.saveCashoutSettlement = function(e) {
+      e.preventDefault();
+      const driver = document.getElementById('cashout-driver').value;
+      const cash = parseFloat(document.getElementById('cashout-cash').value) || 0;
+      const bank = parseFloat(document.getElementById('cashout-bank').value) || 0;
+      const crates = parseInt(document.getElementById('cashout-crates').value) || 0;
+      const kegs = parseInt(document.getElementById('cashout-kegs').value) || 0;
+      const notes = document.getElementById('cashout-notes').value.trim();
+
+      const newCashout = {
+        id: `ARQ-${300 + cashouts.length + 1}`,
+        driver,
+        date: new Date().toISOString().split('T')[0],
+        cash,
+        bank,
+        credit: 0,
+        crates,
+        kegs,
+        notes,
+        status: 'Validado'
+      };
+
+      cashouts.unshift(newCashout);
+      if (window.syncDocToCloud) window.syncDocToCloud('cashouts', newCashout.id, newCashout);
+      closeModal('modal-cashout');
+      renderCashouts();
+      showNotification(`Arqueo ${newCashout.id} sincronizado en Firebase.`, 'success');
+    };
+
+    let orderAlarmAudio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+    orderAlarmAudio.loop = true;
+    let isAlarmSilenced = false;
+
+    window.resetAlarmSilence = function() {
+      isAlarmSilenced = false;
+    };
+
+    window.checkPendingApprovals = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('role') === 'cliente') return;
+
+      const pendingCount = orders.filter(o => o.status === 'Por Aprobar').length;
+      const badge = document.getElementById('badge-online-orders');
+      if (badge) {
+        if (pendingCount > 0) {
+          badge.classList.remove('hidden');
+          badge.innerText = pendingCount;
+          if (!isAlarmSilenced) {
+            orderAlarmAudio.play().catch(() => {});
+          }
+        } else {
+          badge.classList.add('hidden');
+          orderAlarmAudio.pause();
+        }
+      }
+    };
+
+    window.silenceAlarm = function() {
+      isAlarmSilenced = true;
+      orderAlarmAudio.pause();
+      const alarmModal = document.getElementById('full-screen-alarm');
+      if (alarmModal) {
+        alarmModal.classList.add('hidden');
+        alarmModal.classList.remove('flex');
+      }
+    };
+
+    window.acknowledgeAlarmAndGo = function() {
+      window.silenceAlarm();
+      navigateTab('online-orders');
+    };
+
+    window.simulateIncomingOrder = function() {
+      if (clients.length === 0 || products.length === 0) {
+        showNotification('Se requieren clientes y productos para simular un pedido.', 'warning');
+        return;
+      }
+      const randomClient = clients[Math.floor(Math.random() * clients.length)];
+      const randomProd = products[Math.floor(Math.random() * products.length)];
+      const qty = Math.floor(Math.random() * 5) + 2;
+      const price = Number(randomProd.wholesalePrice);
+      const subtotal = qty * price;
+      const tax = randomClient.isExempt ? 0 : subtotal * 0.07;
+      const total = subtotal + tax;
+
+      const maxOrderNum = orders.reduce((max, o) => {
+        const num = parseInt(String(o.id).replace('ORD-', '')) || 1000;
+        return num > max ? num : max;
+      }, 1000);
+
+      const simOrder = {
+        id: `ORD-${maxOrderNum + 1}`,
+        clientId: randomClient.id,
+        clientName: randomClient.name,
+        clientTax: randomClient.taxId,
+        clientAddress: randomClient.address,
+        date: new Date().toISOString().split('T')[0],
+        driver: 'Por asignar',
+        paymentMethod: 'Transferencia Bancaria',
+        status: 'Por Aprobar',
+        items: [{
+          id: randomProd.id,
+          sku: randomProd.sku,
+          name: randomProd.name,
+          quantity: qty,
+          price: price,
+          batchAssigned: 'FEFO',
+          isCold: true
+        }],
+        subtotal,
+        discountRate: 0,
+        discountAmount: 0,
+        tax,
+        total,
+        pod: null
+      };
+
+      isAlarmSilenced = false;
+      orders.unshift(simOrder);
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', simOrder.id, simOrder);
+      refreshActiveViews();
+      showNotification(`Nuevo pedido B2B ${simOrder.id} recibido de ${randomClient.name}.`, 'warning');
+    };
+
+    window.approveOrderFromInvoice = function() {
+      if (!currentViewingOrder) return;
+      approveOrder(currentViewingOrder.id);
+      closeModal('modal-invoice');
+    };
+
+    window.editInvoiceFromModal = function() {
+      if (!currentViewingOrder) return;
+      closeModal('modal-invoice');
+      navigateTab('orders');
+    };
+
+    window.renderClientHistory = function(clientId) {
+      let historySection = document.getElementById('b2b-client-history-section');
+      const posSection = document.getElementById('view-pos');
+      if (!posSection) return;
+
+      if (!historySection) {
+        historySection = document.createElement('div');
+        historySection.id = 'b2b-client-history-section';
+        historySection.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6';
+        posSection.appendChild(historySection);
+      }
+
+      const myOrders = orders.filter(o => o.clientId === clientId);
+      historySection.innerHTML = `
+        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div>
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Mis Pedidos Enviados (Sincronizado en Vivo)
+            </h4>
+            <p class="text-xs text-slate-500">Estado en tiempo real de tus solicitudes a la distribuidora</p>
+          </div>
+          <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">${myOrders.length} pedidos</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold">
+              <tr>
+                <th class="py-3 px-4">Folio</th>
+                <th class="py-3 px-4">Fecha</th>
+                <th class="py-3 px-4">Artículos</th>
+                <th class="py-3 px-4">Total</th>
+                <th class="py-3 px-4 text-center">Estado en Distribuidora</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${
+                myOrders.length === 0
+                  ? `<tr><td colspan="5" class="text-center py-6 text-slate-400 text-xs">Aún no has enviado pedidos desde tu portal.</td></tr>`
+                  : myOrders.map(o => {
+                      const count = (o.items || []).reduce((s, i) => s + Number(i.quantity || 0), 0);
+                      return `
+                        <tr>
+                          <td class="py-3 px-4 font-mono font-bold text-blue-600">${o.id}</td>
+                          <td class="py-3 px-4 text-xs text-slate-500">${o.date}</td>
+                          <td class="py-3 px-4 font-semibold text-slate-800">${count} bultos/cajas</td>
+                          <td class="py-3 px-4 font-black text-slate-900">$${Number(o.total).toFixed(2)}</td>
+                          <td class="py-3 px-4 text-center">${getStatusBadge(o.status)}</td>
+                        </tr>
+                      `;
+                    }).join('')
+              }
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    window.setupRoleEnvironment = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role');
+      const cid = urlParams.get('cid');
+
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebar-overlay');
+      const btnToggle = document.getElementById('btn-toggle-sidebar');
+
+      if (role === 'cliente') {
+        // 1. Ocultar por completo el menú lateral del panel administrativo y botones del header
+        if (sidebar) {
+          sidebar.classList.add('hidden', '!hidden');
+          sidebar.style.display = 'none';
+        }
+        if (sidebarOverlay) sidebarOverlay.style.display = 'none';
+        if (btnToggle) btnToggle.style.display = 'none';
+
+        const headerActions = document.querySelector('header > div:nth-child(2)');
+        if (headerActions) headerActions.style.display = 'none';
+
+        // 2. Ir directamente a la vista de pedidos del cliente y ocultar las demás vistas
+        navigateTab('pos');
+
+        // 3. Ocultar el selector administrativo de clientes ("Paso 1") y mostrar el Perfil del Cliente B2B
+        const step1Container = document.getElementById('pos-step-1-container');
+        if (step1Container) step1Container.classList.add('hidden');
+
+        const clientObj = clients.find(c => c.id === cid);
+        const pageTitle = document.getElementById('page-title');
+        const pageSubtitle = document.getElementById('page-subtitle');
+        if (pageTitle) {
+          pageTitle.innerText = clientObj ? `Portal B2B: ${clientObj.name}` : 'Portal de Pedidos para Clientes B2B';
+        }
+        if (pageSubtitle) {
+          pageSubtitle.innerText = clientObj
+            ? `RUC: ${clientObj.taxId} | ${clientObj.route} | Catálogo exclusivo sincronizado con Firebase`
+            : 'Sincronizando perfil del cliente desde Firebase...';
+          pageSubtitle.classList.remove('hidden');
+        }
+
+        // Crear o actualizar el banner exclusivo del perfil del cliente arriba del catálogo
+        let clientBanner = document.getElementById('b2b-client-profile-banner');
+        const posSection = document.getElementById('view-pos');
+        if (!clientBanner && posSection) {
+          clientBanner = document.createElement('div');
+          clientBanner.id = 'b2b-client-profile-banner';
+          posSection.insertBefore(clientBanner, posSection.firstChild);
+        }
+        if (clientBanner) {
+          clientBanner.className = 'bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4';
+          clientBanner.innerHTML = `
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-black shadow-lg">
+                <i class="fa-solid fa-store"></i>
+              </div>
+              <div>
+                <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Perfil de Cliente Verificado</span>
+                <h2 id="b2b-welcome-name" class="text-lg font-black text-white">${clientObj ? escapeHtml(clientObj.name) : 'Cargando cliente desde Firebase...'}</h2>
+                <p class="text-xs text-slate-300">${clientObj ? `${escapeHtml(clientObj.address)} • ${escapeHtml(clientObj.route)}` : 'Conectado en tiempo real'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 bg-slate-950/50 px-4 py-2.5 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-end">
+              <div>
+                <span class="text-[10px] uppercase text-slate-400 font-bold block">Saldo Pendiente</span>
+                <span class="text-sm font-black text-rose-400">$${Number(clientObj?.currentDebt || 0).toFixed(2)}</span>
+              </div>
+              <div class="h-7 w-px bg-slate-700"></div>
+              <div>
+                <span class="text-[10px] uppercase text-slate-400 font-bold block">Límite de Crédito</span>
+                <span id="b2b-welcome-limit" class="text-sm font-black text-emerald-400">$${Number(clientObj?.creditLimit || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        // Ocultar asignación de chofer y descuento manual para el cliente
+        const driverSelect = document.getElementById('posAssignedDriver');
+        if (driverSelect && driverSelect.parentElement) {
+          driverSelect.parentElement.classList.add('hidden');
+        }
+        const discountInput = document.getElementById('pos-discount-rate');
+        if (discountInput && discountInput.parentElement && discountInput.parentElement.parentElement) {
+          discountInput.parentElement.parentElement.classList.add('hidden');
+        }
+        const submitBtn = document.getElementById('btn-submit-order');
+        if (submitBtn) {
+          submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Enviar Pedido a Distribuidora`;
+        }
+
+        if (cid) {
+          const selectEl = document.getElementById('posClientSelect');
+          if (selectEl) selectEl.value = cid;
+          filterPosCatalog();
+          recalculateTotals();
+          renderClientHistory(cid);
+        }
+      } else if (role === 'cajero') {
+        ['nav-purchases', 'nav-fefo', 'nav-settings', 'nav-logistics'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add('hidden');
+        });
+        navigateTab('pos');
+      } else if (role === 'repartidor') {
+        ['nav-dashboard', 'nav-online-orders', 'nav-pos', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-settings'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add('hidden');
+        });
+        navigateTab('logistics');
+      } else {
+        navigateTab('dashboard');
+      }
+    };
+
+    window.openGeminiSheet = function() {
+      const backdrop = document.getElementById('gemini-backdrop');
+      const sheet = document.getElementById('gemini-sheet');
+      if (backdrop) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+      }
+      if (sheet) sheet.classList.remove('translate-y-full');
+    };
+
+    window.closeGeminiSheet = function() {
+      const backdrop = document.getElementById('gemini-backdrop');
+      const sheet = document.getElementById('gemini-sheet');
+      if (sheet) sheet.classList.add('translate-y-full');
+      if (backdrop) {
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    };
+
+    window.startGeminiListening = function() {
+      const chatHistory = document.getElementById('gemini-chat-history');
+      const listenView = document.getElementById('gemini-listening-view');
+      if (listenView) listenView.classList.add('hidden');
+      if (chatHistory) chatHistory.classList.remove('hidden');
+      document.getElementById('gemini-input')?.focus();
+    };
+
+    window.stopGeminiSpeechAndAudio = function() {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    };
+
+    window.handleGeminiSubmit = async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('gemini-input');
+      const prompt = input?.value.trim();
+      if (!prompt) return;
+      input.value = '';
+
+      const listenView = document.getElementById('gemini-listening-view');
+      const chatHistory = document.getElementById('gemini-chat-history');
+      if (listenView) listenView.classList.add('hidden');
+      if (chatHistory) chatHistory.classList.remove('hidden');
+
+      chatHistory.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-purple-600 text-white p-3 rounded-2xl rounded-tr-none text-sm max-w-xs shadow-xs">${escapeHtml(prompt)}</div>
+        </div>
+      `;
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      const apiKey = (appSettings.geminiKey || '').trim();
+      if (!apiKey) {
+        chatHistory.innerHTML += `
+          <div class="flex items-start gap-3">
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-xs text-amber-800">Configura tu Clave API de Gemini en Ajustes para consultar a la IA en vivo.</div>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const model = appSettings.geminiModel || 'gemini-2.0-flash';
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `Eres el asistente del ERP CervezaLogix. Stock actual: ${products.length} productos, Clientes: ${clients.length}, Pedidos: ${orders.length}. Responde breve a: ${prompt}` }] }]
+          })
+        });
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta.';
+        chatHistory.innerHTML += `
+          <div class="flex items-start gap-3">
+            <div class="bg-slate-100 p-3.5 rounded-2xl rounded-tl-none text-sm text-slate-800">${escapeHtml(reply)}</div>
+          </div>
+        `;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      } catch (err) {
+        chatHistory.innerHTML += `<div class="text-xs text-rose-600">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    };
+
     // =====================================================================
     // 100% SINCRONIZACIÓN EN LA NUBE Y ENLACES COMPARTIDOS (0 LocalStorage)
     // =====================================================================
@@ -5213,12 +5857,15 @@
       url.searchParams.set('role', role);
       if (clientId) {
         url.searchParams.set('cid', clientId);
+        const clientObj = clients.find(c => c.id === clientId);
+        if (clientObj && window.syncDocToCloud) {
+          window.syncDocToCloud('clients', clientObj.id, clientObj);
+        }
       } else {
         url.searchParams.delete('cid');
       }
       
-      // CRUCIAL: Incrustamos las credenciales de Firebase en el enlace a copiar.
-      // Al abrir el link en otro teléfono, se conectará inmediatamente a TU base de datos.
+      // Incrustar siempre las credenciales de Firebase en el enlace a copiar
       if (typeof window.embedFirebaseParamsInUrl === 'function') {
         window.embedFirebaseParamsInUrl(url);
       }
@@ -5231,7 +5878,7 @@
       document.body.removeChild(el);
       
       const roleName = clientId ? 'Cliente B2B' : role.toUpperCase();
-      window.showNotification(`Enlace para ${roleName} copiado. ¡Envíalo por WhatsApp y sincronizará en tiempo real!`, 'success');
+      window.showNotification(`Enlace para ${roleName} copiado con conexión directa a Firebase.`, 'success');
     };
 
     window.applyBrandSettings = function() {
@@ -5359,26 +6006,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
       refreshActiveViews();
-
-      // Rutear a la vista correcta según el rol en el enlace
-      const urlParams = new URLSearchParams(window.location.search);
-      const role = urlParams.get('role');
-
-      if (role === 'cliente') {
-        navigateTab('pos'); 
-        // Ocultar menú lateral para restringir la vista al cliente
-        const sidebar = document.getElementById('sidebar');
-        const btnToggle = document.getElementById('btn-toggle-sidebar');
-        if (sidebar) sidebar.style.display = 'none';
-        if (btnToggle) btnToggle.style.display = 'none';
-      } else if (role === 'cajero') {
-        navigateTab('pos');
-      } else if (role === 'repartidor') {
-        navigateTab('logistics');
-      } else {
-        // Vista por defecto para la administración
-        navigateTab('dashboard');
-      }
+      window.setupRoleEnvironment();
     });
   </script>
 </body>
