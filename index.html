@@ -452,7 +452,7 @@
             <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
               <div>
                 <label class="block text-[11px] font-black text-blue-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-2 mr-1"></i> Paso 2: Agregar Mercancía</label>
-                <h3 class="font-bold text-slate-900 text-base">Catálogo de Productos</h3>
+                <h3 class="font-bold text-slate-900 text-base">Catálogo Visual de Productos</h3>
               </div>
               <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button onclick="openCustomItemModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border border-amber-200 shadow-sm shrink-0">
@@ -461,7 +461,7 @@
                 <button onclick="openBarcodeScannerModal()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm shrink-0">
                   <i class="fa-solid fa-camera"></i> Escanear
                 </button>
-                <select id="posCategoryFilter" onchange="filterPosCatalog()" class="text-xs font-semibold px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <select id="posCategoryFilter" onchange="filterPosCatalog()" class="hidden text-xs font-semibold px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                   <option value="ALL">Todas las Categorías</option>
                 </select>
               </div>
@@ -469,20 +469,29 @@
 
             <!-- Search input in pos -->
             <div class="relative">
-              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input type="text" id="posSearchProduct" oninput="filterPosCatalog()" placeholder="Buscar por código de barra, SKU o nombre..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="posSearchProduct" oninput="filterPosCatalog()" placeholder="Buscar cerveza, bebida o snack por nombre o código..." class="w-full pl-10 pr-9 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium">
+              <button type="button" onclick="document.getElementById('posSearchProduct').value=''; filterPosCatalog();" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
             </div>
 
+            <!-- Interactive Category Pills (Intuitive Quick Filter) -->
+            <div id="posCategoryPills" class="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar"></div>
+
             <!-- Product Cards Grid -->
-            <div id="pos-products-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1"></div>
+            <div id="pos-products-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 max-h-[620px] overflow-y-auto pr-1"></div>
           </div>
 
           <!-- Right Column: Current Order Items & Summary -->
-          <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sticky top-6" style="max-height: calc(100vh - 100px);">
+          <div id="pos-cart-summary-card" class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sticky top-6" style="max-height: calc(100vh - 100px);">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
               <div>
                 <label class="block text-[11px] font-black text-blue-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-3 mr-1"></i> Paso 3: Confirmar y Facturar</label>
-                <h3 class="font-bold text-slate-900 text-base">Resumen del Pedido</h3>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-slate-900 text-base">Resumen del Pedido</h3>
+                  <span id="pos-cart-count-badge" class="bg-blue-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full">0</span>
+                </div>
               </div>
               <button onclick="clearCurrentCart()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1">
                 <i class="fa-solid fa-trash-can"></i> Vaciar
@@ -544,6 +553,23 @@
                 <i class="fa-solid fa-file-invoice-dollar"></i> Generar Pedido e Imprimir Factura
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Floating Mobile Cart Bar for Easier Cashier & Client Navigation -->
+        <div id="pos-mobile-cart-bar" onclick="scrollToPosCart()" class="lg:hidden fixed bottom-5 left-4 right-20 z-30 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition transform hidden">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+              <span id="pos-mobile-bar-qty">0</span>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white leading-tight">Ver Carrito y Facturar</p>
+              <p class="text-[10px] text-amber-300">Toca para ir al resumen</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span id="pos-mobile-bar-total" class="text-base font-black text-emerald-400">$0.00</span>
+            <i class="fa-solid fa-chevron-down ml-1.5 text-xs text-slate-400"></i>
           </div>
         </div>
       </section>
@@ -1820,6 +1846,29 @@
             <input type="number" id="prod-stock" required min="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1" placeholder="150">
           </div>
         </div>
+
+        <!-- Fotografía del Producto (NUEVO) -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <label class="block text-xs font-bold text-slate-700"><i class="fa-solid fa-image text-amber-500 mr-1"></i> Foto del Producto (Opcional)</label>
+          <div class="flex items-center gap-3">
+            <div id="prod-image-preview-box" class="w-16 h-16 rounded-xl bg-white border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+              <i class="fa-solid fa-beer-mug-empty text-slate-300 text-xl"></i>
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <div class="flex flex-wrap gap-1.5">
+                <label class="cursor-pointer px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition inline-flex items-center gap-1 shadow-xs">
+                  <i class="fa-solid fa-camera"></i> Subir Foto
+                  <input type="file" accept="image/*" class="hidden" onchange="handleProductImageUpload(event)">
+                </label>
+                <button type="button" onclick="clearProductImage()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-[11px] font-bold transition">
+                  Quitar
+                </button>
+              </div>
+              <input type="text" id="prod-image-url" oninput="handleProductImageUrlInput(this.value)" placeholder="O pega el link de una imagen (https://...)" class="w-full text-[11px] p-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
         <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
           <button type="button" onclick="closeModal('modal-product')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
           <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white font-bold">Guardar Producto</button>
@@ -2056,12 +2105,13 @@
   <!-- MODAL: AGREGAR AL CARRITO (CANTIDAD, FRIO, NOTAS) -->
   <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 space-y-4 transform transition-all">
-      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-        <div class="pr-4">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-3">
+        <img id="mac-product-img" src="" alt="Producto" class="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 hidden">
+        <div class="pr-2 flex-1">
           <h3 class="font-bold text-slate-900 text-base leading-tight" id="mac-product-name">Nombre del Producto</h3>
           <p class="text-xs text-slate-500 mt-1 font-mono" id="mac-product-sku">SKU</p>
         </div>
-        <button onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center">
+        <button onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center shrink-0">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -2202,31 +2252,39 @@
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 my-6">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <div>
-          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2"><i class="fa-solid fa-receipt text-slate-600"></i> Ticket Térmico Personalizable</h3>
-          <p class="text-[11px] text-slate-500">Puedes editar cualquier texto directamente abajo antes de imprimir</p>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2"><i class="fa-solid fa-receipt text-slate-600"></i> Ticket Térmico (Logo + Firma)</h3>
+          <p class="text-[11px] text-slate-500">Incluye tu logo de ajustes y la firma digital del cliente para impresora Bluetooth</p>
         </div>
         <button onclick="closeModal('modal-thermal-receipt')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <!-- Vista del ticket con Logo -->
+      <!-- Vista del ticket con Logo y Firma -->
       <div class="bg-slate-100 p-4 rounded-xl shadow-inner border border-slate-200 space-y-2">
         <div id="thermal-modal-logo-wrap" class="flex justify-center pb-2 border-b border-dashed border-slate-300 hidden">
           <img id="thermal-modal-logo" src="" alt="Logo Ticket" class="max-h-16 object-contain">
         </div>
-        <textarea id="thermal-receipt-text" rows="16" oninput="currentThermalReceiptPlainText = this.value" class="w-full bg-transparent text-[11px] font-mono text-slate-800 leading-tight focus:outline-none resize-y border-0 p-0"></textarea>
+        <textarea id="thermal-receipt-text" rows="14" oninput="currentThermalReceiptPlainText = this.value" class="w-full bg-transparent text-[11px] font-mono text-slate-800 leading-tight focus:outline-none resize-y border-0 p-0"></textarea>
+        <div id="thermal-modal-sig-wrap" class="flex flex-col items-center pt-2 border-t border-dashed border-slate-300 hidden">
+          <p class="text-[10px] font-mono font-bold text-slate-600 uppercase mb-1">Firma Digital del Cliente (POD)</p>
+          <img id="thermal-modal-sig" src="" alt="Firma Cliente" class="max-h-16 object-contain bg-white px-3 py-1 rounded border border-slate-200">
+          <p id="thermal-modal-sig-meta" class="text-[9px] font-mono text-slate-500 mt-0.5"></p>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-        <button onclick="printThermalTicketBrowser()" class="col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
-          <i class="fa-solid fa-print"></i> Imprimir Ticket Térmico (Con Logo)
+        <button onclick="printDirectWebBluetooth()" class="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+          <i class="fa-brands fa-bluetooth-b text-sm"></i> Imprimir Directo por Bluetooth (Logo + Firma ESC/POS)
         </button>
         <button onclick="sendToRawBT()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
-          <i class="fa-brands fa-bluetooth"></i> Enviar a RawBT
+          <i class="fa-solid fa-print"></i> App RawBT (Logo + Firma)
         </button>
-        <button onclick="copyThermalText()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
-          <i class="fa-solid fa-copy"></i> Copiar Texto
+        <button onclick="printThermalTicketBrowser()" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="fa-solid fa-desktop"></i> Imprimir Navegador
+        </button>
+        <button onclick="copyThermalText()" class="col-span-2 bg-slate-200 hover:bg-slate-300 text-slate-800 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="fa-solid fa-copy"></i> Copiar Solo Texto
         </button>
         <button onclick="openReceiptSettingsFromModal()" class="col-span-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
           <i class="fa-solid fa-sliders"></i> Configurar Logo, Nombre, RUC y Pie de Factura
@@ -4071,6 +4129,8 @@
         catSelect.innerHTML = uniqueCats.map(c => `<option value="${c}" ${c === prevCat ? 'selected' : ''}>${c === 'ALL' ? 'Todas las Categorías' : c}</option>`).join('');
       }
 
+      renderPosCategoryPills();
+
       const clientSelect = document.getElementById('posClientSelect');
       const previousValue = clientSelect ? clientSelect.value : '';
       
@@ -4148,6 +4208,108 @@
       recalculateTotals();
     }
 
+    window.selectPosCategoryPill = function(catValue) {
+      const catSelect = document.getElementById('posCategoryFilter');
+      if (catSelect) catSelect.value = catValue;
+      renderPosCategoryPills();
+      filterPosCatalog();
+    };
+
+    window.renderPosCategoryPills = function() {
+      const pillsContainer = document.getElementById('posCategoryPills');
+      if (!pillsContainer) return;
+      const activeCat = document.getElementById('posCategoryFilter')?.value || 'ALL';
+      const uniqueCats = ['ALL', ...new Set(products.map(p => p.category))];
+
+      const getCatIcon = (c) => {
+        if (c === 'ALL') return 'fa-border-all';
+        const l = c.toLowerCase();
+        if (l.includes('cerveza')) return 'fa-beer-mug-empty';
+        if (l.includes('barril')) return 'fa-database';
+        if (l.includes('refresco') || l.includes('soda')) return 'fa-bottle-water';
+        if (l.includes('agua')) return 'fa-droplet';
+        if (l.includes('snack')) return 'fa-bowl-food';
+        return 'fa-tag';
+      };
+
+      pillsContainer.innerHTML = uniqueCats.map(c => {
+        const isSelected = c === activeCat;
+        const label = c === 'ALL' ? 'Todo' : c.split('&')[0].trim();
+        return `
+          <button type="button" onclick="selectPosCategoryPill('${escapeHtml(c)}')" class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition shrink-0 ${
+            isSelected
+              ? 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/30'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }">
+            <i class="fa-solid ${getCatIcon(c)}"></i>
+            <span>${escapeHtml(label)}</span>
+          </button>
+        `;
+      }).join('');
+    };
+
+    window.quickAddOneFromCard = function(event, productId) {
+      event.stopPropagation();
+      const prod = products.find(p => p.id === productId);
+      if (!prod || prod.stock <= 0) return;
+
+      const effectivePrice = getClientPrice(prod.id, prod.wholesalePrice);
+      const prodBatches = batches
+        .filter(b => b.productId === productId && b.quantity > 0)
+        .sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate));
+      const assignedBatch = prodBatches.length > 0 ? prodBatches[0].batchCode : 'L-GENERAL';
+
+      const existing = activeCart.find(item => item.id === productId && !item.isCustom);
+      if (existing) {
+        if (existing.quantity + 1 > prod.stock) {
+          showNotification(`Límite de stock disponible (${prod.stock}).`, 'warning');
+          return;
+        }
+        existing.quantity += 1;
+      } else {
+        activeCart.push({
+          id: prod.id,
+          sku: prod.sku,
+          name: prod.name,
+          price: effectivePrice,
+          quantity: 1,
+          batchAssigned: assignedBatch,
+          isCold: false,
+          requiresEmpty: false,
+          note: '',
+          isCustom: false
+        });
+      }
+      renderCartUI();
+      filterPosCatalog();
+    };
+
+    window.quickSubOneFromCard = function(event, productId) {
+      event.stopPropagation();
+      const existing = activeCart.find(item => item.id === productId && !item.isCustom);
+      if (!existing) return;
+      existing.quantity -= 1;
+      if (existing.quantity <= 0) {
+        activeCart = activeCart.filter(it => it !== existing);
+      }
+      renderCartUI();
+      filterPosCatalog();
+    };
+
+    window.scrollToPosCart = function() {
+      document.getElementById('pos-cart-summary-card')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function getCategoryPlaceholderIcon(category) {
+      const l = (category || '').toLowerCase();
+      if (l.includes('cerveza')) return 'fa-beer-mug-empty text-amber-500';
+      if (l.includes('barril')) return 'fa-database text-slate-600';
+      if (l.includes('refresco') || l.includes('soda')) return 'fa-bottle-droplet text-rose-500';
+      if (l.includes('agua')) return 'fa-droplet text-sky-500';
+      if (l.includes('snack')) return 'fa-cookie-bite text-orange-500';
+      return 'fa-box-open text-blue-500';
+    }
+
     function filterPosCatalog() {
       const query = (document.getElementById('posSearchProduct')?.value || '').toLowerCase();
       const cat = document.getElementById('posCategoryFilter')?.value || 'ALL';
@@ -4162,7 +4324,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400">No hay productos que coincidan con la búsqueda.</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">No hay productos que coincidan con la búsqueda.</div>`;
         return;
       }
 
@@ -4171,15 +4333,16 @@
         const isLow = Number(p.stock) <= Number(p.minStock);
         const isOut = Number(p.stock) <= 0;
 
-        const prodBatches = batches
-          .filter(b => b.productId === p.id && b.quantity > 0)
-          .sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate));
-        const nearestBatch = prodBatches[0];
+        const inCartQty = activeCart
+          .filter(it => it.id === p.id && !it.isCustom)
+          .reduce((s, it) => s + Number(it.quantity || 0), 0);
 
-        card.className = `p-3 rounded-xl border transition cursor-pointer select-none relative flex flex-col justify-between ${
+        card.className = `rounded-2xl border transition cursor-pointer select-none relative flex flex-col justify-between overflow-hidden ${
           isOut 
             ? 'bg-slate-100 border-slate-200 opacity-60 pointer-events-none' 
-            : 'bg-white border-slate-200 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5'
+            : inCartQty > 0
+              ? 'bg-amber-50/40 border-2 border-amber-500 shadow-md'
+              : 'bg-white border-slate-200 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5'
         }`;
 
         card.onclick = () => {
@@ -4189,27 +4352,42 @@
         const effectivePrice = getClientPrice(p.id, p.wholesalePrice);
         const hasSpecialPrice = effectivePrice !== Number(p.wholesalePrice);
 
+        const mediaHtml = p.image
+          ? `<div class="h-28 w-full bg-slate-100 relative overflow-hidden flex items-center justify-center">
+               <img src="${p.image}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+               <span class="absolute top-2 left-2 text-[9px] font-mono uppercase bg-slate-900/75 text-white px-2 py-0.5 rounded-md font-bold">${escapeHtml(p.sku)}</span>
+               <span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md ${isLow ? 'bg-rose-600 text-white' : 'bg-white/90 text-slate-700'} shadow-xs">Stock: ${p.stock}</span>
+             </div>`
+          : `<div class="h-24 w-full bg-gradient-to-br from-slate-50 to-slate-100 relative flex items-center justify-center border-b border-slate-100">
+               <i class="fa-solid ${getCategoryPlaceholderIcon(p.category)} text-3xl opacity-80"></i>
+               <span class="absolute top-2 left-2 text-[9px] font-mono uppercase bg-white/90 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-bold">${escapeHtml(p.sku)}</span>
+               <span class="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${isLow ? 'bg-rose-100 text-rose-700' : 'bg-white text-slate-600'} border border-slate-200">Disp: ${p.stock}</span>
+             </div>`;
+
+        const quickControlsHtml = inCartQty > 0
+          ? `<div class="flex items-center bg-amber-500 text-slate-950 rounded-xl overflow-hidden shadow-xs" onclick="event.stopPropagation()">
+               <button type="button" onclick="quickSubOneFromCard(event, '${p.id}')" class="w-7 h-7 flex items-center justify-center font-black hover:bg-amber-600 transition">-</button>
+               <span class="px-2 text-xs font-black">${inCartQty}</span>
+               <button type="button" onclick="quickAddOneFromCard(event, '${p.id}')" class="w-7 h-7 flex items-center justify-center font-black hover:bg-amber-600 transition">+</button>
+             </div>`
+          : `<button type="button" onclick="quickAddOneFromCard(event, '${p.id}')" class="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white text-xs font-bold transition flex items-center gap-1">
+               <i class="fa-solid fa-plus"></i> Añadir
+             </button>`;
+
         card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-start">
-              <span class="text-[10px] font-mono uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold">${p.sku}</span>
-              <span class="text-[11px] font-bold ${isLow ? 'text-rose-600' : 'text-slate-500'}">
-                Stock: ${p.stock}
-              </span>
+          ${mediaHtml}
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <h5 class="font-bold text-slate-800 text-xs leading-snug line-clamp-2">${escapeHtml(p.name)}</h5>
+              <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.unit)}</p>
             </div>
-            <h5 class="font-bold text-slate-800 text-xs mt-2 line-clamp-2">${escapeHtml(p.name)}</h5>
-            <p class="text-[11px] text-slate-500 mt-0.5">${p.unit}</p>
-            ${
-              nearestBatch
-                ? `<div class="mt-1 text-[10px] text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded">
-                     FEFO: ${nearestBatch.batchCode} (Vence: ${nearestBatch.expirationDate})
-                   </div>`
-                : ''
-            }
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <span class="text-xs font-semibold ${hasSpecialPrice ? 'text-rose-600 font-bold' : 'text-slate-400'}">${hasSpecialPrice ? 'Precio B2B' : 'Mayorista'}</span>
-            <span class="text-sm font-black ${hasSpecialPrice ? 'text-rose-600' : 'text-blue-600'}">$${effectivePrice.toFixed(2)}</span>
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+              <div>
+                <span class="block text-[9px] uppercase font-bold ${hasSpecialPrice ? 'text-rose-600' : 'text-slate-400'}">${hasSpecialPrice ? 'Precio B2B' : 'Precio'}</span>
+                <span class="text-sm font-black ${hasSpecialPrice ? 'text-rose-600' : 'text-blue-600'}">$${effectivePrice.toFixed(2)}</span>
+              </div>
+              ${quickControlsHtml}
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -4223,6 +4401,16 @@
       document.getElementById('mac-product-id').value = prod.id;
       document.getElementById('mac-product-name').innerText = prod.name;
       document.getElementById('mac-product-sku').innerText = `SKU: ${prod.sku}`;
+
+      const macImg = document.getElementById('mac-product-img');
+      if (macImg) {
+        if (prod.image) {
+          macImg.src = prod.image;
+          macImg.classList.remove('hidden');
+        } else {
+          macImg.classList.add('hidden');
+        }
+      }
       
       const priceInput = document.getElementById('mac-product-price-input');
       priceInput.value = getClientPrice(prod.id, prod.wholesalePrice).toFixed(2);
@@ -4337,6 +4525,7 @@
 
       closeModal('modal-add-cart');
       renderCartUI();
+      filterPosCatalog();
       showNotification(`${qty}x ${prod.name} añadido al pedido.`, 'success');
     }
 
@@ -4360,6 +4549,7 @@
         item.quantity = newQty;
       }
       renderCartUI();
+      filterPosCatalog();
     }
 
     function toggleItemCold(productId) {
@@ -4379,6 +4569,7 @@
     function clearCurrentCart() {
       activeCart = [];
       renderCartUI();
+      filterPosCatalog();
     }
 
     function renderCartUI() {
@@ -4386,8 +4577,12 @@
       if (!container) return;
       container.innerHTML = '';
 
+      const totalUnits = activeCart.reduce((s, i) => s + Number(i.quantity || 0), 0);
+      const countBadge = document.getElementById('pos-cart-count-badge');
+      if (countBadge) countBadge.innerText = totalUnits;
+
       if (activeCart.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">El carrito está vacío. Haz clic o escanea un producto para agregarlo.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">El carrito está vacío. Toca "+ Añadir" o haz clic en cualquier producto.</p>`;
         recalculateTotals();
         return;
       }
@@ -4461,6 +4656,20 @@
       if (subEl) subEl.innerText = `$${subtotal.toFixed(2)}`;
       if (taxEl) taxEl.innerText = `$${tax.toFixed(2)}`;
       if (totEl) totEl.innerText = `$${total.toFixed(2)}`;
+
+      const mobileBar = document.getElementById('pos-mobile-cart-bar');
+      const mobileQty = document.getElementById('pos-mobile-bar-qty');
+      const mobileTot = document.getElementById('pos-mobile-bar-total');
+      const totalUnits = activeCart.reduce((s, i) => s + Number(i.quantity || 0), 0);
+      if (mobileBar) {
+        if (totalUnits > 0) {
+          mobileBar.classList.remove('hidden');
+          if (mobileQty) mobileQty.innerText = totalUnits;
+          if (mobileTot) mobileTot.innerText = `$${total.toFixed(2)}`;
+        } else {
+          mobileBar.classList.add('hidden');
+        }
+      }
     }
 
     function submitOrder() {
@@ -5463,13 +5672,36 @@
         }
       }
 
+      const sigWrap = document.getElementById('thermal-modal-sig-wrap');
+      const sigImg = document.getElementById('thermal-modal-sig');
+      const sigMeta = document.getElementById('thermal-modal-sig-meta');
+      if (sigWrap && sigImg) {
+        if (currentViewingOrder.pod && currentViewingOrder.pod.signature) {
+          sigImg.src = currentViewingOrder.pod.signature;
+          if (sigMeta) {
+            sigMeta.innerText = `${currentViewingOrder.pod.receiverName || ''} (${currentViewingOrder.pod.receiverId || ''})`;
+          }
+          sigWrap.classList.remove('hidden');
+        } else {
+          sigWrap.classList.add('hidden');
+        }
+      }
+
       openModal('modal-thermal-receipt');
     }
 
     window.printThermalTicketBrowser = function() {
       const textToPrint = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
       const logoHtml = appSettings.receiptLogo
-        ? `<div style="text-align:center;margin-bottom:6px;"><img src="${appSettings.receiptLogo}" style="max-width:140px;max-height:70px;object-fit:contain;"></div>`
+        ? `<div style="text-align:center;margin-bottom:6px;"><img src="${appSettings.receiptLogo}" style="max-width:150px;max-height:75px;object-fit:contain;"></div>`
+        : '';
+      const hasSig = currentViewingOrder && currentViewingOrder.pod && currentViewingOrder.pod.signature;
+      const sigHtml = hasSig
+        ? `<div style="text-align:center;margin-top:8px;border-top:1px dashed #000;padding-top:6px;">
+             <div style="font-size:10px;font-weight:bold;margin-bottom:4px;">FIRMA CONFORME DEL CLIENTE</div>
+             <img src="${currentViewingOrder.pod.signature}" style="max-width:160px;max-height:70px;object-fit:contain;">
+             <div style="font-size:9px;margin-top:2px;">${escapeHtml(currentViewingOrder.pod.receiverName || '')} - ${escapeHtml(currentViewingOrder.pod.receiverId || '')}</div>
+           </div>`
         : '';
       const paperMm = parseInt(appSettings.receiptWidth || 32, 10) > 32 ? '80mm' : '58mm';
 
@@ -5492,9 +5724,10 @@
         <body>
           ${logoHtml}
           <pre>${escapeHtml(textToPrint)}</pre>
+          ${sigHtml}
           <script>
             window.onload = function() {
-              setTimeout(function() { window.print(); window.close(); }, 250);
+              setTimeout(function() { window.print(); window.close(); }, 300);
             };
           <\/script>
         </body>
@@ -5514,17 +5747,193 @@
       showNotification('Ticket copiado al portapapeles.', 'success');
     }
 
-    function sendToRawBT() {
+    // Convierte cualquier imagen (Logo o Firma Digital) a comando binario ESC/POS GS v 0 para impresora térmica Bluetooth
+    async function imageSrcToEscPosRasterBytes(imageSrc, maxWidthDots = 256) {
+      return new Promise((resolve) => {
+        if (!imageSrc) return resolve(new Uint8Array(0));
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function() {
+          try {
+            let w = img.width || 200;
+            let h = img.height || 80;
+            if (w > maxWidthDots) {
+              h = Math.round((h * maxWidthDots) / w);
+              w = maxWidthDots;
+            }
+            // Ajustar ancho a múltiplo de 8 para bytes de mapa de bits ESC/POS
+            const byteWidth = Math.ceil(w / 8);
+            const alignedWidth = byteWidth * 8;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = alignedWidth;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, alignedWidth, h);
+            const offsetX = Math.floor((alignedWidth - w) / 2);
+            ctx.drawImage(img, offsetX, 0, w, h);
+
+            const imgData = ctx.getImageData(0, 0, alignedWidth, h).data;
+            const rasterData = new Uint8Array(byteWidth * h);
+
+            for (let y = 0; y < h; y++) {
+              for (let xByte = 0; xByte < byteWidth; xByte++) {
+                let byteVal = 0;
+                for (let bit = 0; bit < 8; bit++) {
+                  const x = xByte * 8 + bit;
+                  const idx = (y * alignedWidth + x) * 4;
+                  const r = imgData[idx];
+                  const g = imgData[idx + 1];
+                  const b = imgData[idx + 2];
+                  const a = imgData[idx + 3];
+                  const luminance = a < 128 ? 255 : (0.299 * r + 0.587 * g + 0.114 * b);
+                  if (luminance < 160) {
+                    byteVal |= (1 << (7 - bit));
+                  }
+                }
+                rasterData[y * byteWidth + xByte] = byteVal;
+              }
+            }
+
+            // Comando ESC/POS: Centrar (ESC a 1) + GS v 0 m xL xH yL yH + datos + Alineación izquierda (ESC a 0)
+            const xL = byteWidth & 0xff;
+            const xH = (byteWidth >> 8) & 0xff;
+            const yL = h & 0xff;
+            const yH = (h >> 8) & 0xff;
+
+            const header = new Uint8Array([0x1b, 0x61, 0x01, 0x1d, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+            const footer = new Uint8Array([0x0a, 0x1b, 0x61, 0x00]);
+            const combined = new Uint8Array(header.length + rasterData.length + footer.length);
+            combined.set(header, 0);
+            combined.set(rasterData, header.length);
+            combined.set(footer, header.length + rasterData.length);
+            resolve(combined);
+          } catch (err) {
+            console.warn('Error convirtiendo imagen para térmica:', err);
+            resolve(new Uint8Array(0));
+          }
+        };
+        img.onerror = () => resolve(new Uint8Array(0));
+        img.src = imageSrc;
+      });
+    }
+
+    function encodeEscPosTextBytes(str) {
+      const clean = (str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\x00-\x7F]/g, '');
+      const bytes = new Uint8Array(clean.length);
+      for (let i = 0; i < clean.length; i++) {
+        bytes[i] = clean.charCodeAt(i) & 0xff;
+      }
+      return bytes;
+    }
+
+    async function buildFullEscPosTicketBytes() {
       const textToSend = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
-      if (!textToSend) return;
+      const initCmd = new Uint8Array([0x1b, 0x40]); // ESC @
+      const logoBytes = appSettings.receiptLogo
+        ? await imageSrcToEscPosRasterBytes(appSettings.receiptLogo, 240)
+        : new Uint8Array(0);
+      const bodyBytes = encodeEscPosTextBytes(textToSend + '\n');
+
+      let sigBytes = new Uint8Array(0);
+      if (currentViewingOrder && currentViewingOrder.pod && currentViewingOrder.pod.signature) {
+        const sigHeader = encodeEscPosTextBytes('   --- FIRMA DEL CLIENTE ---\n');
+        const sigRaster = await imageSrcToEscPosRasterBytes(currentViewingOrder.pod.signature, 240);
+        const sigMetaText = encodeEscPosTextBytes(`Recibio: ${currentViewingOrder.pod.receiverName || ''} (${currentViewingOrder.pod.receiverId || ''})\n`);
+        sigBytes = new Uint8Array(sigHeader.length + sigRaster.length + sigMetaText.length);
+        sigBytes.set(sigHeader, 0);
+        sigBytes.set(sigRaster, sigHeader.length);
+        sigBytes.set(sigMetaText, sigHeader.length + sigRaster.length);
+      }
+
+      const feedAndCut = new Uint8Array([0x0a, 0x0a, 0x0a, 0x1d, 0x56, 0x42, 0x00]);
+
+      const totalLength = initCmd.length + logoBytes.length + bodyBytes.length + sigBytes.length + feedAndCut.length;
+      const packet = new Uint8Array(totalLength);
+      let offset = 0;
+      packet.set(initCmd, offset); offset += initCmd.length;
+      packet.set(logoBytes, offset); offset += logoBytes.length;
+      packet.set(bodyBytes, offset); offset += bodyBytes.length;
+      packet.set(sigBytes, offset); offset += sigBytes.length;
+      packet.set(feedAndCut, offset);
+      return packet;
+    }
+
+    function uint8ArrayToBase64(bytes) {
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    window.sendToRawBT = async function() {
       try {
-        const base64Data = btoa(unescape(encodeURIComponent(textToSend)));
-        window.location.href = `rawbt:data:text/plain;base64,${base64Data}`;
-        showNotification('Enviando comando a RawBT Print Service...', 'info');
+        showNotification('Preparando ticket con Logo y Firma para RawBT...', 'info');
+        const escPosBytes = await buildFullEscPosTicketBytes();
+        const base64Data = uint8ArrayToBase64(escPosBytes);
+        window.location.href = `rawbt:base64,${base64Data}`;
       } catch (err) {
+        console.warn('Fallback RawBT:', err);
         copyThermalText();
       }
-    }
+    };
+
+    window.printDirectWebBluetooth = async function() {
+      if (!navigator.bluetooth) {
+        showNotification('Tu navegador no soporta Web Bluetooth directo. Enviando a RawBT...', 'info');
+        sendToRawBT();
+        return;
+      }
+      try {
+        showNotification('Selecciona tu impresora térmica Bluetooth...', 'info');
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [
+            '000018f0-0000-1000-8000-00805f9b34fb',
+            'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+            '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+          ]
+        });
+        const server = await device.gatt.connect();
+        const services = await server.getPrimaryServices();
+        let writeChar = null;
+        for (const service of services) {
+          const chars = await service.getCharacteristics();
+          for (const ch of chars) {
+            if (ch.properties.write || ch.properties.writeWithoutResponse) {
+              writeChar = ch;
+              break;
+            }
+          }
+          if (writeChar) break;
+        }
+        if (!writeChar) {
+          throw new Error('No se encontró canal de escritura en la impresora.');
+        }
+
+        const escPosBytes = await buildFullEscPosTicketBytes();
+        const chunkSize = 100;
+        for (let i = 0; i < escPosBytes.length; i += chunkSize) {
+          const slice = escPosBytes.slice(i, i + chunkSize);
+          if (writeChar.properties.writeWithoutResponse) {
+            await writeChar.writeValueWithoutResponse(slice);
+          } else {
+            await writeChar.writeValue(slice);
+          }
+          await new Promise(r => setTimeout(r, 20));
+        }
+        showNotification('¡Ticket con Logo y Firma impreso vía Bluetooth!', 'success');
+      } catch (err) {
+        console.warn('Web Bluetooth error:', err);
+        showNotification('No se pudo conectar directo por Web Bluetooth. Puedes usar el botón "App RawBT".', 'warning');
+      }
+    };
 
     function renderInventoryTable() {
       const tbody = document.getElementById('inventory-table-body');
@@ -5556,11 +5965,22 @@
         tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
         const isCritical = Number(p.stock) <= Number(p.minStock);
 
+        const thumbHtml = p.image
+          ? `<img src="${p.image}" alt="${escapeHtml(p.name)}" class="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0">`
+          : `<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+               <i class="fa-solid ${getCategoryPlaceholderIcon(p.category)} text-sm"></i>
+             </div>`;
+
         tr.innerHTML = `
           <td class="py-3 px-4 font-mono font-bold text-slate-800">${p.sku}</td>
           <td class="py-3 px-4">
-            <span class="font-bold text-slate-900 block">${escapeHtml(p.name)}</span>
-            <span class="text-xs text-slate-400">Costo Base: $${Number(p.cost).toFixed(2)}</span>
+            <div class="flex items-center gap-3">
+              ${thumbHtml}
+              <div>
+                <span class="font-bold text-slate-900 block">${escapeHtml(p.name)}</span>
+                <span class="text-xs text-slate-400">Costo Base: $${Number(p.cost).toFixed(2)}</span>
+              </div>
+            </div>
           </td>
           <td class="py-3 px-4 text-xs font-semibold text-slate-600">${p.category}</td>
           <td class="py-3 px-4 text-xs text-slate-600">${p.unit}</td>
@@ -5595,10 +6015,70 @@
       showNotification(`Stock de ${prod.sku} aumentado a ${prod.stock} en Firebase.`, 'success');
     }
 
+    let currentEditingProductImage = '';
+
+    window.renderProductModalImagePreview = function() {
+      const box = document.getElementById('prod-image-preview-box');
+      if (!box) return;
+      if (currentEditingProductImage) {
+        box.innerHTML = `<img src="${currentEditingProductImage}" alt="Preview" class="w-full h-full object-cover">`;
+      } else {
+        box.innerHTML = `<i class="fa-solid fa-beer-mug-empty text-slate-300 text-xl"></i>`;
+      }
+    };
+
+    window.handleProductImageUpload = function(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 320;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          currentEditingProductImage = canvas.toDataURL('image/jpeg', 0.82);
+          renderProductModalImagePreview();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleProductImageUrlInput = function(url) {
+      currentEditingProductImage = (url || '').trim();
+      renderProductModalImagePreview();
+    };
+
+    window.clearProductImage = function() {
+      currentEditingProductImage = '';
+      const urlInput = document.getElementById('prod-image-url');
+      if (urlInput) urlInput.value = '';
+      renderProductModalImagePreview();
+    };
+
     function openProductModal() {
       document.getElementById('modalProductTitle').innerText = 'Registrar Producto';
       document.getElementById('productForm').reset();
       document.getElementById('prod-id').value = '';
+      currentEditingProductImage = '';
+      const urlInput = document.getElementById('prod-image-url');
+      if (urlInput) urlInput.value = '';
+      renderProductModalImagePreview();
       openModal('modal-product');
     }
 
@@ -5617,6 +6097,13 @@
       document.getElementById('prod-price-cold').value = prod.coldPrice || '';
       document.getElementById('prod-stock').value = prod.stock;
       document.getElementById('prod-min').value = prod.minStock;
+
+      currentEditingProductImage = prod.image || '';
+      const urlInput = document.getElementById('prod-image-url');
+      if (urlInput) {
+        urlInput.value = (prod.image && !prod.image.startsWith('data:')) ? prod.image : '';
+      }
+      renderProductModalImagePreview();
 
       openModal('modal-product');
     }
@@ -5648,6 +6135,7 @@
           targetProduct.coldPrice = coldPrice;
           targetProduct.stock = stock;
           targetProduct.minStock = minStock;
+          targetProduct.image = currentEditingProductImage || '';
         }
       } else {
         targetProduct = {
@@ -5660,7 +6148,8 @@
           wholesalePrice,
           coldPrice,
           stock,
-          minStock
+          minStock,
+          image: currentEditingProductImage || ''
         };
         products.push(targetProduct);
       }
