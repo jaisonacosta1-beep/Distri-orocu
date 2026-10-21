@@ -1,4 +1,3 @@
-4
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1033,6 +1032,116 @@
           </div>
         </div>
 
+        <!-- Configuración Completa de Factura y Ticket Térmico (NUEVO) -->
+        <div id="settings-receipt-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-blue-600"></i> Diseño y Datos de Factura / Ticket Térmico
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Personaliza el Logo, Nombre, RUC/RUT, Dirección, Teléfono, Pie de página y formato de todas tus facturas (se sincroniza en Firebase).</p>
+            </div>
+            <button type="button" onclick="previewSampleThermalTicket()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-eye"></i> Vista Previa Ticket
+            </button>
+          </div>
+
+          <!-- Carga de Logo -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
+            <div id="receipt-logo-preview-box" class="w-24 h-24 rounded-xl bg-white border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 p-2">
+              <span class="text-[10px] text-slate-400 text-center font-semibold">Sin Logo</span>
+            </div>
+            <div class="flex-1 space-y-2 w-full">
+              <label class="block text-xs font-bold text-slate-700">Logo de la Factura y Ticket Térmico</label>
+              <div class="flex flex-wrap gap-2">
+                <label class="cursor-pointer px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 shadow-xs">
+                  <i class="fa-solid fa-upload"></i> Subir Imagen / Logo
+                  <input type="file" accept="image/*" class="hidden" onchange="handleReceiptLogoUpload(event)">
+                </label>
+                <button type="button" onclick="clearReceiptLogo()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition inline-flex items-center gap-1">
+                  <i class="fa-solid fa-trash-can"></i> Quitar Logo
+                </button>
+              </div>
+              <input type="text" id="pref-receipt-logo-url" oninput="handleReceiptLogoUrlInput(this.value)" placeholder="O pega aquí la URL directa de tu logo (https://...)" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <!-- Campos de Texto de la Factura -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Nombre de Empresa / Razón Social</label>
+              <input type="text" id="pref-receipt-header" placeholder="Ej: CERVEZALOGIX S.A." class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Subtítulo / Giro del Negocio</label>
+              <input type="text" id="pref-receipt-subheader" placeholder="Ej: DISTRIB. CERVEZAS & SNACKS" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">RUC / RUT / NIT Fiscal</label>
+              <input type="text" id="pref-receipt-ruc" placeholder="Ej: RUC: J-30491829-1" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Dirección de la Empresa</label>
+              <input type="text" id="pref-receipt-address" placeholder="Ej: DAVID, CHIRIQUÍ" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Teléfono / WhatsApp</label>
+              <input type="text" id="pref-receipt-phone" placeholder="Ej: TEL: +507 833-9000" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Correo / Sitio Web (Opcional)</label>
+              <input type="text" id="pref-receipt-email" placeholder="Ej: ventas@cervezalogix.com" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Título del Documento</label>
+              <input type="text" id="pref-receipt-doc-title" placeholder="Ej: FACTURA / GUÍA DE DESPACHO" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Ancho de Impresora Térmica</label>
+              <select id="pref-receipt-width" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none">
+                <option value="32">58mm Estándar (32 caracteres)</option>
+                <option value="42">80mm Compacto (42 caracteres)</option>
+                <option value="48">80mm Ancho Completo (48 caracteres)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Mensaje de Pie de Página</label>
+              <input type="text" id="pref-receipt-footer" placeholder="Ej: ¡Gracias por su compra!" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600">Nota Legal / Condiciones de Envases o Crédito (Opcional)</label>
+              <input type="text" id="pref-receipt-legal" placeholder="Ej: Todo envase retornable debe ser devuelto en el próximo despacho." class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex flex-wrap items-center gap-4 pt-4">
+              <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input type="checkbox" id="pref-receipt-show-batches" checked class="rounded text-blue-600">
+                <span>Mostrar Lote FEFO</span>
+              </label>
+              <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input type="checkbox" id="pref-receipt-show-driver" checked class="rounded text-blue-600">
+                <span>Mostrar Chofer</span>
+              </label>
+              <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input type="checkbox" id="pref-receipt-show-cold" checked class="rounded text-blue-600">
+                <span>Mostrar Frío/Clima</span>
+              </label>
+              <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input type="checkbox" id="pref-receipt-show-Empty" checked class="rounded text-blue-600">
+                <span>Mostrar Firma en Ticket</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button type="button" onclick="saveReceiptSettings()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración de Factura en Firebase
+            </button>
+          </div>
+        </div>
+
         <!-- Enlaces de Acceso por Rol (NUEVO) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -1523,11 +1632,15 @@
 
       <!-- Printable area -->
       <div id="printInvoiceArea" class="p-6 space-y-4 bg-white text-slate-800">
-        <div class="flex justify-between items-start border-b border-slate-200 pb-3">
-          <div>
-            <h2 class="text-2xl font-black text-slate-900">DistriLogix S.A.</h2>
-            <p class="text-xs text-slate-500">Distribución Mayorista de Alimentos y Bebidas</p>
-            <p class="text-xs text-slate-500">RUC: J-30491829-1 | Tel: +507 833-9000</p>
+        <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+          <div class="flex items-start gap-3.5">
+            <img id="inv-company-logo" src="" alt="Logo" class="w-16 h-16 object-contain rounded-xl border border-slate-100 p-1 hidden">
+            <div>
+              <h2 id="inv-company-name" class="text-2xl font-black text-slate-900">CERVEZALOGIX S.A.</h2>
+              <p id="inv-company-sub" class="text-xs text-slate-500">DISTRIB. CERVEZAS & SNACKS</p>
+              <p id="inv-company-meta" class="text-xs text-slate-500">RUC: J-30491829-1 | TEL: 833-9000</p>
+              <p id="inv-company-address" class="text-[11px] text-slate-400">DAVID, CHIRIQUI</p>
+            </div>
           </div>
           <div class="text-right">
             <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wider mb-1" id="inv-status">ESTADO</span>
@@ -1607,6 +1720,10 @@
               </div>
               <p class="text-[10px] text-slate-500 mt-1">Cotejo de recepción</p>
             </div>
+          </div>
+          <div class="mt-3 text-center border-t border-slate-100 pt-2">
+            <p id="inv-company-legal" class="text-[10px] text-slate-500 italic"></p>
+            <p id="inv-company-footer" class="text-xs font-bold text-slate-700 mt-0.5">¡Gracias por su compra!</p>
           </div>
         </div>
       </div>
@@ -1715,20 +1832,21 @@
   <div id="modal-client" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 max-h-[95vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base">Registrar Nuevo Cliente / Punto de Venta</h3>
+        <h3 id="modalClientTitle" class="font-bold text-slate-900 text-base">Registrar Nuevo Cliente / Punto de Venta</h3>
         <button onclick="closeModal('modal-client')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
       <form id="clientForm" onsubmit="saveClient(event)" class="space-y-3">
+        <input type="hidden" id="cli-id">
         <div>
           <label class="block text-xs font-semibold text-slate-600">Nombre / Razón Social del Bar o Tienda</label>
           <input type="text" id="cli-name" required placeholder="Bar & Terraza El Retorno, Licorería Central..." class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">RUC / Cédula Fiscal</label>
+            <label class="block text-xs font-semibold text-slate-600">RUC / RUT / Cédula Fiscal</label>
             <input type="text" id="cli-tax" required placeholder="J-30491829" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
           </div>
           <div>
@@ -1752,8 +1870,12 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Límite de Crédito ($ USD)</label>
-            <input type="number" id="cli-credit" required value="2500" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+            <input type="number" step="0.01" id="cli-credit" required value="2500" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
           </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Deuda / Saldo Pendiente Actual ($ USD)</label>
+          <input type="number" step="0.01" id="cli-debt" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
         </div>
         <div class="col-span-2 pt-1">
           <label class="flex items-center gap-2 cursor-pointer bg-blue-50 p-3 rounded-xl border border-blue-100">
@@ -2077,24 +2199,130 @@
 
   <!-- MODAL: THERMAL RECEIPT -->
   <div id="modal-thermal-receipt" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 space-y-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 my-6">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2"><i class="fa-solid fa-receipt text-slate-600"></i> Impresión Térmica</h3>
+        <div>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2"><i class="fa-solid fa-receipt text-slate-600"></i> Ticket Térmico Personalizable</h3>
+          <p class="text-[11px] text-slate-500">Puedes editar cualquier texto directamente abajo antes de imprimir</p>
+        </div>
         <button onclick="closeModal('modal-thermal-receipt')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
-      <div class="bg-slate-100 p-4 rounded-xl max-h-64 overflow-y-auto shadow-inner border border-slate-200">
-          <pre id="thermal-receipt-text" class="text-[10px] font-mono whitespace-pre-wrap text-slate-800 leading-tight"></pre>
+
+      <!-- Vista del ticket con Logo -->
+      <div class="bg-slate-100 p-4 rounded-xl shadow-inner border border-slate-200 space-y-2">
+        <div id="thermal-modal-logo-wrap" class="flex justify-center pb-2 border-b border-dashed border-slate-300 hidden">
+          <img id="thermal-modal-logo" src="" alt="Logo Ticket" class="max-h-16 object-contain">
+        </div>
+        <textarea id="thermal-receipt-text" rows="16" oninput="currentThermalReceiptPlainText = this.value" class="w-full bg-transparent text-[11px] font-mono text-slate-800 leading-tight focus:outline-none resize-y border-0 p-0"></textarea>
       </div>
-      <div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
-          <button onclick="sendToRawBT()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95">
-              <i class="fa-brands fa-bluetooth"></i> Enviar a RawBT / Bluetooth
-          </button>
-          <button onclick="copyThermalText()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95">
-              <i class="fa-solid fa-copy"></i> Copiar Texto
-          </button>
+
+      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+        <button onclick="printThermalTicketBrowser()" class="col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+          <i class="fa-solid fa-print"></i> Imprimir Ticket Térmico (Con Logo)
+        </button>
+        <button onclick="sendToRawBT()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="fa-brands fa-bluetooth"></i> Enviar a RawBT
+        </button>
+        <button onclick="copyThermalText()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="fa-solid fa-copy"></i> Copiar Texto
+        </button>
+        <button onclick="openReceiptSettingsFromModal()" class="col-span-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-sliders"></i> Configurar Logo, Nombre, RUC y Pie de Factura
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR FACTURA / PEDIDO COMPLETO -->
+  <div id="modal-edit-order" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <i class="fa-solid fa-file-pen text-amber-600"></i> Editar Factura / Pedido
+          </h3>
+          <p class="text-xs text-slate-500" id="edit-order-subtitle">Modifica datos del cliente, RUC/RUT, chofer, pago o artículos</p>
+        </div>
+        <button onclick="closeModal('modal-edit-order')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="editOrderForm" onsubmit="saveEditedOrder(event)" class="space-y-4">
+        <input type="hidden" id="eo-id">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cliente / Razón Social</label>
+            <input type="text" id="eo-client-name" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">RUC / RUT / Cédula</label>
+            <input type="text" id="eo-client-tax" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Fecha de Factura</label>
+            <input type="date" id="eo-date" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Dirección de Entrega</label>
+            <input type="text" id="eo-client-address" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Chofer Asignado</label>
+            <input type="text" id="eo-driver" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Método / Término de Pago</label>
+            <input type="text" id="eo-payment" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Descuento (%)</label>
+            <input type="number" step="0.01" min="0" max="100" id="eo-discount" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Impuesto ITBMS</label>
+            <select id="eo-tax-mode" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+              <option value="7">Aplicar 7% ITBMS</option>
+              <option value="0">Exento (0%)</option>
+            </select>
+          </div>
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs font-semibold text-slate-600">Estado del Pedido</label>
+            <select id="eo-status" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+              <option value="Por Aprobar">Por Aprobar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Despachando">Despachando</option>
+              <option value="En Preparación">En Preparación</option>
+              <option value="En Ruta">En Ruta</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-xs font-bold uppercase text-slate-500">Líneas de Productos de la Factura</label>
+            <button type="button" onclick="addBlankLineToEditOrder()" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <i class="fa-solid fa-plus"></i> Añadir Línea
+            </button>
+          </div>
+          <div id="eo-items-container" class="space-y-2 max-h-60 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200"></div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-edit-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm">Guardar Cambios en Factura</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2805,7 +3033,22 @@
       simulatorEnabled: true,
       geminiKey: '',
       geminiModel: 'gemini-2.0-flash',
-      geminiModelsList: []
+      geminiModelsList: [],
+      receiptLogo: '',
+      receiptHeader: 'CERVEZALOGIX S.A.',
+      receiptSubHeader: 'DISTRIB. CERVEZAS & SNACKS',
+      receiptRUC: 'RUC: J-30491829-1',
+      receiptAddress: 'DAVID, CHIRIQUI',
+      receiptPhone: 'TEL: 833-9000',
+      receiptEmail: '',
+      receiptDocTitle: 'FACTURA / DESPACHO',
+      receiptFooter: '¡Gracias por su compra!',
+      receiptLegalNote: '',
+      receiptWidth: 32,
+      receiptShowBatches: true,
+      receiptShowDriver: true,
+      receiptShowCold: true,
+      receiptShowSignLine: true
     };
 
     window.getAppSettings = () => appSettings;
@@ -3187,6 +3430,40 @@
       if (alarmSoundEl) alarmSoundEl.value = appSettings.alarmSound || 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
       if (simEl) simEl.value = appSettings.simulatorEnabled === false ? 'false' : 'true';
       if (geminiInput && appSettings.geminiKey) geminiInput.value = appSettings.geminiKey;
+
+      const rHeader = document.getElementById('pref-receipt-header');
+      const rSub = document.getElementById('pref-receipt-subheader');
+      const rRuc = document.getElementById('pref-receipt-ruc');
+      const rAddr = document.getElementById('pref-receipt-address');
+      const rPhone = document.getElementById('pref-receipt-phone');
+      const rEmail = document.getElementById('pref-receipt-email');
+      const rDocTitle = document.getElementById('pref-receipt-doc-title');
+      const rWidth = document.getElementById('pref-receipt-width');
+      const rFooter = document.getElementById('pref-receipt-footer');
+      const rLegal = document.getElementById('pref-receipt-legal');
+      const rLogoUrl = document.getElementById('pref-receipt-logo-url');
+      const rShowBatches = document.getElementById('pref-receipt-show-batches');
+      const rShowDriver = document.getElementById('pref-receipt-show-driver');
+      const rShowCold = document.getElementById('pref-receipt-show-cold');
+      const rShowSign = document.getElementById('pref-receipt-show-Empty');
+
+      if (rHeader) rHeader.value = appSettings.receiptHeader !== undefined ? appSettings.receiptHeader : 'CERVEZALOGIX S.A.';
+      if (rSub) rSub.value = appSettings.receiptSubHeader !== undefined ? appSettings.receiptSubHeader : 'DISTRIB. CERVEZAS & SNACKS';
+      if (rRuc) rRuc.value = appSettings.receiptRUC !== undefined ? appSettings.receiptRUC : 'RUC: J-30491829-1';
+      if (rAddr) rAddr.value = appSettings.receiptAddress !== undefined ? appSettings.receiptAddress : 'DAVID, CHIRIQUI';
+      if (rPhone) rPhone.value = appSettings.receiptPhone !== undefined ? appSettings.receiptPhone : 'TEL: 833-9000';
+      if (rEmail) rEmail.value = appSettings.receiptEmail || '';
+      if (rDocTitle) rDocTitle.value = appSettings.receiptDocTitle || 'FACTURA / DESPACHO';
+      if (rWidth) rWidth.value = String(appSettings.receiptWidth || 32);
+      if (rFooter) rFooter.value = appSettings.receiptFooter !== undefined ? appSettings.receiptFooter : '¡Gracias por su compra!';
+      if (rLegal) rLegal.value = appSettings.receiptLegalNote || '';
+      if (rLogoUrl) rLogoUrl.value = (appSettings.receiptLogo && !appSettings.receiptLogo.startsWith('data:')) ? appSettings.receiptLogo : '';
+      if (rShowBatches) rShowBatches.checked = appSettings.receiptShowBatches !== false;
+      if (rShowDriver) rShowDriver.checked = appSettings.receiptShowDriver !== false;
+      if (rShowCold) rShowCold.checked = appSettings.receiptShowCold !== false;
+      if (rShowSign) rShowSign.checked = appSettings.receiptShowSignLine !== false;
+
+      renderReceiptLogoPreview();
 
       const botsList = document.getElementById('settings-bots-list');
       if (botsList) {
@@ -4778,6 +5055,7 @@
       if (!order) return;
 
       currentViewingOrder = order;
+      applyCompanyBrandingToInvoice();
 
       document.getElementById('inv-folio').innerText = order.id;
       document.getElementById('inv-status').innerText = order.status;
@@ -4897,8 +5175,161 @@
 
     let currentThermalReceiptPlainText = '';
 
+    window.renderReceiptLogoPreview = function() {
+      const box = document.getElementById('receipt-logo-preview-box');
+      if (!box) return;
+      if (appSettings.receiptLogo) {
+        box.innerHTML = `<img src="${appSettings.receiptLogo}" alt="Logo" class="max-h-full max-w-full object-contain">`;
+      } else {
+        box.innerHTML = `<span class="text-[10px] text-slate-400 text-center font-semibold">Sin Logo</span>`;
+      }
+    };
+
+    window.handleReceiptLogoUpload = function(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 260;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          appSettings.receiptLogo = canvas.toDataURL('image/png', 0.85);
+          renderReceiptLogoPreview();
+          applyCompanyBrandingToInvoice();
+          if (window.syncSettingsToCloud) window.syncSettingsToCloud(appSettings);
+          showNotification('Logo cargado y sincronizado en Firebase.', 'success');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleReceiptLogoUrlInput = function(urlVal) {
+      const clean = (urlVal || '').trim();
+      if (clean) {
+        appSettings.receiptLogo = clean;
+        renderReceiptLogoPreview();
+      }
+    };
+
+    window.clearReceiptLogo = function() {
+      appSettings.receiptLogo = '';
+      const urlInput = document.getElementById('pref-receipt-logo-url');
+      if (urlInput) urlInput.value = '';
+      renderReceiptLogoPreview();
+      applyCompanyBrandingToInvoice();
+      if (window.syncSettingsToCloud) window.syncSettingsToCloud(appSettings);
+      showNotification('Logo eliminado de la factura.', 'info');
+    };
+
+    window.saveReceiptSettings = function() {
+      appSettings.receiptHeader = document.getElementById('pref-receipt-header')?.value.trim() || '';
+      appSettings.receiptSubHeader = document.getElementById('pref-receipt-subheader')?.value.trim() || '';
+      appSettings.receiptRUC = document.getElementById('pref-receipt-ruc')?.value.trim() || '';
+      appSettings.receiptAddress = document.getElementById('pref-receipt-address')?.value.trim() || '';
+      appSettings.receiptPhone = document.getElementById('pref-receipt-phone')?.value.trim() || '';
+      appSettings.receiptEmail = document.getElementById('pref-receipt-email')?.value.trim() || '';
+      appSettings.receiptDocTitle = document.getElementById('pref-receipt-doc-title')?.value.trim() || 'FACTURA / DESPACHO';
+      appSettings.receiptWidth = parseInt(document.getElementById('pref-receipt-width')?.value || '32', 10);
+      appSettings.receiptFooter = document.getElementById('pref-receipt-footer')?.value.trim() || '';
+      appSettings.receiptLegalNote = document.getElementById('pref-receipt-legal')?.value.trim() || '';
+      appSettings.receiptShowBatches = document.getElementById('pref-receipt-show-batches')?.checked !== false;
+      appSettings.receiptShowDriver = document.getElementById('pref-receipt-show-driver')?.checked !== false;
+      appSettings.receiptShowCold = document.getElementById('pref-receipt-show-cold')?.checked !== false;
+      appSettings.receiptShowSignLine = document.getElementById('pref-receipt-show-Empty')?.checked !== false;
+
+      const urlInputVal = document.getElementById('pref-receipt-logo-url')?.value.trim();
+      if (urlInputVal) {
+        appSettings.receiptLogo = urlInputVal;
+      }
+
+      applyCompanyBrandingToInvoice();
+      if (window.syncSettingsToCloud) {
+        window.syncSettingsToCloud(appSettings);
+      }
+      showNotification('Diseño completo de Factura y Ticket Térmico guardado en Firebase.', 'success');
+    };
+
+    window.applyCompanyBrandingToInvoice = function() {
+      const logoEl = document.getElementById('inv-company-logo');
+      const nameEl = document.getElementById('inv-company-name');
+      const subEl = document.getElementById('inv-company-sub');
+      const metaEl = document.getElementById('inv-company-meta');
+      const addrEl = document.getElementById('inv-company-address');
+      const legalEl = document.getElementById('inv-company-legal');
+      const footerEl = document.getElementById('inv-company-footer');
+
+      if (logoEl) {
+        if (appSettings.receiptLogo) {
+          logoEl.src = appSettings.receiptLogo;
+          logoEl.classList.remove('hidden');
+        } else {
+          logoEl.classList.add('hidden');
+        }
+      }
+      if (nameEl) nameEl.innerText = appSettings.receiptHeader || 'CERVEZALOGIX S.A.';
+      if (subEl) subEl.innerText = appSettings.receiptSubHeader || '';
+      if (metaEl) {
+        const parts = [appSettings.receiptRUC, appSettings.receiptPhone, appSettings.receiptEmail].filter(Boolean);
+        metaEl.innerText = parts.join(' | ');
+      }
+      if (addrEl) addrEl.innerText = appSettings.receiptAddress || '';
+      if (legalEl) legalEl.innerText = appSettings.receiptLegalNote || '';
+      if (footerEl) footerEl.innerText = appSettings.receiptFooter || '';
+    };
+
+    window.previewSampleThermalTicket = function() {
+      saveReceiptSettings();
+      const sampleOrder = orders[0] || {
+        id: 'ORD-DEMO',
+        date: new Date().toISOString().split('T')[0],
+        clientName: 'Cliente Ejemplo S.A.',
+        clientTax: 'J-12345678',
+        clientAddress: 'Av. Central, Local 4',
+        driver: 'Carlos Mendoza',
+        paymentMethod: 'Contado / Efectivo',
+        items: [
+          { sku: 'CERV-PAN-24', name: 'Cerveza Panamá Lager 330ml', quantity: 5, price: 20.80, batchAssigned: 'L-2026-01', isCold: true }
+        ],
+        subtotal: 104.00,
+        discountRate: 0,
+        discountAmount: 0,
+        tax: 7.28,
+        total: 111.28
+      };
+      currentViewingOrder = sampleOrder;
+      openThermalReceiptModal();
+    };
+
+    window.openReceiptSettingsFromModal = function() {
+      closeModal('modal-thermal-receipt');
+      closeModal('modal-invoice');
+      navigateTab('settings');
+      setTimeout(() => {
+        document.getElementById('settings-receipt-card')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    };
+
     function generateThermalReceiptText(order) {
       if (!order) return '';
+
+      const W = parseInt(appSettings.receiptWidth || 32, 10);
 
       const pad = (str, len, align = 'left') => {
         str = String(str || '');
@@ -4907,8 +5338,15 @@
         return align === 'right' ? spaces + str : str + spaces;
       };
 
-      const line = '='.repeat(32);
-      const dash = '-'.repeat(32);
+      const center = (str, len) => {
+        str = String(str || '').substring(0, len);
+        const padL = Math.floor((len - str.length) / 2);
+        const padR = Math.max(0, len - str.length - padL);
+        return ' '.repeat(padL) + str + ' '.repeat(padR);
+      };
+
+      const line = '='.repeat(W);
+      const dash = '-'.repeat(W);
 
       const seg = order._segregated || {
         productTotal: Number(order.total || 0),
@@ -4918,45 +5356,92 @@
       };
 
       let txt = '';
-      txt += '       CERVEZALOGIX S.A.       \n';
-      txt += '   DISTRIB. CERVEZAS & SNACKS  \n';
-      txt += '     DAVID, CHIRIQUI - TEL: 833-9000    \n';
-      txt += '       RUC: J-30491829-1       \n';
+      
+      const headerText = appSettings.receiptHeader !== undefined ? appSettings.receiptHeader : 'CERVEZALOGIX S.A.';
+      const subHeader = appSettings.receiptSubHeader !== undefined ? appSettings.receiptSubHeader : 'DISTRIB. CERVEZAS & SNACKS';
+      const rucText = appSettings.receiptRUC !== undefined ? appSettings.receiptRUC : 'RUC: J-30491829-1';
+      const addressText = appSettings.receiptAddress !== undefined ? appSettings.receiptAddress : 'DAVID, CHIRIQUI';
+      const phoneText = appSettings.receiptPhone !== undefined ? appSettings.receiptPhone : 'TEL: 833-9000';
+      const emailText = appSettings.receiptEmail || '';
+      const docTitle = appSettings.receiptDocTitle || 'FACTURA / DESPACHO';
+      const footerText = appSettings.receiptFooter !== undefined ? appSettings.receiptFooter : '¡Gracias por su compra!';
+      const legalText = appSettings.receiptLegalNote || '';
+
+      if (headerText) txt += center(headerText, W) + '\n';
+      if (subHeader) txt += center(subHeader, W) + '\n';
+      if (addressText) txt += center(addressText, W) + '\n';
+      if (phoneText) txt += center(phoneText, W) + '\n';
+      if (emailText) txt += center(emailText, W) + '\n';
+      if (rucText) txt += center(rucText, W) + '\n';
+      
       txt += line + '\n';
-      txt += `FACTURA: ${order.id}\n`;
+      if (docTitle) txt += center(docTitle, W) + '\n';
+      txt += `FOLIO  : ${order.id}\n`;
       txt += `FECHA  : ${order.date} ${new Date().toLocaleTimeString().substring(0, 5)}\n`;
-      txt += `CLIENTE: ${order.clientName.substring(0, 23)}\n`;
-      txt += `RUC/CED: ${order.clientTax || 'C/F'}\n`;
-      txt += `CHOFER : ${(order.driver || 'Bodega').substring(0, 23)}\n`;
-      txt += `PAGO   : ${order.paymentMethod.substring(0, 23)}\n`;
+      txt += `CLIENTE: ${(order.clientName || '').substring(0, W - 9)}\n`;
+      txt += `RUC/RUT: ${order.clientTax || 'C/F'}\n`;
+      if (order.clientAddress) {
+        txt += `DIR.   : ${(order.clientAddress || '').substring(0, W - 9)}\n`;
+      }
+      if (appSettings.receiptShowDriver !== false) {
+        txt += `CHOFER : ${(order.driver || 'Bodega').substring(0, W - 9)}\n`;
+      }
+      txt += `PAGO   : ${(order.paymentMethod || '').substring(0, W - 9)}\n`;
       txt += line + '\n';
-      txt += 'CANT DESCRIPCION        IMPORTE\n';
+
+      const nameColWidth = W - 14;
+      txt += 'CANT ' + pad('DESCRIPCION', nameColWidth, 'left') + ' ' + pad('IMPORTE', 8, 'right') + '\n';
       txt += dash + '\n';
 
       (order.items || []).forEach(it => {
         const qtyStr = pad(it.quantity, 4, 'left');
         const priceStr = pad(`$${(it.quantity * it.price).toFixed(2)}`, 8, 'right');
-        const nameShort = it.name.substring(0, 18);
-        txt += `${qtyStr} ${pad(nameShort, 18)} ${priceStr}\n`;
-        if (it.batchAssigned && it.batchAssigned !== 'N/A') {
-          txt += `     Lote:${it.batchAssigned}\n`;
+        const nameShort = (it.name || '').substring(0, nameColWidth);
+        txt += `${qtyStr} ${pad(nameShort, nameColWidth)} ${priceStr}\n`;
+        if (appSettings.receiptShowBatches !== false && it.batchAssigned && it.batchAssigned !== 'N/A') {
+          txt += `     Lote: ${it.batchAssigned}\n`;
         }
-        if (it.isCold) {
-          txt += `     [X] REFRIGERADO (FRIO)\n`;
-        } else if (appSettings.nonColdLabel !== 'HIDDEN') {
-          txt += `     [ ] ${appSettings.nonColdLabel}\n`;
+        if (appSettings.receiptShowCold !== false) {
+          if (it.isCold) {
+            txt += `     [X] REFRIGERADO (FRIO)\n`;
+          } else if (appSettings.nonColdLabel !== 'HIDDEN') {
+            txt += `     [ ] ${appSettings.nonColdLabel}\n`;
+          }
+        }
+        if (it.note) {
+          txt += `     Nota: ${it.note.substring(0, W - 11)}\n`;
         }
       });
 
       txt += dash + '\n';
-      txt += pad('SUBTOTAL:', 22, 'left') + pad(`$${Number(order.subtotal || 0).toFixed(2)}`, 10, 'right') + '\n';
+      const labelW = W - 10;
+      txt += pad('SUBTOTAL:', labelW, 'left') + pad(`$${Number(order.subtotal || 0).toFixed(2)}`, 10, 'right') + '\n';
       if (order.discountAmount > 0) {
-        txt += pad(`DESCUENTO (${order.discountRate}%):`, 22, 'left') + pad(`-$${Number(order.discountAmount).toFixed(2)}`, 10, 'right') + '\n';
+        txt += pad(`DESCUENTO (${order.discountRate}%):`, labelW, 'left') + pad(`-$${Number(order.discountAmount).toFixed(2)}`, 10, 'right') + '\n';
       }
-      txt += pad('IMPUESTO (7%):', 22, 'left') + pad(`$${Number(order.tax || 0).toFixed(2)}`, 10, 'right') + '\n';
+      txt += pad('IMPUESTO (7%):', labelW, 'left') + pad(`$${Number(order.tax || 0).toFixed(2)}`, 10, 'right') + '\n';
       txt += line + '\n';
-      txt += '   ' + pad('TOTAL PRODUCTO:', 18, 'left') + pad(`$${seg.productTotal.toFixed(2)}`, 11, 'right') + '\n';
-      txt += line + '\n\n\n';
+      txt += pad('TOTAL A PAGAR:', labelW, 'left') + pad(`$${seg.productTotal.toFixed(2)}`, 10, 'right') + '\n';
+      txt += line + '\n';
+
+      if (appSettings.receiptShowSignLine !== false) {
+        txt += '\n\n';
+        txt += center('________________________', W) + '\n';
+        txt += center('FIRMA CONFORME CLIENTE', W) + '\n';
+      }
+
+      if (legalText) {
+        txt += '\n' + center(legalText.substring(0, W), W) + '\n';
+        if (legalText.length > W) {
+          txt += center(legalText.substring(W, W * 2), W) + '\n';
+        }
+      }
+      
+      if (footerText) {
+        txt += '\n' + center(footerText, W) + '\n';
+      }
+      
+      txt += '\n\n';
 
       return txt;
     }
@@ -4965,14 +5450,63 @@
       if (!currentViewingOrder) return;
       currentThermalReceiptPlainText = generateThermalReceiptText(currentViewingOrder);
       const pre = document.getElementById('thermal-receipt-text');
-      if (pre) pre.innerText = currentThermalReceiptPlainText;
+      if (pre) pre.value = currentThermalReceiptPlainText;
+
+      const logoWrap = document.getElementById('thermal-modal-logo-wrap');
+      const logoImg = document.getElementById('thermal-modal-logo');
+      if (logoWrap && logoImg) {
+        if (appSettings.receiptLogo) {
+          logoImg.src = appSettings.receiptLogo;
+          logoWrap.classList.remove('hidden');
+        } else {
+          logoWrap.classList.add('hidden');
+        }
+      }
+
       openModal('modal-thermal-receipt');
     }
 
+    window.printThermalTicketBrowser = function() {
+      const textToPrint = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
+      const logoHtml = appSettings.receiptLogo
+        ? `<div style="text-align:center;margin-bottom:6px;"><img src="${appSettings.receiptLogo}" style="max-width:140px;max-height:70px;object-fit:contain;"></div>`
+        : '';
+      const paperMm = parseInt(appSettings.receiptWidth || 32, 10) > 32 ? '80mm' : '58mm';
+
+      const printWin = window.open('', '_blank', 'width=380,height=640');
+      if (!printWin) {
+        window.print();
+        return;
+      }
+      printWin.document.write(`<!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Ticket ${currentViewingOrder ? currentViewingOrder.id : ''}</title>
+          <style>
+            @page { size: ${paperMm} auto; margin: 2mm; }
+            body { font-family: 'Courier New', Courier, monospace; width: ${paperMm}; margin: 0 auto; padding: 4px; color: #000; }
+            pre { font-family: 'Courier New', Courier, monospace; font-size: 11px; line-height: 1.25; white-space: pre-wrap; word-wrap: break-word; margin: 0; }
+          </style>
+        </head>
+        <body>
+          ${logoHtml}
+          <pre>${escapeHtml(textToPrint)}</pre>
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); window.close(); }, 250);
+            };
+          <\/script>
+        </body>
+        </html>`);
+      printWin.document.close();
+    };
+
     function copyThermalText() {
-      if (!currentThermalReceiptPlainText) return;
+      const textToCopy = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
+      if (!textToCopy) return;
       const tempTextarea = document.createElement('textarea');
-      tempTextarea.value = currentThermalReceiptPlainText;
+      tempTextarea.value = textToCopy;
       document.body.appendChild(tempTextarea);
       tempTextarea.select();
       document.execCommand('copy');
@@ -4981,9 +5515,10 @@
     }
 
     function sendToRawBT() {
-      if (!currentThermalReceiptPlainText) return;
+      const textToSend = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
+      if (!textToSend) return;
       try {
-        const base64Data = btoa(unescape(encodeURIComponent(currentThermalReceiptPlainText)));
+        const base64Data = btoa(unescape(encodeURIComponent(textToSend)));
         window.location.href = `rawbt:data:text/plain;base64,${base64Data}`;
         showNotification('Enviando comando a RawBT Print Service...', 'info');
       } catch (err) {
@@ -5180,7 +5715,10 @@
           <div>
             <div class="flex justify-between items-start gap-2">
               <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">${escapeHtml(c.route)}</span>
-              <div class="flex items-center gap-1">
+              <div class="flex flex-wrap items-center justify-end gap-1">
+                <button onclick="editClientModal('${c.id}')" title="Editar datos del cliente" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-pen"></i> Editar
+                </button>
                 <button onclick="openSpecialPricesModal('${c.id}')" title="Configurar precios especiales B2B en Firebase" class="text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-tags"></i> Precios (${specialCount})
                 </button>
@@ -5720,10 +6258,106 @@
       closeModal('modal-invoice');
     };
 
+    let editingOrderItemsTemp = [];
+
     window.editInvoiceFromModal = function() {
       if (!currentViewingOrder) return;
+      const ord = currentViewingOrder;
       closeModal('modal-invoice');
-      navigateTab('orders');
+
+      document.getElementById('eo-id').value = ord.id;
+      document.getElementById('edit-order-subtitle').innerText = `Editando Folio ${ord.id}`;
+      document.getElementById('eo-client-name').value = ord.clientName || '';
+      document.getElementById('eo-client-tax').value = ord.clientTax || '';
+      document.getElementById('eo-date').value = ord.date || new Date().toISOString().split('T')[0];
+      document.getElementById('eo-client-address').value = ord.clientAddress || '';
+      document.getElementById('eo-driver').value = ord.driver || '';
+      document.getElementById('eo-payment').value = ord.paymentMethod || '';
+      document.getElementById('eo-discount').value = Number(ord.discountRate || 0);
+      document.getElementById('eo-tax-mode').value = Number(ord.tax || 0) > 0 ? '7' : '0';
+      document.getElementById('eo-status').value = ord.status || 'Pendiente';
+
+      editingOrderItemsTemp = (ord.items || []).map(it => ({ ...it }));
+      renderEditOrderItemsRows();
+      openModal('modal-edit-order');
+    };
+
+    window.renderEditOrderItemsRows = function() {
+      const container = document.getElementById('eo-items-container');
+      if (!container) return;
+      if (editingOrderItemsTemp.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Sin artículos. Añade una línea.</p>`;
+        return;
+      }
+      container.innerHTML = editingOrderItemsTemp.map((it, idx) => `
+        <div class="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-lg border border-slate-200 text-xs">
+          <div class="col-span-5">
+            <input type="text" value="${escapeHtml(it.name)}" oninput="editingOrderItemsTemp[${idx}].name = this.value" placeholder="Descripción" class="w-full p-1.5 border border-slate-200 rounded-lg">
+          </div>
+          <div class="col-span-2">
+            <input type="number" min="1" value="${it.quantity}" oninput="editingOrderItemsTemp[${idx}].quantity = parseInt(this.value) || 1" placeholder="Cant." class="w-full p-1.5 border border-slate-200 rounded-lg text-center font-bold">
+          </div>
+          <div class="col-span-3">
+            <input type="number" step="0.01" value="${Number(it.price).toFixed(2)}" oninput="editingOrderItemsTemp[${idx}].price = parseFloat(this.value) || 0" placeholder="Precio" class="w-full p-1.5 border border-slate-200 rounded-lg text-right">
+          </div>
+          <div class="col-span-2 flex items-center justify-end gap-1">
+            <button type="button" onclick="editingOrderItemsTemp[${idx}].isCold = !editingOrderItemsTemp[${idx}].isCold; renderEditOrderItemsRows();" class="px-2 py-1 rounded ${it.isCold ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}" title="Frío / Clima">
+              <i class="fa-solid fa-snowflake"></i>
+            </button>
+            <button type="button" onclick="editingOrderItemsTemp.splice(${idx}, 1); renderEditOrderItemsRows();" class="p-1 text-rose-500 hover:text-rose-700" title="Eliminar línea">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.addBlankLineToEditOrder = function() {
+      editingOrderItemsTemp.push({
+        id: 'CUSTOM-' + Date.now(),
+        sku: 'ITEM',
+        name: 'Nuevo Artículo',
+        quantity: 1,
+        price: 10.00,
+        batchAssigned: 'FEFO',
+        isCold: false,
+        isCustom: true
+      });
+      renderEditOrderItemsRows();
+    };
+
+    window.saveEditedOrder = function(e) {
+      e.preventDefault();
+      const id = document.getElementById('eo-id').value;
+      const ord = orders.find(o => o.id === id);
+      if (!ord) return;
+
+      ord.clientName = document.getElementById('eo-client-name').value.trim();
+      ord.clientTax = document.getElementById('eo-client-tax').value.trim();
+      ord.date = document.getElementById('eo-date').value;
+      ord.clientAddress = document.getElementById('eo-client-address').value.trim();
+      ord.driver = document.getElementById('eo-driver').value.trim();
+      ord.paymentMethod = document.getElementById('eo-payment').value.trim();
+      ord.discountRate = parseFloat(document.getElementById('eo-discount').value) || 0;
+      ord.status = document.getElementById('eo-status').value;
+      ord.items = editingOrderItemsTemp.filter(it => it.name && it.quantity > 0);
+
+      const subtotal = ord.items.reduce((s, it) => s + (Number(it.quantity) * Number(it.price)), 0);
+      const discountAmount = subtotal * (ord.discountRate / 100);
+      const taxable = subtotal - discountAmount;
+      const taxRate = document.getElementById('eo-tax-mode').value === '7' ? 0.07 : 0;
+      const tax = taxable * taxRate;
+
+      ord.subtotal = subtotal;
+      ord.discountAmount = discountAmount;
+      ord.tax = tax;
+      ord.total = taxable + tax;
+
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', ord.id, ord);
+      closeModal('modal-edit-order');
+      refreshActiveViews();
+      showNotification(`Factura ${ord.id} actualizada y sincronizada en Firebase.`, 'success');
+      viewInvoice(ord.id);
     };
 
     window.renderClientHistory = function(clientId) {
@@ -6047,43 +6681,85 @@
 
     window.openClientModal = function() {
       document.getElementById('clientForm').reset();
+      document.getElementById('cli-id').value = '';
+      document.getElementById('cli-debt').value = '0';
+      const titleEl = document.getElementById('modalClientTitle');
+      if (titleEl) titleEl.innerText = 'Registrar Nuevo Cliente / Punto de Venta';
+      window.openModal('modal-client');
+    };
+
+    window.editClientModal = function(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+
+      document.getElementById('cli-id').value = client.id;
+      document.getElementById('cli-name').value = client.name || '';
+      document.getElementById('cli-tax').value = client.taxId || '';
+      document.getElementById('cli-phone').value = client.phone || '';
+      document.getElementById('cli-address').value = client.address || '';
+      document.getElementById('cli-route').value = client.route || 'Ruta Nocturna - Bares & Pubs';
+      document.getElementById('cli-credit').value = Number(client.creditLimit || 0);
+      document.getElementById('cli-debt').value = Number(client.currentDebt || 0);
+      document.getElementById('cli-exempt').checked = Boolean(client.isExempt);
+
+      const titleEl = document.getElementById('modalClientTitle');
+      if (titleEl) titleEl.innerText = `Editar Cliente: ${client.name}`;
       window.openModal('modal-client');
     };
 
     window.saveClient = function(e) {
       e.preventDefault();
+      const existingId = document.getElementById('cli-id').value;
       const name = document.getElementById('cli-name').value.trim();
       const tax = document.getElementById('cli-tax').value.trim();
       const phone = document.getElementById('cli-phone').value.trim();
       const address = document.getElementById('cli-address').value.trim();
       const route = document.getElementById('cli-route').value;
-      const credit = parseFloat(document.getElementById('cli-credit').value);
+      const credit = parseFloat(document.getElementById('cli-credit').value) || 0;
+      const debt = parseFloat(document.getElementById('cli-debt').value) || 0;
       const isExempt = document.getElementById('cli-exempt').checked;
 
-      const newClient = {
-        id: 'c_' + Date.now(),
-        name: name,
-        taxId: tax,
-        phone: phone,
-        address: address,
-        route: route,
-        creditLimit: credit,
-        currentDebt: 0,
-        lat: 8.42, 
-        lng: -82.43,
-        isExempt: isExempt,
-        specialPrices: {}
-      };
+      let targetClient = null;
 
-      clients.push(newClient);
+      if (existingId) {
+        targetClient = clients.find(c => c.id === existingId);
+        if (targetClient) {
+          targetClient.name = name;
+          targetClient.taxId = tax;
+          targetClient.phone = phone;
+          targetClient.address = address;
+          targetClient.route = route;
+          targetClient.creditLimit = credit;
+          targetClient.currentDebt = debt;
+          targetClient.isExempt = isExempt;
+        }
+      } else {
+        targetClient = {
+          id: 'c_' + Date.now(),
+          name: name,
+          taxId: tax,
+          phone: phone,
+          address: address,
+          route: route,
+          creditLimit: credit,
+          currentDebt: debt,
+          lat: 8.42, 
+          lng: -82.43,
+          isExempt: isExempt,
+          specialPrices: {}
+        };
+        clients.push(targetClient);
+      }
       
       // Guardado 100% en Firebase
-      if (window.syncDocToCloud) window.syncDocToCloud('clients', newClient.id, newClient);
+      if (targetClient && window.syncDocToCloud) {
+        window.syncDocToCloud('clients', targetClient.id, targetClient);
+      }
 
       window.closeModal('modal-client');
       renderClientsTable();
       if(document.getElementById('posClientSelect')) renderPosWorkspace();
-      window.showNotification(`Cliente "${name}" sincronizado en la nube.`, 'success');
+      window.showNotification(existingId ? `Cliente "${name}" actualizado en Firebase.` : `Cliente "${name}" sincronizado en la nube.`, 'success');
     };
 
     // Funciones Auxiliares de Interfaz
