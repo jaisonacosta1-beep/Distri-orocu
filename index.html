@@ -2443,22 +2443,19 @@
         try {
           const q = collection(db, 'artifacts', currentProjectId, 'public', 'data', colName);
           const unsub = onSnapshot(q, (snapshot) => {
-            let isNewIncomingOrder = false;
-            const currentOrdersList = window.getCurrentOrders ? window.getCurrentOrders() : [];
+            let newOrderDetected = null;
 
             snapshot.docChanges().forEach((change) => {
-              if (colName === 'orders' && change.type === 'added') {
-                const newOrder = change.doc.data();
-                const alreadyExists = currentOrdersList.some(o => o.id === newOrder.id);
-                if (!alreadyExists && newOrder.status === 'Por Aprobar') {
-                  isNewIncomingOrder = true;
+              if (colName === 'orders' && (change.type === 'added' || change.type === 'modified')) {
+                const ordData = change.doc.data();
+                if (ordData && ordData.status === 'Por Aprobar') {
+                  const key = `${ordData.id}_${ordData.createdAt || ''}`;
+                  if (!window.silencedOrderKeys || !window.silencedOrderKeys.has(key)) {
+                    newOrderDetected = ordData;
+                  }
                 }
               }
             });
-
-            if (isNewIncomingOrder && typeof window.resetAlarmSilence === 'function') {
-              window.resetAlarmSilence();
-            }
 
             const remoteData = [];
             snapshot.forEach(docSnap => remoteData.push(docSnap.data()));
@@ -2466,19 +2463,11 @@
             // Apply 100% of remote data (even if empty array after wipe)
             window.applyRemoteCollection(colName, remoteData);
 
-            if (isNewIncomingOrder) {
+            if (newOrderDetected) {
               const urlParams = new URLSearchParams(window.location.search);
               if (urlParams.get('role') !== 'cliente') {
-                const fullScreenAlarm = document.getElementById('full-screen-alarm');
-                if (fullScreenAlarm) {
-                  fullScreenAlarm.classList.remove('hidden');
-                  fullScreenAlarm.classList.add('flex');
-                }
-                if (typeof window.checkPendingApprovals === 'function') {
-                  window.checkPendingApprovals();
-                }
-                if (typeof window.showNotification === 'function') {
-                  window.showNotification('¡NUEVO PEDIDO EN LÍNEA RECIBIDO EN TIEMPO REAL!', 'warning');
+                if (typeof window.triggerIncomingOrderAlarm === 'function') {
+                  window.triggerIncomingOrderAlarm(newOrderDetected);
                 }
               }
             }
@@ -4297,6 +4286,7 @@
 
       const newOrder = {
         id: newId,
+        createdAt: Date.now(),
         clientId: clientId,
         clientName: finalClientName,
         clientTax: finalClientTax,
@@ -5489,10 +5479,204 @@
 
     let orderAlarmAudio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
     orderAlarmAudio.loop = true;
-    let isAlarmSilenced = false;
+    window.silencedOrderKeys = new Set();
+    let alarmSynthInterval = null;
+    let sharedAudioCtx = null;
+
+    function getOrCreateAudioContext() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new AudioCtx();
+      }
+      if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume().catch(() => {});
+      }
+      return sharedAudioCtx;
+    }
+
+    // Desbloquea el audio del navegador en el primer toque o clic del usuario
+    function unlockBrowserAudio() {
+      getOrCreateAudioContext();
+      orderAlarmAudio.muted = true;
+      orderAlarmAudio.play().then(() => {
+        orderAlarmAudio.pause();
+        orderAlarmAudio.currentTime = 0;
+        orderAlarmAudio.muted = false;
+      }).catch(() => {
+        orderAlarmAudio.muted = false;
+      });
+    }
+    document.addEventListener('click', unlockBrowserAudio, { once: true });
+    document.addEventListener('touchstart', unlockBrowserAudio, { once: true });
+
+    function playSynthAlarmBeep() {
+      try {
+        const ctx = getOrCreateAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        // Doble tono de alarma fuerte (funciona en iOS, Android y PC sin depender de archivos .ogg)
+        [880, 1174.66].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.22);
+          gain.gain.setValueAtTime(0.35, now + idx * 0.22);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.22 + 0.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.22);
+          osc.stop(now + idx * 0.22 + 0.2);
+        });
+      } catch (e) {}
+    }
+
+    function startAlarmSoundLoop() {
+      orderAlarmAudio.play().catch(() => {});
+      if (!alarmSynthInterval) {
+        playSynthAlarmBeep();
+        alarmSynthInterval = setInterval(() => {
+          playSynthAlarmBeep();
+          if (navigator.vibrate) {
+            navigator.vibrate([300, 150, 300]);
+          }
+        }, 900);
+      }
+    }
+
+    function stopAlarmSoundLoop() {
+      orderAlarmAudio.pause();
+      orderAlarmAudio.currentTime = 0;
+      if (alarmSynthInterval) {
+        clearInterval(alarmSynthInterval);
+        alarmSynthInterval = null;
+      }
+      if (navigator.vibrate) {
+        navigator.vibrate(0);
+      }
+    }
 
     window.resetAlarmSilence = function() {
-      isAlarmSilenced = false;
+      window.silencedOrderKeys.clear();
+    };
+
+    window.triggerIncomingOrderAlarm = function(orderObj) {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('role') === 'cliente') return;
+
+      const fullScreenAlarm = document.getElementById('full-screen-alarm');
+      if (fullScreenAlarm) {
+        const subtitleEl = fullScreenAlarm.querySelector('p');
+        if (subtitleEl && orderObj) {
+          subtitleEl.innerText = `Pedido ${orderObj.id} de ${orderObj.clientName} por $${Number(orderObj.total || 0).toFixed(2)}`;
+        }
+        fullScreenAlarm.classList.remove('hidden');
+        fullScreenAlarm.classList.add('flex');
+      }
+
+      startAlarmSoundLoop();
+      showNotification(`¡NUEVO PEDIDO EN LÍNEA! ${orderObj ? `${orderObj.id} - ${orderObj.clientName}` : ''}`, 'warning');
+    };
+
+    window.checkPendingApprovals = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('role') === 'cliente') return;
+
+      const pendingOrders = orders.filter(o => o.status === 'Por Aprobar');
+      const pendingCount = pendingOrders.length;
+      const badge = document.getElementById('badge-online-orders');
+
+      if (badge) {
+        if (pendingCount > 0) {
+          badge.classList.remove('hidden');
+          badge.innerText = pendingCount;
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      if (pendingCount > 0) {
+        const unacknowledged = pendingOrders.find(o => !window.silencedOrderKeys.has(`${o.id}_${o.createdAt || ''}`));
+        if (unacknowledged) {
+          window.triggerIncomingOrderAlarm(unacknowledged);
+        }
+      } else {
+        stopAlarmSoundLoop();
+        const alarmModal = document.getElementById('full-screen-alarm');
+        if (alarmModal) {
+          alarmModal.classList.add('hidden');
+          alarmModal.classList.remove('flex');
+        }
+      }
+    };
+
+    window.silenceAlarm = function() {
+      orders.filter(o => o.status === 'Por Aprobar').forEach(o => {
+        window.silencedOrderKeys.add(`${o.id}_${o.createdAt || ''}`);
+      });
+      stopAlarmSoundLoop();
+      const alarmModal = document.getElementById('full-screen-alarm');
+      if (alarmModal) {
+        alarmModal.classList.add('hidden');
+        alarmModal.classList.remove('flex');
+      }
+    };
+
+    window.acknowledgeAlarmAndGo = function() {
+      window.silenceAlarm();
+      navigateTab('online-orders');
+    };
+
+    window.simulateIncomingOrder = function() {
+      if (clients.length === 0 || products.length === 0) {
+        showNotification('Se requieren clientes y productos para simular un pedido.', 'warning');
+        return;
+      }
+      const randomClient = clients[Math.floor(Math.random() * clients.length)];
+      const randomProd = products[Math.floor(Math.random() * products.length)];
+      const qty = Math.floor(Math.random() * 5) + 2;
+      const price = Number(randomProd.wholesalePrice);
+      const subtotal = qty * price;
+      const tax = randomClient.isExempt ? 0 : subtotal * 0.07;
+      const total = subtotal + tax;
+
+      const maxOrderNum = orders.reduce((max, o) => {
+        const num = parseInt(String(o.id).replace('ORD-', '')) || 1000;
+        return num > max ? num : max;
+      }, 1000);
+
+      const simOrder = {
+        id: `ORD-${maxOrderNum + 1}`,
+        createdAt: Date.now(),
+        clientId: randomClient.id,
+        clientName: randomClient.name,
+        clientTax: randomClient.taxId,
+        clientAddress: randomClient.address,
+        date: new Date().toISOString().split('T')[0],
+        driver: 'Por asignar',
+        paymentMethod: 'Transferencia Bancaria',
+        status: 'Por Aprobar',
+        items: [{
+          id: randomProd.id,
+          sku: randomProd.sku,
+          name: randomProd.name,
+          quantity: qty,
+          price: price,
+          batchAssigned: 'FEFO',
+          isCold: true
+        }],
+        subtotal,
+        discountRate: 0,
+        discountAmount: 0,
+        tax,
+        total,
+        pod: null
+      };
+
+      orders.unshift(simOrder);
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', simOrder.id, simOrder);
+      refreshActiveViews();
+      window.triggerIncomingOrderAlarm(simOrder);
     };
 
     window.checkPendingApprovals = function() {
