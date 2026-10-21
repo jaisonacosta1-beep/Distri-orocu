@@ -1,3 +1,4 @@
+4
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5495,27 +5496,32 @@
       return sharedAudioCtx;
     }
 
-    // Desbloquea el audio del navegador en el primer toque o clic del usuario
+    // Mantiene desbloqueado el motor de audio del navegador en cualquier interacción
     function unlockBrowserAudio() {
       getOrCreateAudioContext();
-      orderAlarmAudio.muted = true;
-      orderAlarmAudio.play().then(() => {
-        orderAlarmAudio.pause();
-        orderAlarmAudio.currentTime = 0;
-        orderAlarmAudio.muted = false;
-      }).catch(() => {
-        orderAlarmAudio.muted = false;
-      });
+      if (orderAlarmAudio.paused) {
+        orderAlarmAudio.muted = true;
+        orderAlarmAudio.play().then(() => {
+          orderAlarmAudio.pause();
+          orderAlarmAudio.currentTime = 0;
+          orderAlarmAudio.muted = false;
+        }).catch(() => {
+          orderAlarmAudio.muted = false;
+        });
+      }
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
     }
-    document.addEventListener('click', unlockBrowserAudio, { once: true });
-    document.addEventListener('touchstart', unlockBrowserAudio, { once: true });
+    document.addEventListener('click', unlockBrowserAudio);
+    document.addEventListener('touchstart', unlockBrowserAudio);
+    document.addEventListener('keydown', unlockBrowserAudio);
 
     function playSynthAlarmBeep() {
       try {
         const ctx = getOrCreateAudioContext();
         if (!ctx) return;
         const now = ctx.currentTime;
-        // Doble tono de alarma fuerte (funciona en iOS, Android y PC sin depender de archivos .ogg)
         [880, 1174.66].forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -5531,12 +5537,24 @@
       } catch (e) {}
     }
 
-    function startAlarmSoundLoop() {
+    function startAlarmSoundLoop(orderObj) {
+      orderAlarmAudio.muted = false;
       orderAlarmAudio.play().catch(() => {});
       if (!alarmSynthInterval) {
         playSynthAlarmBeep();
+        if (window.speechSynthesis && orderObj) {
+          try {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(`Atención. Nuevo pedido en línea de ${orderObj.clientName}`);
+            utter.lang = 'es-ES';
+            window.speechSynthesis.speak(utter);
+          } catch (e) {}
+        }
         alarmSynthInterval = setInterval(() => {
           playSynthAlarmBeep();
+          if (orderAlarmAudio.paused) {
+            orderAlarmAudio.play().catch(() => {});
+          }
           if (navigator.vibrate) {
             navigator.vibrate([300, 150, 300]);
           }
@@ -5551,6 +5569,9 @@
         clearInterval(alarmSynthInterval);
         alarmSynthInterval = null;
       }
+      if (window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+      }
       if (navigator.vibrate) {
         navigator.vibrate(0);
       }
@@ -5559,6 +5580,8 @@
     window.resetAlarmSilence = function() {
       window.silencedOrderKeys.clear();
     };
+
+    let lastNotifiedOrderKey = '';
 
     window.triggerIncomingOrderAlarm = function(orderObj) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -5574,8 +5597,20 @@
         fullScreenAlarm.classList.add('flex');
       }
 
-      startAlarmSoundLoop();
-      showNotification(`¡NUEVO PEDIDO EN LÍNEA! ${orderObj ? `${orderObj.id} - ${orderObj.clientName}` : ''}`, 'warning');
+      startAlarmSoundLoop(orderObj);
+
+      const currentKey = orderObj ? `${orderObj.id}_${orderObj.createdAt || ''}` : 'generic';
+      if (lastNotifiedOrderKey !== currentKey) {
+        lastNotifiedOrderKey = currentKey;
+        showNotification(`¡NUEVO PEDIDO EN LÍNEA! ${orderObj ? `${orderObj.id} - ${orderObj.clientName} ($${Number(orderObj.total || 0).toFixed(2)})` : ''}`, 'warning');
+        if ('Notification' in window && Notification.permission === 'granted' && orderObj) {
+          try {
+            new Notification('¡Nuevo Pedido B2B!', {
+              body: `${orderObj.id} - ${orderObj.clientName} ($${Number(orderObj.total || 0).toFixed(2)})`
+            });
+          } catch (e) {}
+        }
+      }
     };
 
     window.checkPendingApprovals = function() {
@@ -5677,93 +5712,6 @@
       if (window.syncDocToCloud) window.syncDocToCloud('orders', simOrder.id, simOrder);
       refreshActiveViews();
       window.triggerIncomingOrderAlarm(simOrder);
-    };
-
-    window.checkPendingApprovals = function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('role') === 'cliente') return;
-
-      const pendingCount = orders.filter(o => o.status === 'Por Aprobar').length;
-      const badge = document.getElementById('badge-online-orders');
-      if (badge) {
-        if (pendingCount > 0) {
-          badge.classList.remove('hidden');
-          badge.innerText = pendingCount;
-          if (!isAlarmSilenced) {
-            orderAlarmAudio.play().catch(() => {});
-          }
-        } else {
-          badge.classList.add('hidden');
-          orderAlarmAudio.pause();
-        }
-      }
-    };
-
-    window.silenceAlarm = function() {
-      isAlarmSilenced = true;
-      orderAlarmAudio.pause();
-      const alarmModal = document.getElementById('full-screen-alarm');
-      if (alarmModal) {
-        alarmModal.classList.add('hidden');
-        alarmModal.classList.remove('flex');
-      }
-    };
-
-    window.acknowledgeAlarmAndGo = function() {
-      window.silenceAlarm();
-      navigateTab('online-orders');
-    };
-
-    window.simulateIncomingOrder = function() {
-      if (clients.length === 0 || products.length === 0) {
-        showNotification('Se requieren clientes y productos para simular un pedido.', 'warning');
-        return;
-      }
-      const randomClient = clients[Math.floor(Math.random() * clients.length)];
-      const randomProd = products[Math.floor(Math.random() * products.length)];
-      const qty = Math.floor(Math.random() * 5) + 2;
-      const price = Number(randomProd.wholesalePrice);
-      const subtotal = qty * price;
-      const tax = randomClient.isExempt ? 0 : subtotal * 0.07;
-      const total = subtotal + tax;
-
-      const maxOrderNum = orders.reduce((max, o) => {
-        const num = parseInt(String(o.id).replace('ORD-', '')) || 1000;
-        return num > max ? num : max;
-      }, 1000);
-
-      const simOrder = {
-        id: `ORD-${maxOrderNum + 1}`,
-        clientId: randomClient.id,
-        clientName: randomClient.name,
-        clientTax: randomClient.taxId,
-        clientAddress: randomClient.address,
-        date: new Date().toISOString().split('T')[0],
-        driver: 'Por asignar',
-        paymentMethod: 'Transferencia Bancaria',
-        status: 'Por Aprobar',
-        items: [{
-          id: randomProd.id,
-          sku: randomProd.sku,
-          name: randomProd.name,
-          quantity: qty,
-          price: price,
-          batchAssigned: 'FEFO',
-          isCold: true
-        }],
-        subtotal,
-        discountRate: 0,
-        discountAmount: 0,
-        tax,
-        total,
-        pod: null
-      };
-
-      isAlarmSilenced = false;
-      orders.unshift(simOrder);
-      if (window.syncDocToCloud) window.syncDocToCloud('orders', simOrder.id, simOrder);
-      refreshActiveViews();
-      showNotification(`Nuevo pedido B2B ${simOrder.id} recibido de ${randomClient.name}.`, 'warning');
     };
 
     window.approveOrderFromInvoice = function() {
