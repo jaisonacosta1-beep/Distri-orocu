@@ -1,3 +1,4 @@
+45
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5358,6 +5359,26 @@
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
       refreshActiveViews();
+
+      // Rutear a la vista correcta según el rol en el enlace
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role');
+
+      if (role === 'cliente') {
+        navigateTab('pos'); 
+        // Ocultar menú lateral para restringir la vista al cliente
+        const sidebar = document.getElementById('sidebar');
+        const btnToggle = document.getElementById('btn-toggle-sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        if (btnToggle) btnToggle.style.display = 'none';
+      } else if (role === 'cajero') {
+        navigateTab('pos');
+      } else if (role === 'repartidor') {
+        navigateTab('logistics');
+      } else {
+        // Vista por defecto para la administración
+        navigateTab('dashboard');
+      }
     });
   </script>
 </body>
