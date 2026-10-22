@@ -271,60 +271,60 @@
 
       <!-- VIEW: DASHBOARD -->
       <section id="view-dashboard" class="space-y-6">
-        <!-- Top Metrics Grid -->
+        <!-- Top Metrics Grid (Interactive Navigation Cards) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Metric 1: Total Sales Today -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div onclick="goToDashboardMetric('sales')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition active:scale-98 group">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ventas Facturadas</p>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-emerald-600 transition">Ventas Facturadas</p>
               <h3 id="stat-sales-total" class="text-2xl font-black text-slate-900 mt-1">$0.00</h3>
               <p class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                <i class="fa-solid fa-arrow-trend-up"></i> Ventas acumuladas
+                <i class="fa-solid fa-arrow-trend-up"></i> Ver historial y cobros <i class="fa-solid fa-chevron-right text-[9px] ml-0.5 opacity-70"></i>
               </p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition flex items-center justify-center text-xl shadow-xs">
               <i class="fa-solid fa-sack-dollar"></i>
             </div>
           </div>
 
           <!-- Metric 2: Pending Orders -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div onclick="goToDashboardMetric('pending')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-amber-400 hover:shadow-md hover:-translate-y-0.5 transition active:scale-98 group">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Por Despachar</p>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-amber-600 transition">Por Despachar</p>
               <h3 id="stat-pending-count" class="text-2xl font-black text-slate-900 mt-1">0</h3>
               <p class="text-xs text-amber-600 font-medium mt-1 flex items-center gap-1">
-                <i class="fa-solid fa-clock"></i> Pendientes & preparación
+                <i class="fa-solid fa-clock"></i> Ir a pendientes & picking <i class="fa-solid fa-chevron-right text-[9px] ml-0.5 opacity-70"></i>
               </p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-slate-950 transition flex items-center justify-center text-xl shadow-xs">
               <i class="fa-solid fa-boxes-packing"></i>
             </div>
           </div>
 
           <!-- Metric 3: Active Routes -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div onclick="goToDashboardMetric('routes')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 transition active:scale-98 group">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">En Ruta de Reparto</p>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition">En Ruta de Reparto</p>
               <h3 id="stat-routes-active" class="text-2xl font-black text-slate-900 mt-1">0</h3>
               <p class="text-xs text-blue-600 font-medium mt-1 flex items-center gap-1">
-                <i class="fa-solid fa-location-dot"></i> Choferes en curso
+                <i class="fa-solid fa-location-dot"></i> Ver mapa y choferes <i class="fa-solid fa-chevron-right text-[9px] ml-0.5 opacity-70"></i>
               </p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center text-xl shadow-xs">
               <i class="fa-solid fa-truck"></i>
             </div>
           </div>
 
           <!-- Metric 4: Low Stock Alert -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div onclick="goToDashboardMetric('alerts')" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-rose-400 hover:shadow-md hover:-translate-y-0.5 transition active:scale-98 group">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Alerta de Quiebre / FEFO</p>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-rose-600 transition">Alerta de Quiebre / FEFO</p>
               <h3 id="stat-low-stock-count" class="text-2xl font-black text-rose-600 mt-1">0</h3>
               <p class="text-xs text-rose-500 font-medium mt-1 flex items-center gap-1">
-                <i class="fa-solid fa-triangle-exclamation"></i> Bajo mínimo o vence pronto
+                <i class="fa-solid fa-triangle-exclamation"></i> Revisar stock o lotes <i class="fa-solid fa-chevron-right text-[9px] ml-0.5 opacity-70"></i>
               </p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition flex items-center justify-center text-xl shadow-xs">
               <i class="fa-solid fa-cubes-stacked"></i>
             </div>
           </div>
@@ -333,12 +333,17 @@
         <!-- Charts and Activity Row -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div>
                 <h4 class="font-bold text-slate-900 text-base">Volumen de Despachos vs Ingresos</h4>
-                <p class="text-xs text-slate-500">Últimos días de operación comercial mayorista</p>
+                <p id="chart-goal-subtitle" class="text-xs text-slate-500">Últimos días de operación comercial mayorista</p>
               </div>
-              <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">Semanal</span>
+              <div class="flex items-center gap-2">
+                <span id="chart-period-badge" class="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full font-bold">Semanal</span>
+                <button onclick="openChartGoalSettingsShortcut()" title="Editar Meta y Periodo en Ajustes de Admin" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1">
+                  <i class="fa-solid fa-sliders text-[10px]"></i> Editar Meta
+                </button>
+              </div>
             </div>
             <div class="h-64 relative w-full">
               <canvas id="salesTrendsChart"></canvas>
@@ -1527,6 +1532,55 @@
           </button>
         </div>
 
+        <!-- Configuración de Meta Comercial y Gráfica de Volumen de Despachos vs Ingresos (NUEVO) -->
+        <div id="settings-chart-goal-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-blue-600"></i> Meta Comercial: Volumen de Despachos vs Ingresos
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Elige si deseas medir la gráfica del Panel General en modo <b>Diario, Semanal o Mensual</b>, define la meta en dólares ($) y personaliza las barras si lo deseas.</p>
+            </div>
+            <span id="settings-goal-preview-pill" class="text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-xl">Meta: $2,200.00</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700">Periodo de Medición de Meta</label>
+              <select id="pref-goal-period" onchange="handleGoalPeriodSelectChange()" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold text-slate-800 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Diaria">📅 Meta Diaria (Lun a Sáb)</option>
+                <option value="Semanal">📊 Meta Semanal (Sem 1 a Sem 4)</option>
+                <option value="Mensual">🗓️ Meta Mensual (6 Meses)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700">Cantidad / Monto de la Meta ($ USD)</label>
+              <input type="number" step="10" min="0" id="pref-goal-amount" oninput="updateGoalPreviewPill()" placeholder="2200" class="w-full text-sm font-black p-2 border-2 border-blue-300 rounded-xl bg-blue-50/40 text-blue-900 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700">Fuente de las Barras de Despacho</label>
+              <select id="pref-goal-source" onchange="toggleCustomChartBarsInputs()" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-semibold text-slate-800 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="custom">✏️ Valores Editables Manuales + Ventas Reales</option>
+                <option value="live_only">⚡ Solo Pedidos Facturados en el Sistema</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="pref-custom-bars-container" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase text-slate-600"><i class="fa-solid fa-Sliders mr-1 text-blue-600"></i> Cantidades de Volumen de Despachos ($) en la Gráfica</span>
+              <span class="text-[10px] text-slate-400">Puedes ajustar los montos de cada columna</span>
+            </div>
+            <div id="pref-custom-bars-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5"></div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="saveChartGoalSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar Meta y Actualizar Gráfica
+            </button>
+          </div>
+        </div>
+
         <!-- Base de Datos y Mantenimiento (NUEVO) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <h4 class="font-bold text-rose-600 text-sm flex items-center gap-2">
@@ -1663,7 +1717,7 @@
 
           <div class="pt-2 flex justify-end">
             <button type="button" onclick="saveReceiptSettings()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración de Factura en Firebase
+              <i class="fa-solid fa-floppy-disk"></i> <span id="btn-save-receipt-label">Guardar Diseño de Factura</span>
             </button>
           </div>
         </div>
@@ -1996,7 +2050,7 @@
         <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
           <button type="button" onclick="closeModal('modal-multi-invoice-collect')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
           <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-check"></i> Registrar Cobro Múltiple en Firebase
+            <i class="fa-solid fa-circle-check"></i> Registrar Cobro Múltiple
           </button>
         </div>
       </form>
@@ -2025,7 +2079,1215 @@
     </div>
   </div>
 
-  <!-- Firebase SDK Modules for 100% Real-time Cloud Synchronization (Zero LocalStorage) -->
+  <!-- MODAL: CONFIGURACIÓN MANUAL DE FIREBASE -->
+  <div id="modal-firebase-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-black text-lg">
+            <i class="fa-solid fa-fire"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Configuración Manual de Firebase</h3>
+            <p class="text-xs text-slate-500">Conecta tu propio proyecto de Firebase Firestore en tiempo real</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('modal-firebase-config')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Pegar bloque completo de firebaseConfig o escanear captura -->
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-black uppercase text-slate-700"><i class="fa-solid fa-paste text-blue-600 mr-1"></i> Pegado Rápido (Código de Firebase Console)</label>
+          <label class="cursor-pointer text-[11px] font-bold text-purple-600 hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-camera"></i> Leer de Captura
+            <input type="file" accept="image/*" class="hidden" onchange="processFirebaseImage(event)">
+          </label>
+        </div>
+        <textarea id="fc-raw-snippet" rows="3" oninput="parseRawFirebaseSnippet(this.value)" placeholder="Pega aquí el bloque const firebaseConfig = { apiKey: '...', projectId: '...' }; y se llenarán los campos automáticamente..." class="w-full text-xs font-mono p-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+        <p id="fb-scan-status" class="text-[11px] text-purple-600 font-bold hidden"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Extrayendo credenciales de la imagen...</p>
+      </div>
+
+      <form onsubmit="saveCustomFirebaseConfig(event)" class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700">Project ID <span class="text-rose-500">*</span></label>
+            <input type="text" id="fc-project-id" required placeholder="ej: mi-distribuidora-erp" class="w-full text-xs font-mono p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white mt-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700">API Key <span class="text-rose-500">*</span></label>
+            <input type="text" id="fc-api-key" required placeholder="AIzaSy..." class="w-full text-xs font-mono p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white mt-1 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Auth Domain (Opcional)</label>
+            <input type="text" id="fc-auth-domain" placeholder="proyecto.firebaseapp.com" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">App ID (Opcional)</label>
+            <input type="text" id="fc-app-id-field" placeholder="1:123456789:web:abcdef" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white mt-1">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600">Storage Bucket (Opcional)</label>
+            <input type="text" id="fc-storage-bucket" placeholder="proyecto.appspot.com" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white mt-1">
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 space-y-1">
+          <div class="font-bold"><i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Requisito en tu consola de Firebase:</div>
+          <div>1. En <b>Firestore Database</b> ➔ Reglas, permite lectura/escritura (<code>allow read, write: if true;</code> o <code>if request.auth != null;</code>).</div>
+          <div>2. Si usas reglas con autenticación, activa <b>Authentication ➔ Sign-in method ➔ Anónimo</b>.</div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-between gap-2">
+          <button type="button" onclick="clearFirebaseConfig()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 transition">
+            <i class="fa-solid fa-plug-circle-xmark mr-1"></i> Desconectar
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeModal('modal-firebase-config')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Conectar y Sincronizar Ahora
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR PRODUCTO AL CARRITO (POS) -->
+  <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-3">
+          <img id="mac-product-img" src="" alt="Producto" class="w-12 h-12 rounded-xl object-cover border border-slate-200 hidden">
+          <div>
+            <h3 id="mac-product-name" class="font-bold text-slate-900 text-base leading-snug">Producto</h3>
+            <p id="mac-product-sku" class="text-xs font-mono text-slate-400">SKU</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="confirmAddToCart(event)" class="space-y-4">
+        <input type="hidden" id="mac-product-id">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Cantidad (Disp: <span id="mac-product-stock" class="text-blue-600">0</span>)</label>
+            <input type="number" id="mac-qty" min="1" value="1" required class="w-full text-base font-black p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Precio Unitario ($)</label>
+            <input type="number" step="0.01" min="0" id="mac-product-price-input" required class="w-full text-base font-black p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-right text-blue-600 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl bg-blue-50/60 border border-blue-200">
+          <label for="mac-cold" class="text-xs font-bold text-blue-900 flex items-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-snowflake text-blue-600"></i> Despachar Frío (De Cuarto Frío)
+          </label>
+          <input type="checkbox" id="mac-cold" onchange="updateMacPrice()" class="w-4 h-4 rounded text-blue-600 cursor-pointer">
+        </div>
+
+        <div>
+          <button type="button" onclick="document.getElementById('mac-note-container').classList.toggle('hidden')" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1">
+            <i class="fa-solid fa-comment-dots"></i> Añadir nota o instrucción a esta línea
+          </button>
+          <div id="mac-note-container" class="hidden mt-2">
+            <input type="text" id="mac-note" placeholder="Ej: Entregar en cava trasera..." class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50">
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-add-cart')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-cart-plus"></i> Agregar al Pedido
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ARTÍCULO LIBRE EN POS -->
+  <div id="modal-custom-item" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-box-open text-amber-600"></i> Agregar Artículo Libre
+        </h3>
+        <button type="button" onclick="closeModal('modal-custom-item')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="confirmAddCustomItem(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Descripción del Producto o Servicio</label>
+          <input type="text" id="mci-name" required placeholder="Ej: Bolsa de Hielo Industrial 20lb" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Precio Unitario ($)</label>
+            <input type="number" step="0.01" min="0" id="mci-price" required placeholder="0.00" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cantidad</label>
+            <input type="number" min="1" id="mci-qty" value="1" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-center">
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 pt-1 cursor-pointer">
+          <input type="checkbox" id="mci-cold" class="rounded text-blue-600">
+          <span>Despachar Frío</span>
+        </label>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-custom-item')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950">Añadir al Carrito</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FACTURA / GUÍA DE DESPACHO IMPRIMIBLE -->
+  <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[92vh] overflow-y-auto">
+      <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="font-mono font-black text-blue-600 text-base" id="inv-folio">ORD-0000</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700" id="inv-status">Estado</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button id="btn-approve-action" onclick="approveOrderFromInvoice()" class="hidden px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-check mr-1"></i> Aprobar Pedido
+          </button>
+          <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-list-check mr-1"></i> Cambiar Estado
+          </button>
+          <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Cobrar / Vacíos
+          </button>
+          <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-pen mr-1"></i> Editar
+          </button>
+          <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-signature mr-1"></i> Firma POD
+          </button>
+          <button onclick="openThermalReceiptModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-receipt mr-1"></i> Ticket Térmico
+          </button>
+          <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-print mr-1"></i> Imprimir A4
+          </button>
+          <button onclick="closeModal('modal-invoice')" class="text-slate-400 hover:text-slate-700 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Área imprimible -->
+      <div id="printInvoiceArea" class="space-y-4 text-xs text-slate-800 border border-slate-200 rounded-xl p-5 bg-white">
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-slate-200 pb-4">
+          <div class="flex items-center gap-3">
+            <img id="inv-company-logo" src="" alt="Logo" class="w-16 h-16 object-contain hidden">
+            <div>
+              <h2 id="inv-company-name" class="text-lg font-black text-slate-900">CERVEZALOGIX S.A.</h2>
+              <p id="inv-company-sub" class="text-xs font-bold text-amber-600">DISTRIB. CERVEZAS & SNACKS</p>
+              <p id="inv-company-meta" class="text-[11px] text-slate-500">RUC: J-30491829-1 | TEL: 833-9000</p>
+              <p id="inv-company-address" class="text-[11px] text-slate-500">DAVID, CHIRIQUÍ</p>
+            </div>
+          </div>
+          <div class="text-left sm:text-right">
+            <span class="text-[10px] font-black uppercase bg-slate-100 text-slate-700 px-2.5 py-1 rounded">Factura / Guía de Despacho</span>
+            <p id="inv-date" class="font-semibold text-slate-700 mt-1">Fecha: -</p>
+            <p class="text-[10px] text-slate-400 font-mono">Control #<span id="inv-guid">0000</span></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Cliente / Destinatario</span>
+            <p id="inv-client-name" class="font-bold text-slate-900 text-sm">-</p>
+            <p id="inv-client-tax" class="text-slate-600 font-mono">-</p>
+            <p id="inv-client-address" class="text-slate-600">-</p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Logística y Condición</span>
+            <p class="text-slate-700">Chofer: <strong id="inv-driver">-</strong></p>
+            <p class="text-slate-700">Método de Pago: <strong id="inv-payment">-</strong></p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] font-bold">
+              <tr>
+                <th class="p-2">SKU / Lote</th>
+                <th class="p-2">Descripción</th>
+                <th class="p-2 text-center">Cant.</th>
+                <th class="p-2 text-right">P. Unit</th>
+                <th class="p-2 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody id="inv-items-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div id="inv-payment-empties-box" class="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-1"></div>
+          <div class="space-y-1 text-right">
+            <div class="flex justify-between text-slate-600"><span>Subtotal:</span><strong id="inv-subtotal">$0.00</strong></div>
+            <div class="flex justify-between text-slate-600"><span>Descuento:</span><strong id="inv-discount">-$0.00</strong></div>
+            <div class="flex justify-between text-slate-600"><span>ITBMS (7%):</span><strong id="inv-tax">$0.00</strong></div>
+            <div class="flex justify-between text-base font-black text-slate-900 border-t border-slate-200 pt-1.5"><span>Total Factura:</span><span id="inv-total" class="text-blue-600">$0.00</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Firma de Conformidad (POD)</span>
+            <div id="inv-signature-container" class="h-20 border border-dashed border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 p-1"></div>
+            <p id="inv-pod-meta" class="text-[10px] text-slate-500 mt-1">Pendiente de entrega</p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Evidencia Fotográfica</span>
+            <div id="inv-photo-container" class="h-20 border border-dashed border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden"></div>
+          </div>
+        </div>
+
+        <div class="text-center pt-2 border-t border-slate-100">
+          <p id="inv-company-legal" class="text-[10px] text-slate-500"></p>
+          <p id="inv-company-footer" class="text-xs font-bold text-slate-700 mt-0.5">¡Gracias por su compra!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TICKET TÉRMICO (58mm / 80mm / BLUETOOTH / RAWBT) -->
+  <div id="modal-thermal-receipt" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-5 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-amber-500"></i> Ticket Térmico (58mm / 80mm)
+          </h3>
+          <p class="text-[11px] text-slate-500">Impresión directa Bluetooth, RawBT o navegador</p>
+        </div>
+        <button onclick="closeModal('modal-thermal-receipt')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 space-y-2">
+        <div id="thermal-modal-logo-wrap" class="hidden flex justify-center py-1 bg-white rounded-lg border border-slate-200">
+          <img id="thermal-modal-logo" src="" alt="Logo Ticket" class="max-h-14 object-contain">
+        </div>
+        <textarea id="thermal-receipt-text" rows="14" class="w-full font-mono text-[11px] leading-tight p-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none"></textarea>
+        <div id="thermal-modal-sig-wrap" class="hidden bg-white p-2 rounded-lg border border-slate-200 text-center">
+          <span class="text-[10px] font-bold uppercase text-slate-400 block">Firma Digital en Ticket</span>
+          <img id="thermal-modal-sig" src="" alt="Firma" class="max-h-14 mx-auto object-contain">
+          <span id="thermal-modal-sig-meta" class="text-[10px] text-slate-600 block mt-0.5"></span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="printDirectWebBluetooth()" class="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+          <i class="fa-brands fa-bluetooth-b"></i> Bluetooth Directo
+        </button>
+        <button onclick="sendToRawBT()" class="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-print"></i> App RawBT
+        </button>
+        <button onclick="printThermalTicketBrowser()" class="py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-file-invoice"></i> Imprimir Navegador
+        </button>
+        <button onclick="copyThermalText()" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-copy"></i> Copiar Texto
+        </button>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs">
+        <button onclick="openReceiptSettingsFromModal()" class="text-blue-600 hover:underline font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-sliders"></i> Configurar Logo/Datos
+        </button>
+        <button onclick="openCollectAndEmptiesFromThermal()" class="text-amber-700 hover:underline font-bold flex items-center gap-1">
+          <i class="fa-solid fa-hand-holding-dollar"></i> Cobrar / Vacíos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COBRAR FACTURA, RETIRAR VACÍOS Y FIRMAR -->
+  <div id="modal-collect-empties" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-slate-900 text-base">Cobro de Factura y Control de Vacíos</h3>
+            <span id="mce-payment-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700">POR COBRAR</span>
+          </div>
+          <p id="mce-subtitle" class="text-xs text-slate-500 mt-0.5">Folio: ORD-0000</p>
+        </div>
+        <button onclick="closeModal('modal-collect-empties')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveCollectAndEmpties(event, false)" class="space-y-4">
+        <input type="hidden" id="mce-order-id">
+
+        <div class="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Factura</span>
+            <strong id="mce-total-amount" class="text-sm font-black text-slate-900">$0.00</strong>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Ya Abonado</span>
+            <strong id="mce-paid-amount" class="text-sm font-black text-emerald-600">$0.00</strong>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Saldo Pendiente</span>
+            <strong id="mce-due-amount" class="text-sm font-black text-rose-600">$0.00</strong>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-bold text-slate-700">Monto Recibido Ahora ($)</label>
+              <button type="button" onclick="fillFullBalanceInModal()" class="text-[10px] font-bold text-blue-600 hover:underline">Cobrar Todo</button>
+            </div>
+            <input type="number" step="0.01" min="0" id="mce-pay-now" value="0.00" class="w-full text-sm font-black p-2.5 border-2 border-emerald-400 rounded-xl bg-emerald-50/40 text-emerald-800 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700">Método de Pago</label>
+            <select id="mce-pay-method" onchange="toggleMceMixedPaymentUI()" class="w-full text-xs font-bold p-2.5 border border-slate-300 rounded-xl bg-slate-50 mt-1">
+              <option value="Efectivo">💵 Efectivo</option>
+              <option value="Yape">📱 Yape</option>
+              <option value="Transferencia Bancaria">🏦 Transferencia / ACH</option>
+              <option value="Cheque">🎫 Cheque</option>
+              <option value="Pago Mixto">💳 Pago Mixto (Efectivo + Yape/Banco)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="mce-mixed-payment-box" class="hidden p-3 rounded-xl bg-blue-50 border border-blue-200 space-y-2">
+          <div class="flex justify-between items-center text-[11px] font-bold text-blue-800">
+            <span>Desglose de Pago Mixto</span>
+            <span id="mce-mixed-sum-label">Suma Mixta: $0.00</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">Efectivo ($)</label>
+              <input type="number" step="0.01" min="0" id="mce-mix-cash" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">Yape ($)</label>
+              <input type="number" step="0.01" min="0" id="mce-mix-yape" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600">Banco ($)</label>
+              <input type="number" step="0.01" min="0" id="mce-mix-bank" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold">
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-black uppercase text-amber-900"><i class="fa-solid fa-recycle text-amber-600 mr-1"></i> Retiro de Envases Vacíos</label>
+            <button type="button" onclick="addCustomEmptyLineInModal()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-plus"></i> Agregar Tipo de Vacío
+            </button>
+          </div>
+          <div id="mce-empties-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-slate-700"><i class="fa-solid fa-signature text-indigo-600 mr-1"></i> Firma de Recibido / Conformidad</label>
+            <button type="button" onclick="clearMceSignature()" class="text-[11px] text-rose-600 font-bold hover:underline">Limpiar Firma</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="mce-receiver-name" placeholder="Nombre de quien firma" class="text-xs p-2 border border-slate-200 rounded-lg bg-slate-50">
+            <input type="text" id="mce-receiver-id" placeholder="Cédula / RUC" class="text-xs p-2 border border-slate-200 rounded-lg bg-slate-50">
+          </div>
+          <div class="h-28 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 relative overflow-hidden">
+            <div id="mceCanvasPlaceholder" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 pointer-events-none">Firme aquí con el dedo o cursor</div>
+            <canvas id="mceSignatureCanvas" class="w-full h-full cursor-crosshair touch-none"></canvas>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-collect-empties')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="button" onclick="saveCollectAndEmpties(null, true)" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-receipt"></i> Guardar e Imprimir Ticket
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Cobro y Vacíos
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PRUEBA DE ENTREGA (POD) -->
+  <div id="modal-pod" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Confirmar Entrega y Firma (POD)</h3>
+          <p id="pod-order-id-label" class="text-xs text-slate-500">Pedido</p>
+        </div>
+        <button onclick="closeModal('modal-pod')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="pod-driver-checklist-alert"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Recibido por (Nombre)</label>
+          <input type="text" id="pod-receiver-name" placeholder="Nombre del encargado" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Cédula / Identificación</label>
+          <input type="text" id="pod-receiver-id" placeholder="Cédula o RUC" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="text-xs font-semibold text-slate-600">Firma Digital del Cliente</label>
+          <button type="button" onclick="clearPodSignature()" class="text-xs text-rose-500 font-bold hover:underline">Borrar Firma</button>
+        </div>
+        <div class="h-36 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 relative overflow-hidden">
+          <div id="podCanvasPlaceholder" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 pointer-events-none">Firme dentro del recuadro</div>
+          <canvas id="podSignatureCanvas" class="w-full h-full cursor-crosshair touch-none"></canvas>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Foto de Evidencia (Opcional)</label>
+        <div class="flex items-center gap-3">
+          <label class="cursor-pointer px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-camera mr-1"></i> Tomar / Subir Foto
+            <input type="file" accept="image/*" class="hidden" onchange="previewPodPhoto(event)">
+          </label>
+          <span id="podPhotoStatus" class="text-xs text-slate-400 truncate">Ningún archivo seleccionado</span>
+        </div>
+        <div id="podPhotoPreviewContainer" class="hidden mt-2 h-28 rounded-xl overflow-hidden border border-slate-200">
+          <img id="podPhotoPreview" src="" alt="Preview" class="h-full w-full object-cover">
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+        <button type="button" onclick="closeModal('modal-pod')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+        <button type="button" onclick="savePodAndOpenCollectModal()" class="px-4 py-2 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center gap-1.5">
+          <i class="fa-solid fa-hand-holding-dollar"></i> Guardar Firma e Ir a Cobrar / Vacíos
+        </button>
+        <button type="button" onclick="savePodConfirmation()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-check-double"></i> Solo Confirmar Entrega
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR FACTURA / PEDIDO -->
+  <div id="modal-edit-order" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Modificar Factura / Pedido</h3>
+          <p id="edit-order-subtitle" class="text-xs text-slate-500">Editando Folio</p>
+        </div>
+        <button onclick="closeModal('modal-edit-order')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveEditedOrder(event)" class="space-y-4">
+        <input type="hidden" id="eo-id">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cliente</label>
+            <input type="text" id="eo-client-name" required class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">RUC / Cédula</label>
+            <input type="text" id="eo-client-tax" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Fecha</label>
+            <input type="date" id="eo-date" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600">Dirección de Entrega</label>
+            <input type="text" id="eo-client-address" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Chofer Asignado</label>
+            <input type="text" id="eo-driver" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Método de Pago</label>
+            <input type="text" id="eo-payment" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Descuento (%)</label>
+            <input type="number" step="0.5" min="0" max="100" id="eo-discount" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">ITBMS / Impuesto</label>
+            <select id="eo-tax-mode" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+              <option value="7">Con ITBMS (7%)</option>
+              <option value="0">Exento (0%)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Estado del Pedido</label>
+            <select id="eo-status" class="w-full text-xs p-2 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+              <option value="Por Aprobar">Por Aprobar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En Preparación">En Preparación</option>
+              <option value="Despachando">Despachando</option>
+              <option value="En Ruta">En Ruta</option>
+              <option value="En Consignación">En Consignación</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-slate-700">Líneas de Productos</label>
+            <button type="button" onclick="addBlankLineToEditOrder()" class="text-xs font-bold text-blue-600 hover:underline">+ Añadir Línea</button>
+          </div>
+          <div id="eo-items-container" class="space-y-2 max-h-52 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200"></div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-edit-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREAR / EDITAR PRODUCTO -->
+  <div id="modal-product" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="modalProductTitle" class="font-bold text-slate-900 text-base">Registrar Producto</h3>
+        <button onclick="closeModal('modal-product')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)" class="space-y-3">
+        <input type="hidden" id="prod-id">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div id="prod-image-preview-box" class="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+            <i class="fa-solid fa-beer-mug-empty text-slate-300 text-xl"></i>
+          </div>
+          <div class="flex-1 space-y-1.5">
+            <div class="flex gap-2">
+              <label class="cursor-pointer px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition">
+                <i class="fa-solid fa-upload mr-1"></i> Subir Foto
+                <input type="file" accept="image/*" class="hidden" onchange="handleProductImageUpload(event)">
+              </label>
+              <button type="button" onclick="clearProductImage()" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">Quitar</button>
+            </div>
+            <input type="text" id="prod-image-url" oninput="handleProductImageUrlInput(this.value)" placeholder="O pega URL de imagen (https://...)" class="w-full text-xs p-1.5 border border-slate-200 rounded-lg bg-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Código SKU / Barras</label>
+            <input type="text" id="prod-sku" required placeholder="CERV-PAN-24" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Categoría</label>
+            <input type="text" id="prod-category" required placeholder="Cervezas Nacionales" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600">Descripción del Producto</label>
+            <input type="text" id="prod-name" required placeholder="Cerveza Panamá Lager 330ml (Caja x 24)" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Presentación / Unidad</label>
+            <input type="text" id="prod-unit" required placeholder="Caja x 24 Botellas" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Costo Unitario ($)</label>
+            <input type="number" step="0.01" id="prod-cost" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Precio Mayorista ($)</label>
+            <input type="number" step="0.01" id="prod-price-wholesale" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-blue-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Precio Frío Opcional ($)</label>
+            <input type="number" step="0.01" id="prod-price-cold" placeholder="Igual al mayorista" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Stock Físico Actual</label>
+            <input type="number" id="prod-stock" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Stock Mínimo Alerta</label>
+            <input type="number" id="prod-min" required value="20" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-product')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR / EDITAR CLIENTE -->
+  <div id="modal-client" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="modalClientTitle" class="font-bold text-slate-900 text-base">Registrar Cliente</h3>
+        <button onclick="closeModal('modal-client')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="clientForm" onsubmit="saveClient(event)" class="space-y-3">
+        <input type="hidden" id="cli-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600">Nombre Comercial / Razón Social</label>
+            <input type="text" id="cli-name" required placeholder="Ej: Bar & Grill El Taburete" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">RUC / RIF / Cédula</label>
+            <input type="text" id="cli-tax" required placeholder="J-12345678" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Teléfono / WhatsApp</label>
+            <input type="text" id="cli-phone" required placeholder="+507 6000-0000" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600">Dirección de Entrega</label>
+            <input type="text" id="cli-address" required placeholder="Calle 4ta, David, Chiriquí" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Ruta Asignada</label>
+            <input type="text" id="cli-route" required value="Ruta Nocturna - Bares & Pubs" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Límite de Crédito ($)</label>
+            <input type="number" step="0.01" id="cli-credit" value="3000" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Deuda Actual ($)</label>
+            <input type="number" step="0.01" id="cli-debt" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div class="flex items-center pt-5">
+            <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+              <input type="checkbox" id="cli-exempt" class="rounded text-blue-600">
+              <span>Cliente Exento de ITBMS (0%)</span>
+            </label>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-client')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PRECIOS ESPECIALES B2B POR CLIENTE -->
+  <div id="modal-special-prices" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Precios Especiales B2B</h3>
+          <p id="sp-client-name" class="text-xs text-slate-500">Cliente</p>
+        </div>
+        <button onclick="closeModal('modal-special-prices')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="space-y-2">
+        <label class="block text-xs font-semibold text-slate-600">Seleccionar Producto</label>
+        <select id="sp-product-select" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50"></select>
+        <div class="flex gap-2">
+          <input type="number" step="0.01" min="0" id="sp-price-input" placeholder="Precio especial ($)" class="flex-1 text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold">
+          <button type="button" onclick="addSpecialPrice()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold">Asignar</button>
+        </div>
+      </div>
+      <div id="sp-list-container" class="max-h-48 overflow-y-auto pt-2 border-t border-slate-100"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: CÓDIGO QR PARA CLIENTE B2B -->
+  <div id="modal-client-qr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 space-y-4 text-center">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-sm">Sticker QR para Pedidos B2B</h3>
+        <button onclick="closeModal('modal-client-qr')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div>
+        <span class="text-[10px] font-black uppercase bg-amber-100 text-amber-800 px-3 py-1 rounded-full">Escanea para Pedir Cerveza</span>
+        <h4 id="qr-client-title" class="font-black text-slate-900 text-base mt-2">Cliente</h4>
+        <p id="qr-client-route" class="text-xs text-slate-500">Ruta</p>
+      </div>
+      <div id="qr-canvas-holder" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-center min-h-[190px]"></div>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button onclick="downloadClientQrImage()" class="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-download"></i> Descargar PNG
+        </button>
+        <button onclick="printClientQrSticker()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Imprimir Sticker
+        </button>
+        <button onclick="copyCurrentQrLink()" class="col-span-2 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-link"></i> Copiar Link Directo del Portal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VACÍOS A FAVOR DEL CLIENTE -->
+  <div id="modal-client-credit-empties" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-hand-holding-heart text-indigo-600"></i> Envases Vacíos a Favor del Cliente
+        </h3>
+        <button onclick="closeModal('modal-client-credit-empties')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveClientCreditEmptiesModal(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Seleccionar Cliente</label>
+          <select id="cce-client-select" onchange="loadClientCreditEmptiesRows()" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold"></select>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-indigo-900">Envases Entregados a Favor</label>
+            <button type="button" onclick="addClientCreditEmptyLine()" class="text-xs font-bold text-indigo-600 hover:underline">+ Añadir Envase a Favor</button>
+          </div>
+          <div id="cce-rows-container" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-client-credit-empties')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white">Guardar Vacíos a Favor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LIQUIDAR CONSIGNACIÓN / EVENTO -->
+  <div id="modal-consignment-settle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <i class="fa-solid fa-champagne-glasses text-purple-600"></i> Liquidar Evento / Consignación
+          </h3>
+          <p id="consign-modal-subtitle" class="text-xs text-slate-500">Folio</p>
+        </div>
+        <button onclick="closeModal('modal-consignment-settle')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveConsignmentSettlement(event)" class="space-y-4">
+        <input type="hidden" id="consign-order-id">
+        <div id="consign-equipment-banner" class="hidden p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 font-semibold"></div>
+        <div id="consign-items-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+        <div class="p-3 rounded-xl bg-slate-100 flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-700 uppercase">Total Final por Mercancía Consumida:</span>
+          <span id="consign-new-total-preview" class="text-base font-black text-purple-700">$0.00</span>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-consignment-settle')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white">Liquidar y Pasar a Cobro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AÑADIR CHOFER / UNIDAD -->
+  <div id="modal-driver" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Registrar Chofer y Camión</h3>
+        <button onclick="closeModal('modal-driver')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="driverForm" onsubmit="saveDriver(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Nombre del Chofer / Repartidor</label>
+          <input type="text" id="drv-name" required placeholder="Ej: Roberto Gómez" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Unidad / Camión / Placa</label>
+          <input type="text" id="drv-truck" required placeholder="Camión Hino 5T (CH-902)" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Ruta Principal</label>
+          <input type="text" id="drv-route" required placeholder="Ruta Centro & Bares" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-driver')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Unidad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ARQUEO DE RUTA DE CHOFER -->
+  <div id="modal-cashout" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Liquidación y Arqueo de Chofer</h3>
+        <button onclick="closeModal('modal-cashout')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveCashoutSettlement(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Chofer / Ruta</label>
+          <select id="cashout-driver" onchange="calculateDriverAssignedOrders()" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div>Facturado Ruta: <strong id="cashout-suggested-total" class="text-blue-600">$0.00</strong></div>
+          <div>En Crédito: <strong id="cashout-suggested-credit" class="text-amber-600">$0.00</strong></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Efectivo Entregado ($)</label>
+            <input type="number" step="0.01" id="cashout-cash" required value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-emerald-700">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Transferencias / Yape ($)</label>
+            <input type="number" step="0.01" id="cashout-bank" required value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-blue-700">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cajas Vacías Devueltas</label>
+            <input type="number" id="cashout-crates" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Barriles Vacíos Devueltos</label>
+            <input type="number" id="cashout-kegs" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Observaciones de Cierre</label>
+          <input type="text" id="cashout-notes" placeholder="Sin novedades en ruta" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-cashout')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white">Validar Arqueo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ORDEN DE COMPRA (OC) A CERVECERAS -->
+  <div id="modal-purchase-order" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Nueva Orden de Compra (OC)</h3>
+        <button onclick="closeModal('modal-purchase-order')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="savePurchaseOrder(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Proveedor / Cervecera</label>
+          <select id="po-supplier" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Producto a Solicitar</label>
+          <select id="po-product" onchange="updatePoEstimatedCost()" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cantidad (Cajas/Bultos)</label>
+            <input type="number" min="1" id="po-quantity" value="50" oninput="updatePoEstimatedCost()" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Costo Unitario ($)</label>
+            <input type="number" step="0.01" id="po-cost" oninput="updatePoEstimatedCost()" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+        </div>
+        <div class="flex justify-between items-center p-3 rounded-xl bg-blue-50 text-xs">
+          <span class="font-semibold text-blue-900">Costo Total Estimado:</span>
+          <strong id="po-total-display" class="text-base font-black text-blue-700">$0.00</strong>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Fecha Estimada de Llegada</label>
+          <input type="date" id="po-date" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-purchase-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Emitir Orden de Compra</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO PROVEEDOR -->
+  <div id="modal-supplier" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Registrar Proveedor / Fabricante</h3>
+        <button onclick="closeModal('modal-supplier')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="supplierForm" onsubmit="saveSupplier(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Razón Social</label>
+          <input type="text" id="sup-name" required placeholder="Cervecería Nacional" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">RUC / NIT</label>
+            <input type="text" id="sup-tax" required placeholder="J-0000000" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Teléfono</label>
+            <input type="text" id="sup-phone" required placeholder="+507 800-0000" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Rubro / Categoría</label>
+            <input type="text" id="sup-category" required placeholder="Cervezas & Malta" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Días de Crédito</label>
+            <input type="number" id="sup-days" value="30" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-supplier')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Proveedor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR LOTE FEFO -->
+  <div id="modal-batch" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Registrar Lote y Fecha de Caducidad</h3>
+        <button onclick="closeModal('modal-batch')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveBatch(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Producto</label>
+          <select id="batch-product" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Código de Lote</label>
+            <input type="text" id="batch-code" required class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cantidad Ingresada</label>
+            <input type="number" min="1" id="batch-qty" value="50" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Fecha de Vencimiento</label>
+          <input type="date" id="batch-expiration" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-batch')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Registrar Lote</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ESCÁNER DE CÓDIGO DE BARRAS / QR -->
+  <div id="modal-barcode-scanner" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-barcode text-amber-600"></i> Escanear Código de Barras / SKU
+        </h3>
+        <button onclick="closeBarcodeScannerModal()" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div id="scanner-reader" class="w-full rounded-xl overflow-hidden bg-slate-900 min-h-[180px]"></div>
+      <div class="flex gap-2">
+        <input type="text" id="manualBarcodeInput" placeholder="O escribe el SKU manual (ej: CERV-PAN-24)" class="flex-1 text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono">
+        <button type="button" onclick="handleManualBarcodeSubmit()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold">Buscar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MOVIMIENTO MANUAL EN HISTORIAL -->
+  <div id="modal-manual-movement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Registrar Movimiento / Ajuste Manual</h3>
+        <button onclick="closeModal('modal-manual-movement')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="manualMovementForm" onsubmit="saveManualMovement(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Categoría</label>
+            <select id="mm-category" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+              <option value="COBRO">Cobro / Ingreso ($)</option>
+              <option value="VACIOS">Envases Vacíos</option>
+              <option value="FACTURA">Ajuste de Factura</option>
+              <option value="ARQUEO">Arqueo de Ruta</option>
+              <option value="COMPRA">Compra / Stock</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Referencia / Folio</label>
+            <input type="text" id="mm-ref" required class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Cliente / Responsable</label>
+          <input type="text" id="mm-entity" required placeholder="Nombre del cliente o chofer" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Concepto y Detalle</label>
+          <input type="text" id="mm-concept" required placeholder="Detalle del movimiento" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Monto ($ USD)</label>
+            <input type="number" step="0.01" id="mm-amount" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cantidad Envases</label>
+            <input type="number" id="mm-empties" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-manual-movement')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white">Guardar Movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: IDENTIDAD DE MARCA -->
+  <div id="modal-brand" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Editar Identidad de la Marca</h3>
+        <button onclick="closeModal('modal-brand')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveBrandName(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Parte 1 (Blanco)</label>
+            <input type="text" id="brand-input-1" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Parte 2 (Ámbar)</label>
+            <input type="text" id="brand-input-2" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-amber-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Subtítulo del ERP</label>
+          <input type="text" id="brand-input-sub" required class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-brand')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950">Guardar Marca</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AÑADIR BOT DE TELEGRAM -->
+  <div id="modal-add-bot" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Añadir Bot de Telegram (@BotFather)</h3>
+        <button onclick="closeModal('modal-add-bot')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveTelegramBot(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Nombre Identificador del Bot</label>
+          <input type="text" id="tb-name" required placeholder="Ej: Bot Despacho Camiones" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">HTTP API Token</label>
+          <input type="text" id="tb-token" required placeholder="123456789:AAH..." class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Área / Rol</label>
+          <select id="tb-role" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+            <option value="Despachos">Despachos & Choferes</option>
+            <option value="Cobranzas">Cobranzas & Arqueos</option>
+            <option value="Gerencia">Alertas Gerencia</option>
+          </select>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-add-bot')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white">Guardar Bot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AÑADIR CHAT ID DE TELEGRAM -->
+  <div id="modal-add-chat" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-base">Añadir Destinatario / Chat ID</h3>
+        <button onclick="closeModal('modal-add-chat')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form onsubmit="saveTelegramChat(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Nombre del Grupo o Usuario</label>
+          <input type="text" id="tc-name" required placeholder="Ej: Grupo Choferes Chiriquí" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Chat ID (Incluye el signo - si es grupo)</label>
+          <input type="text" id="tc-id" required placeholder="-100123456789" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Tipo</label>
+          <select id="tc-type" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+            <option value="Grupo de Reparto">Grupo de Reparto</option>
+            <option value="Administración">Administración</option>
+            <option value="Chat Privado">Chat Privado</option>
+          </select>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-add-chat')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white">Guardar Chat ID</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDK Modules for Real-time Cloud Synchronization (Zero LocalStorage) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -2037,13 +3299,23 @@
     let currentProjectId = '';
     let activeUnsubscribers = [];
 
-    // State in memory for Firebase credentials (shared via URL parameters across devices)
+    // State in memory for Firebase credentials (only active when explicitly entered or shared via URL)
     window.fbCredentials = {
       apiKey: '',
       projectId: '',
       authDomain: '',
       appId: '',
       storageBucket: ''
+    };
+
+    window.isFirebaseConnected = function() {
+      return Boolean(isCloudActive && db && currentProjectId);
+    };
+
+    window.getSyncTag = function() {
+      return window.isFirebaseConnected()
+        ? 'sincronizado en Firebase'
+        : 'guardado en sesión local (Firebase no configurado)';
     };
 
     function resolveFirebaseCredentials() {
@@ -2058,6 +3330,7 @@
         window.fbCredentials = {
           apiKey: urlApiKey.trim(),
           projectId: urlProjectId.trim(),
+          rawProjectId: urlProjectId.trim(),
           authDomain: (urlAuthDomain || `${urlProjectId.trim()}.firebaseapp.com`).trim(),
           appId: (urlAppId || `1:distribuidora:web:${urlProjectId.trim()}`).trim(),
           storageBucket: (urlBucket || `${urlProjectId.trim()}.appspot.com`).trim()
@@ -2065,27 +3338,34 @@
         return true;
       }
 
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        try {
-          const parsed = JSON.parse(__firebase_config);
-          if (parsed.apiKey && parsed.projectId) {
-            window.fbCredentials = {
-              apiKey: parsed.apiKey,
-              projectId: (typeof __app_id !== 'undefined' && __app_id) ? __app_id : parsed.projectId,
-              rawProjectId: parsed.projectId,
-              authDomain: parsed.authDomain || `${parsed.projectId}.firebaseapp.com`,
-              appId: parsed.appId || `1:distribuidora:web:${parsed.projectId}`,
-              storageBucket: parsed.storageBucket || `${parsed.projectId}.appspot.com`
-            };
-            return true;
-          }
-        } catch (e) {
-          console.warn("Error parsing environment firebase config:", e);
-        }
-      }
-
+      // Solo conectar si el usuario ingresó manualmente las credenciales en esta sesión
       return Boolean(window.fbCredentials.apiKey && window.fbCredentials.projectId);
     }
+
+    window.parseRawFirebaseSnippet = function(rawText) {
+      if (!rawText) return;
+      const extractKey = (keyName) => {
+        const regex = new RegExp(keyName + '\\s*:\\s*["\']([^"\']+)["\']', 'i');
+        const match = rawText.match(regex);
+        return match ? match[1].trim() : '';
+      };
+
+      const apiKey = extractKey('apiKey');
+      const projectId = extractKey('projectId');
+      const authDomain = extractKey('authDomain');
+      const appId = extractKey('appId');
+      const storageBucket = extractKey('storageBucket');
+
+      if (projectId) document.getElementById('fc-project-id').value = projectId;
+      if (apiKey) document.getElementById('fc-api-key').value = apiKey;
+      if (authDomain) document.getElementById('fc-auth-domain').value = authDomain;
+      if (appId) document.getElementById('fc-app-id-field').value = appId;
+      if (storageBucket) document.getElementById('fc-storage-bucket').value = storageBucket;
+
+      if (projectId && apiKey) {
+        window.showNotification('Código de Firebase detectado automáticamente. Pulsa "Conectar y Sincronizar Ahora".', 'success');
+      }
+    };
 
     window.embedFirebaseParamsInUrl = function(targetUrlObj) {
       if (window.fbCredentials && window.fbCredentials.apiKey && window.fbCredentials.projectId) {
@@ -2118,9 +3398,10 @@
       const badgeLabel = document.getElementById('settings-cloud-label');
       const syncStatus = document.getElementById('settings-sync-status');
       const desc = document.getElementById('settings-cloud-description');
+      const receiptBtnLabel = document.getElementById('btn-save-receipt-label');
 
       if (settingsAppId) {
-        settingsAppId.innerText = currentProjectId || 'Sin configurar';
+        settingsAppId.innerText = (state === 'connected' && currentProjectId) ? currentProjectId : 'Sin configurar';
       }
 
       if (state === 'connected') {
@@ -2128,69 +3409,72 @@
         if (ind) ind.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
         if (text) {
           text.className = 'text-emerald-400 font-bold';
-          text.innerText = '100% Firebase En Vivo';
+          text.innerText = 'Firebase Conectado';
         }
-        if (uidDisplay) uidDisplay.innerText = `UID: ${uid || 'Autenticado'}`;
-        if (settingsUid) settingsUid.innerText = uid || 'Autenticado';
+        if (uidDisplay) uidDisplay.innerText = `Proyecto: ${currentProjectId}`;
+        if (settingsUid) settingsUid.innerText = uid || 'Acceso Directo Firestore';
         if (badge) {
           badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-2';
         }
         if (badgeDot) badgeDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
-        if (badgeLabel) badgeLabel.innerText = '100% Sincronizado con Firebase';
+        if (badgeLabel) badgeLabel.innerText = 'Conectado a Firebase';
         if (syncStatus) {
           syncStatus.className = 'font-semibold text-emerald-600';
-          syncStatus.innerText = 'Sincronización total en tiempo real (Sin LocalStorage)';
+          syncStatus.innerText = 'Sincronización en tiempo real activa';
         }
-        if (desc) desc.innerText = `Conectado al proyecto "${currentProjectId}". Todos los clientes, cajeros, choferes y enlaces están sincronizados en vivo.`;
+        if (desc) desc.innerText = `Conectado al proyecto "${currentProjectId}". Todos los cambios se guardan en tiempo real en tu nube de Firebase.`;
+        if (receiptBtnLabel) receiptBtnLabel.innerText = 'Guardar Diseño de Factura en Firebase';
       } else if (state === 'connecting') {
         isCloudActive = false;
         if (ind) ind.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
         if (text) {
           text.className = 'text-amber-400 font-medium';
-          text.innerText = 'Conectando a Firebase...';
+          text.innerText = 'Verificando Keys...';
         }
-        if (badgeLabel) badgeLabel.innerText = 'Conectando a Firebase...';
+        if (badgeLabel) badgeLabel.innerText = 'Verificando conexión...';
         if (badgeDot) badgeDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
         if (syncStatus) {
           syncStatus.className = 'font-semibold text-amber-600';
-          syncStatus.innerText = 'Autenticando y descargando datos...';
+          syncStatus.innerText = 'Comprobando credenciales con Google Firebase...';
         }
       } else if (state === 'error') {
         isCloudActive = false;
         if (ind) ind.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
         if (text) {
           text.className = 'text-rose-400 font-semibold';
-          text.innerText = 'Error de Conexión';
+          text.innerText = 'Error de Firebase';
         }
-        if (uidDisplay) uidDisplay.innerText = 'Error en Project ID o API Key';
-        if (settingsUid) settingsUid.innerText = 'Rechazado por Firebase';
+        if (uidDisplay) uidDisplay.innerText = 'Revisa tus Keys en Ajustes';
+        if (settingsUid) settingsUid.innerText = 'No conectado';
         if (badge) {
           badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-2';
         }
         if (badgeDot) badgeDot.className = 'w-2 h-2 rounded-full bg-rose-500';
-        if (badgeLabel) badgeLabel.innerText = 'Error de Credenciales';
+        if (badgeLabel) badgeLabel.innerText = 'Error de Conexión';
         if (syncStatus) {
           syncStatus.className = 'font-semibold text-rose-600';
-          syncStatus.innerText = message || 'Las credenciales ingresadas no fueron aceptadas por Firebase.';
+          syncStatus.innerText = message || 'Error al conectar con Firestore. Verifica tu Project ID, API Key y Reglas.';
         }
+        if (receiptBtnLabel) receiptBtnLabel.innerText = 'Guardar Diseño de Factura';
       } else {
         isCloudActive = false;
-        if (ind) ind.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
+        if (ind) ind.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
         if (text) {
           text.className = 'text-slate-400 font-medium';
-          text.innerText = 'Esperando Credenciales Firebase';
+          text.innerText = 'Modo Local (Sin Keys)';
         }
-        if (uidDisplay) uidDisplay.innerText = 'Configura Firebase en Ajustes';
-        if (settingsUid) settingsUid.innerText = 'Sin configurar';
+        if (uidDisplay) uidDisplay.innerText = 'Sin conexión a Firebase';
+        if (settingsUid) settingsUid.innerText = 'Sin autenticar (Modo Local)';
         if (badge) {
           badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2';
         }
         if (badgeDot) badgeDot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        if (badgeLabel) badgeLabel.innerText = 'Requiere Credenciales Firebase';
+        if (badgeLabel) badgeLabel.innerText = 'No Configurado (Modo Local)';
         if (syncStatus) {
           syncStatus.className = 'font-semibold text-slate-500';
-          syncStatus.innerText = 'Ingresa tu Project ID y API Key para sincronizar todos los dispositivos.';
+          syncStatus.innerText = 'Trabajando en memoria local. Ingresa tus Keys en "Manual" para activar Firebase.';
         }
+        if (receiptBtnLabel) receiptBtnLabel.innerText = 'Guardar Diseño de Factura';
       }
     }
 
@@ -2204,7 +3488,7 @@
         }
 
         const rawPid = window.fbCredentials.rawProjectId || window.fbCredentials.projectId;
-        currentProjectId = window.fbCredentials.projectId;
+        currentProjectId = rawPid;
 
         const firebaseConfig = {
           apiKey: window.fbCredentials.apiKey,
@@ -2215,44 +3499,52 @@
         };
 
         updateCloudUI('connecting');
-        syncBrowserAddressBarWithFirebase();
 
         const app = initializeApp(firebaseConfig, 'cervezalogix-cloud-' + Date.now());
         auth = getAuth(app);
         db = getFirestore(app);
 
+        let authUid = 'Reglas Públicas (Sin Auth Anónimo)';
         try {
-          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && window.fbCredentials.rawProjectId) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-          } else {
-            await signInAnonymously(auth);
-          }
-
+          await signInAnonymously(auth);
           if (auth.currentUser) {
-            updateCloudUI('connected', 'Conectado exitosamente', auth.currentUser.uid);
-            await ensureInitialCloudSeed();
-            setupCloudListeners();
-          } else {
-            updateCloudUI('unconfigured');
+            authUid = auth.currentUser.uid;
           }
         } catch (authErr) {
-          console.warn("Auth error with Firebase:", authErr);
-          updateCloudUI('error', authErr.message || 'Error al autenticar con Firebase.');
+          // Si el usuario no habilitó "Anonymous Auth" en Firebase pero tiene reglas abiertas en Firestore,
+          // continuamos y probamos lectura/escritura directa en Firestore.
+          console.warn("Aviso Auth Anónimo:", authErr.code || authErr.message);
         }
+
+        // Prueba real de lectura en Firestore para confirmar que las Keys y Reglas funcionan
+        const settingsRef = doc(db, 'artifacts', currentProjectId, 'public', 'data', 'settings', 'global_config');
+        await getDoc(settingsRef);
+
+        syncBrowserAddressBarWithFirebase();
+        updateCloudUI('connected', 'Conectado exitosamente', authUid);
+        await ensureInitialCloudSeed();
+        setupCloudListeners();
+        window.showNotification(`¡Conectado exitosamente al proyecto Firebase "${currentProjectId}"!`, 'success');
       } catch (e) {
-        console.warn("Firebase initialization error:", e);
-        updateCloudUI('error', e.message);
+        console.warn("Firebase connection error:", e);
+        let friendlyErr = e.message || 'Credenciales inválidas.';
+        if (String(e.code).includes('permission-denied')) {
+          friendlyErr = 'Permiso denegado en Firestore. Ve a Firebase Console ➔ Firestore ➔ Reglas y permite read/write, o activa Authentication Anónimo.';
+        } else if (String(e.message).includes('api-key-not-valid')) {
+          friendlyErr = 'La API Key ingresada no es válida. Verifica que copiaste bien tu apiKey de Firebase.';
+        }
+        updateCloudUI('error', friendlyErr);
+        window.showNotification(friendlyErr, 'warning');
       }
     }
 
     async function ensureInitialCloudSeed() {
-      if (!db || !auth?.currentUser || !currentProjectId) return;
+      if (!db || !currentProjectId) return;
       try {
         const settingsRef = doc(db, 'artifacts', currentProjectId, 'public', 'data', 'settings', 'global_config');
         const settingsSnap = await getDoc(settingsRef);
 
         if (!settingsSnap.exists()) {
-          // Seed initial defaults to Firebase so all devices share the exact same database
           const initialSettings = {
             ...window.getAppSettings(),
             initialized: true,
@@ -2267,15 +3559,13 @@
     }
 
     function setupCloudListeners() {
-      if (!db || !auth?.currentUser || !currentProjectId) return;
+      if (!db || !currentProjectId) return;
 
-      // Clear any previous listeners
       activeUnsubscribers.forEach(unsub => {
         try { unsub(); } catch(e) {}
       });
       activeUnsubscribers = [];
 
-      // 1. Listen to Global Settings Document
       const settingsRef = doc(db, 'artifacts', currentProjectId, 'public', 'data', 'settings', 'global_config');
       const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -2286,7 +3576,6 @@
       });
       activeUnsubscribers.push(unsubSettings);
 
-      // 2. Listen to All Operational Collections
       const collectionsToSync = [
         'products',
         'clients',
@@ -2322,7 +3611,6 @@
             const remoteData = [];
             snapshot.forEach(docSnap => remoteData.push(docSnap.data()));
 
-            // Apply 100% of remote data (even if empty array after wipe)
             window.applyRemoteCollection(colName, remoteData);
 
             if (newOrderDetected) {
@@ -2344,37 +3632,43 @@
     }
 
     window.syncDocToCloud = async function(colName, docId, data) {
-      if (!isCloudActive || !db || !auth?.currentUser || !currentProjectId) return;
+      if (!isCloudActive || !db || !currentProjectId) return false;
       try {
         const targetDoc = doc(db, 'artifacts', currentProjectId, 'public', 'data', colName, String(docId));
         await setDoc(targetDoc, JSON.parse(JSON.stringify(data)));
+        return true;
       } catch (err) {
         console.warn(`Cloud write error (${colName}/${docId}):`, err);
+        return false;
       }
     };
 
     window.deleteDocFromCloud = async function(colName, docId) {
-      if (!isCloudActive || !db || !auth?.currentUser || !currentProjectId) return;
+      if (!isCloudActive || !db || !currentProjectId) return false;
       try {
         const targetDoc = doc(db, 'artifacts', currentProjectId, 'public', 'data', colName, String(docId));
         await deleteDoc(targetDoc);
+        return true;
       } catch (err) {
         console.warn(`Cloud delete error (${colName}/${docId}):`, err);
+        return false;
       }
     };
 
     window.syncSettingsToCloud = async function(settingsObj) {
-      if (!isCloudActive || !db || !auth?.currentUser || !currentProjectId) return;
+      if (!isCloudActive || !db || !currentProjectId) return false;
       try {
         const settingsRef = doc(db, 'artifacts', currentProjectId, 'public', 'data', 'settings', 'global_config');
         await setDoc(settingsRef, JSON.parse(JSON.stringify({ ...settingsObj, initialized: true, updatedAt: new Date().toISOString() })));
+        return true;
       } catch (err) {
         console.warn("Cloud settings sync error:", err);
+        return false;
       }
     };
 
     window.wipeCloudCollections = async function() {
-      if (!isCloudActive || !db || !auth?.currentUser || !currentProjectId) return;
+      if (!isCloudActive || !db || !currentProjectId) return;
       const cols = ['products', 'clients', 'orders', 'drivers', 'purchases', 'batches', 'suppliers', 'cashouts', 'movements'];
       for (const cName of cols) {
         try {
@@ -2389,24 +3683,33 @@
     };
 
     window.openFirebaseConfigModal = function() {
-      document.getElementById('fc-project-id').value = window.fbCredentials.rawProjectId || window.fbCredentials.projectId || '';
-      document.getElementById('fc-api-key').value = window.fbCredentials.apiKey || '';
-      document.getElementById('fc-auth-domain').value = window.fbCredentials.authDomain || '';
-      document.getElementById('fc-app-id-field').value = window.fbCredentials.appId || '';
-      document.getElementById('fc-storage-bucket').value = window.fbCredentials.storageBucket || '';
+      const pidEl = document.getElementById('fc-project-id');
+      const keyEl = document.getElementById('fc-api-key');
+      const domEl = document.getElementById('fc-auth-domain');
+      const aidEl = document.getElementById('fc-app-id-field');
+      const bktEl = document.getElementById('fc-storage-bucket');
+      const rawEl = document.getElementById('fc-raw-snippet');
+
+      if (pidEl) pidEl.value = window.fbCredentials.rawProjectId || window.fbCredentials.projectId || '';
+      if (keyEl) keyEl.value = window.fbCredentials.apiKey || '';
+      if (domEl) domEl.value = window.fbCredentials.authDomain || '';
+      if (aidEl) aidEl.value = window.fbCredentials.appId || '';
+      if (bktEl) bktEl.value = window.fbCredentials.storageBucket || '';
+      if (rawEl) rawEl.value = '';
+
       window.openModal('modal-firebase-config');
     };
 
     window.saveCustomFirebaseConfig = function(e) {
       e.preventDefault();
-      const projectId = document.getElementById('fc-project-id').value.trim();
-      const apiKey = document.getElementById('fc-api-key').value.trim();
-      const authDomain = document.getElementById('fc-auth-domain').value.trim();
-      const appIdField = document.getElementById('fc-app-id-field').value.trim();
-      const storageBucket = document.getElementById('fc-storage-bucket').value.trim();
+      const projectId = (document.getElementById('fc-project-id')?.value || '').trim();
+      const apiKey = (document.getElementById('fc-api-key')?.value || '').trim();
+      const authDomain = (document.getElementById('fc-auth-domain')?.value || '').trim();
+      const appIdField = (document.getElementById('fc-app-id-field')?.value || '').trim();
+      const storageBucket = (document.getElementById('fc-storage-bucket')?.value || '').trim();
 
       if (!projectId || !apiKey) {
-        window.showNotification('Debes ingresar al menos el Project ID y el API Key.', 'warning');
+        window.showNotification('Debes ingresar el Project ID y el API Key de tu proyecto de Firebase.', 'warning');
         return;
       }
 
@@ -2420,11 +3723,15 @@
       };
 
       window.closeModal('modal-firebase-config');
-      window.showNotification('Conectando con Firebase y actualizando enlaces...', 'info');
+      window.showNotification('Verificando credenciales con Firebase...', 'info');
       initFirebaseClient();
     };
 
     window.clearFirebaseConfig = function() {
+      activeUnsubscribers.forEach(unsub => {
+        try { unsub(); } catch(e) {}
+      });
+      activeUnsubscribers = [];
       window.fbCredentials = { apiKey: '', projectId: '', authDomain: '', appId: '', storageBucket: '' };
       db = null;
       auth = null;
@@ -2435,19 +3742,20 @@
       window.history.replaceState({}, '', currentUrl.toString());
       updateCloudUI('unconfigured');
       window.closeModal('modal-firebase-config');
-      window.showNotification('Credenciales de Firebase desconectadas.', 'info');
+      window.showNotification('Desconectado de Firebase. Ahora estás en modo local.', 'info');
     };
 
     window.testFirebaseConnection = function() {
       if (!window.fbCredentials.apiKey || !window.fbCredentials.projectId) {
-        window.showNotification('Firebase no está configurado. Haz clic en "Manual" o "Escanear Foto" e ingresa tu Project ID y API Key.', 'warning');
+        window.showNotification('Aún no has ingresado tus Keys de Firebase. Se abrirá la ventana de configuración manual.', 'warning');
+        window.openFirebaseConfigModal();
         return;
       }
 
-      if (isCloudActive && auth?.currentUser) {
-        window.showNotification(`Conectado 100% en tiempo real al proyecto "${currentProjectId}". UID: ${auth.currentUser.uid}`, 'success');
+      if (isCloudActive && db) {
+        window.showNotification(`Conectado en tiempo real al proyecto Firebase "${currentProjectId}".`, 'success');
       } else {
-        window.showNotification('Reconectando con Firebase...', 'info');
+        window.showNotification('Probando conexión con Firebase...', 'info');
         initFirebaseClient();
       }
     };
@@ -2465,7 +3773,7 @@
       if (statusEl) {
         statusEl.classList.remove('hidden');
         statusEl.className = 'text-[10px] font-mono text-amber-700 mt-2 block bg-amber-50 p-2 rounded-lg border border-amber-200';
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Detectando modelos disponibles y guardando en Firebase...';
+        statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Validando clave API de Gemini...`;
       }
       
       try {
@@ -2486,9 +3794,9 @@
         
         if (statusEl) {
           statusEl.className = 'text-[10px] font-mono text-emerald-700 mt-2 block bg-emerald-50 p-2 rounded-lg border border-emerald-300';
-          statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i> ¡Sincronizado en Firebase!<br><span class="text-emerald-800 font-black">Modelo enlazado: ${selectedModel}</span>`;
+          statusEl.innerHTML = `<i class="fa-solid fa-check mr-1"></i> ¡Clave API activa (${window.getSyncTag()})!<br><span class="text-emerald-800 font-black">Modelo enlazado: ${selectedModel}</span>`;
         }
-        window.showNotification('¡Clave API validada y sincronizada en Firebase!', 'success');
+        window.showNotification(`¡Clave API de Gemini validada (${window.getSyncTag()})!`, 'success');
       } catch (err) {
         console.error(err);
         if (statusEl) {
@@ -2666,6 +3974,33 @@
       alarmSound: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
       simulatorEnabled: true,
       requireAdminAuthForCreditDiscount: true,
+      salesGoalPeriod: 'Diaria',
+      salesGoalAmount: 2200,
+      salesChartSource: 'custom',
+      salesChartCustomData: {
+        Diaria: [
+          { label: 'Lun', value: 1420 },
+          { label: 'Mar', value: 2850 },
+          { label: 'Mié', value: 1990 },
+          { label: 'Jue', value: 3420 },
+          { label: 'Vie', value: 2900 },
+          { label: 'Sáb', value: 2150 }
+        ],
+        Semanal: [
+          { label: 'Sem 1', value: 9800 },
+          { label: 'Sem 2', value: 12400 },
+          { label: 'Sem 3', value: 11200 },
+          { label: 'Sem 4', value: 14500 }
+        ],
+        Mensual: [
+          { label: 'May', value: 42000 },
+          { label: 'Jun', value: 46500 },
+          { label: 'Jul', value: 44900 },
+          { label: 'Ago', value: 51200 },
+          { label: 'Sep', value: 49800 },
+          { label: 'Oct', value: 54600 }
+        ]
+      },
       geminiKey: '',
       geminiModel: 'gemini-2.0-flash',
       geminiModelsList: [],
@@ -3066,10 +4401,12 @@
       telegramBots = JSON.parse(JSON.stringify(defaultTelegramBots));
       telegramChats = JSON.parse(JSON.stringify(defaultTelegramChats));
 
-      showNotification('Restaurando catálogo de fábrica en Firebase...', 'info');
-      await window.pushAllCurrentCollectionsToCloud();
+      if (window.isFirebaseConnected()) {
+        showNotification('Restaurando catálogo de fábrica en Firebase...', 'info');
+        await window.pushAllCurrentCollectionsToCloud();
+      }
       refreshActiveViews();
-      showNotification('Datos de fábrica restaurados y sincronizados en Firebase.', 'success');
+      showNotification(`Datos de fábrica restaurados (${window.getSyncTag()}).`, 'success');
     }
 
     function refreshActiveViews() {
@@ -3183,6 +4520,16 @@
       if (reqAdminEl) reqAdminEl.value = appSettings.requireAdminAuthForCreditDiscount === false ? 'false' : 'true';
       if (geminiInput && appSettings.geminiKey) geminiInput.value = appSettings.geminiKey;
 
+      const goalPeriodEl = document.getElementById('pref-goal-period');
+      const goalAmountEl = document.getElementById('pref-goal-amount');
+      const goalSourceEl = document.getElementById('pref-goal-source');
+      if (goalPeriodEl) goalPeriodEl.value = appSettings.salesGoalPeriod || 'Diaria';
+      if (goalAmountEl) goalAmountEl.value = Number(appSettings.salesGoalAmount ?? 2200);
+      if (goalSourceEl) goalSourceEl.value = appSettings.salesChartSource || 'custom';
+      updateGoalPreviewPill();
+      toggleCustomChartBarsInputs();
+      renderCustomChartBarsInputs();
+
       const rHeader = document.getElementById('pref-receipt-header');
       const rSub = document.getElementById('pref-receipt-subheader');
       const rRuc = document.getElementById('pref-receipt-ruc');
@@ -3288,14 +4635,14 @@
 
       closeModal('modal-add-bot');
       renderSettingsView();
-      showNotification(`Bot "${name}" sincronizado en Firebase.`, 'success');
+      showNotification(`Bot "${name}" ${window.getSyncTag()}.`, 'success');
     }
 
     function removeTelegramBot(botId) {
       telegramBots = telegramBots.filter(b => b.id !== botId);
       if (window.deleteDocFromCloud) window.deleteDocFromCloud('telegram_bots', botId);
       renderSettingsView();
-      showNotification('Bot eliminado de Firebase.');
+      showNotification(`Bot eliminado (${window.getSyncTag()}).`);
     }
 
     function openAddChatModal() {
@@ -3316,14 +4663,14 @@
 
       closeModal('modal-add-chat');
       renderSettingsView();
-      showNotification(`Chat ID "${name}" sincronizado en Firebase.`, 'success');
+      showNotification(`Chat ID "${name}" ${window.getSyncTag()}.`, 'success');
     }
 
     function removeTelegramChat(chatId) {
       telegramChats = telegramChats.filter(c => c.id !== chatId);
       if (window.deleteDocFromCloud) window.deleteDocFromCloud('telegram_chats', chatId);
       renderSettingsView();
-      showNotification('Chat ID eliminado de Firebase.');
+      showNotification(`Chat ID eliminado (${window.getSyncTag()}).`);
     }
 
     window.saveAppPreferences = function() {
@@ -3345,7 +4692,7 @@
       
       applySimulatorVisibility();
       refreshActiveViews();
-      showNotification('Preferencias guardadas y sincronizadas en Firebase.', 'success');
+      showNotification(`Preferencias guardadas (${window.getSyncTag()}).`, 'success');
       renderCartUI();
     };
     
@@ -3358,195 +4705,223 @@
     
     window.wipeAllData = async function() {
       products = [];
-      clients = [];
-      orders = [];
-      drivers = [];
-      purchases = [];
-      batches = [];
-      suppliers = [];
-      cashouts = [];
-      movementsLog = [];
-      activeCart = [];
-      currentViewingOrder = null;
-      
-      showNotification('Vaciando base de datos en Firebase...', 'info');
-      if (window.wipeCloudCollections) {
-        await window.wipeCloudCollections();
-      }
-      refreshActiveViews();
-      showNotification('Sistema vaciado en Firebase. Listo para datos reales.', 'success');
-    };
-
-    window.testSelectedAlarm = function() {
-      const soundUrl = document.getElementById('pref-alarm-sound').value;
-      const testAudio = new Audio(soundUrl);
-      testAudio.play().catch(e => showNotification('No se pudo reproducir. Verifica el volumen.', 'warning'));
-    };
-
-    window.getConditionText = function(isCold) {
-      if (isCold) return '(FRÍO)';
-      if (appSettings.nonColdLabel === 'HIDDEN') return '';
-      return `(${appSettings.nonColdLabel})`;
-    };
-
-    window.toggleCreditDays = function() {
-      const method = document.getElementById('posPaymentMethod').value;
-      const container = document.getElementById('posCreditDaysContainer');
-      const statusSel = document.getElementById('posImmediatePaymentStatus');
-      if (method === 'Crédito') {
-        container.classList.remove('hidden');
-        document.getElementById('posCreditDays').value = appSettings.defaultCreditDays || 15;
-        if (statusSel) {
-          statusSel.value = 'Pendiente';
-          handlePosPaymentStatusChange();
-        }
-      } else {
-        container.classList.add('hidden');
-        const driverVal = document.getElementById('posAssignedDriver')?.value || '';
-        if (statusSel && statusSel.value === 'Pendiente' && !driverVal.includes('Bodega')) {
-          statusSel.value = 'CobrarEnCamion';
-          handlePosPaymentStatusChange();
-        }
-      }
-    };
-
-    window.handlePosDriverChange = function() {
-      const driverVal = document.getElementById('posAssignedDriver')?.value || '';
-      const statusSel = document.getElementById('posImmediatePaymentStatus');
-      const payMethod = document.getElementById('posPaymentMethod')?.value || 'Efectivo';
-      if (!statusSel) return;
-
-      if (payMethod === 'Crédito') {
-        statusSel.value = 'Pendiente';
-      } else if (!driverVal.includes('Bodega')) {
-        // Si se asigna un chofer de reparto, por defecto cobra el repartidor en el camión
-        statusSel.value = 'CobrarEnCamion';
-      }
-      handlePosPaymentStatusChange();
-    };
-
-    async function broadcastTestTelegramMessage() {
-      const msg = document.getElementById('settings-test-message').value.trim() || 'Prueba de difusión Multi-Bot CervezaLogix ERP';
-      if (telegramBots.length === 0 || telegramChats.length === 0) {
-        showNotification('Debes tener registrado al menos un Bot y un Chat ID.', 'warning');
-        return;
-      }
-
-      showNotification('Iniciando transmisión a Telegram...', 'info');
-
-      let successCount = 0;
-      for (const bot of telegramBots) {
-        for (const chat of telegramChats) {
-          try {
-            const url = `https://api.telegram.org/bot${bot.token}/sendMessage`;
-            await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: chat.chatId,
-                text: `🔔 [${bot.name}] ➔ [${chat.name}]\n${msg}`,
-                parse_mode: 'HTML'
-              })
-            });
-            successCount++;
-          } catch (e) {
-            console.warn("Telegram send error:", e);
-          }
-        }
-      }
-
-      showNotification(`Mensaje transmitido (${successCount} envíos realizados).`, 'success');
-      document.getElementById('settings-test-message').value = '';
+      renderDashboard();
     }
 
-    function renderDashboard() {
-      const totalSales = orders
-        .filter(o => o.status !== 'Cancelado' && o.status !== 'Por Aprobar')
-        .reduce((sum, o) => sum + Number(o.total || 0), 0);
-      
-      const pendingOrders = orders.filter(o => o.status === 'Pendiente' || o.status === 'Despachando' || o.status === 'En Preparación').length;
-      const onRouteCount = orders.filter(o => o.status === 'En Ruta').length;
-      const lowStockCount = products.filter(p => Number(p.stock) <= Number(p.minStock)).length;
+    // Navegación directa desde las 4 tarjetas de indicadores del Panel General
+    window.goToDashboardMetric = function(metricType) {
+      if (metricType === 'sales') {
+        navigateTab('history');
+        setHistoryTypeFilter('FACTURA');
+      } else if (metricType === 'pending') {
+        navigateTab('orders');
+        const statusFilter = document.getElementById('orderStatusFilter');
+        if (statusFilter) {
+          // Si hay pedidos en preparación o pendientes, mostramos la tabla filtrada o todos los activos
+          const hasPrep = orders.some(o => o.status === 'En Preparación' || o.status === 'Despachando');
+          const hasPend = orders.some(o => o.status === 'Pendiente');
+          statusFilter.value = hasPrep ? 'En Preparación' : (hasPend ? 'Pendiente' : 'ALL');
+          renderOrdersList();
+        }
+      } else if (metricType === 'routes') {
+        navigateTab('logistics');
+      } else if (metricType === 'alerts') {
+        const lowStockCount = products.filter(p => Number(p.stock) <= Number(p.minStock)).length;
+        const now = new Date();
+        const criticalBatches = batches.filter(b => {
+          const exp = new Date(b.expirationDate);
+          const days = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+          return days <= 30;
+        }).length;
 
-      const now = new Date();
-      const criticalBatches = batches.filter(b => {
-        const exp = new Date(b.expirationDate);
-        const days = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-        return days <= 30;
-      }).length;
+        if (lowStockCount > 0) {
+          navigateTab('inventory');
+          showNotification(`Mostrando inventario (${lowStockCount} productos con stock bajo mínimo).`, 'warning');
+        } else if (criticalBatches > 0) {
+          navigateTab('fefo');
+          showNotification(`Mostrando control FEFO (${criticalBatches} lotes próximos a vencer).`, 'warning');
+        } else {
+          navigateTab('inventory');
+        }
+      }
+    };
 
-      document.getElementById('stat-sales-total').innerText = `$${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      document.getElementById('stat-pending-count').innerText = pendingOrders;
-      document.getElementById('stat-routes-active').innerText = onRouteCount;
-      document.getElementById('stat-low-stock-count').innerText = lowStockCount + criticalBatches;
+    window.openChartGoalSettingsShortcut = function() {
+      navigateTab('settings');
+      setTimeout(() => {
+        const card = document.getElementById('settings-chart-goal-card');
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.add('ring-2', 'ring-blue-500');
+          setTimeout(() => card.classList.remove('ring-2', 'ring-blue-500'), 2200);
+        }
+      }, 120);
+    };
 
-      document.getElementById('badge-pending-orders').innerText = pendingOrders;
-      const lowStockBadge = document.getElementById('badge-low-stock');
-      if (lowStockCount > 0) {
-        lowStockBadge.classList.remove('hidden');
-        lowStockBadge.innerText = `${lowStockCount} Bajo`;
+    function ensureChartCustomDataStructure() {
+      if (!appSettings.salesChartCustomData || typeof appSettings.salesChartCustomData !== 'object') {
+        appSettings.salesChartCustomData = {};
+      }
+      if (!Array.isArray(appSettings.salesChartCustomData.Diaria)) {
+        appSettings.salesChartCustomData.Diaria = [
+          { label: 'Lun', value: 1420 },
+          { label: 'Mar', value: 2850 },
+          { label: 'Mié', value: 1990 },
+          { label: 'Jue', value: 3420 },
+          { label: 'Vie', value: 2900 },
+          { label: 'Sáb', value: 2150 }
+        ];
+      }
+      if (!Array.isArray(appSettings.salesChartCustomData.Semanal)) {
+        appSettings.salesChartCustomData.Semanal = [
+          { label: 'Sem 1', value: 9800 },
+          { label: 'Sem 2', value: 12400 },
+          { label: 'Sem 3', value: 11200 },
+          { label: 'Sem 4', value: 14500 }
+        ];
+      }
+      if (!Array.isArray(appSettings.salesChartCustomData.Mensual)) {
+        appSettings.salesChartCustomData.Mensual = [
+          { label: 'May', value: 42000 },
+          { label: 'Jun', value: 46500 },
+          { label: 'Jul', value: 44900 },
+          { label: 'Ago', value: 51200 },
+          { label: 'Sep', value: 49800 },
+          { label: 'Oct', value: 54600 }
+        ];
+      }
+    }
+
+    window.handleGoalPeriodSelectChange = function() {
+      ensureChartCustomDataStructure();
+      const period = document.getElementById('pref-goal-period')?.value || 'Diaria';
+      const amountEl = document.getElementById('pref-goal-amount');
+      if (amountEl) {
+        if (period === 'Diaria' && (Number(amountEl.value) === 12000 || Number(amountEl.value) === 48000)) {
+          amountEl.value = 2200;
+        } else if (period === 'Semanal' && (Number(amountEl.value) === 2200 || Number(amountEl.value) === 48000)) {
+          amountEl.value = 12000;
+        } else if (period === 'Mensual' && (Number(amountEl.value) === 2200 || Number(amountEl.value) === 12000)) {
+          amountEl.value = 48000;
+        }
+      }
+      updateGoalPreviewPill();
+      renderCustomChartBarsInputs();
+    };
+
+    window.updateGoalPreviewPill = function() {
+      const period = document.getElementById('pref-goal-period')?.value || appSettings.salesGoalPeriod || 'Diaria';
+      const amt = parseFloat(document.getElementById('pref-goal-amount')?.value ?? appSettings.salesGoalAmount ?? 2200) || 0;
+      const pill = document.getElementById('settings-goal-preview-pill');
+      if (pill) {
+        pill.innerText = `Meta ${period}: $${amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+    };
+
+    window.toggleCustomChartBarsInputs = function() {
+      const src = document.getElementById('pref-goal-source')?.value || 'custom';
+      const box = document.getElementById('pref-custom-bars-container');
+      if (box) {
+        box.classList.toggle('hidden', src === 'live_only');
+      }
+    };
+
+    window.renderCustomChartBarsInputs = function() {
+      ensureChartCustomDataStructure();
+      const period = document.getElementById('pref-goal-period')?.value || appSettings.salesGoalPeriod || 'Diaria';
+      const grid = document.getElementById('pref-custom-bars-grid');
+      if (!grid) return;
+
+      const list = appSettings.salesChartCustomData[period] || [];
+      grid.innerHTML = list.map((item, idx) => `
+        <div class="bg-white p-2 rounded-xl border border-slate-200">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <input type="text" value="${escapeHtml(item.label)}" onchange="updateCustomChartBarItem('${period}', ${idx}, 'label', this.value)" class="w-full text-[11px] font-bold text-slate-700 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 focus:outline-none">
+          </div>
+          <div class="relative">
+            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-400">$</span>
+            <input type="number" step="10" min="0" value="${Number(item.value || 0)}" oninput="updateCustomChartBarItem('${period}', ${idx}, 'value', this.value)" class="w-full pl-5 pr-2 py-1 text-xs font-black text-blue-700 bg-blue-50/30 border border-blue-200 rounded-lg focus:outline-none">
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.updateCustomChartBarItem = function(period, idx, field, val) {
+      ensureChartCustomDataStructure();
+      if (!appSettings.salesChartCustomData[period] || !appSettings.salesChartCustomData[period][idx]) return;
+      if (field === 'value') {
+        appSettings.salesChartCustomData[period][idx].value = Math.max(0, parseFloat(val) || 0);
       } else {
-        lowStockBadge.classList.add('hidden');
+        appSettings.salesChartCustomData[period][idx].label = String(val || '').trim() || `#${idx + 1}`;
+      }
+    };
+
+    window.saveChartGoalSettings = function() {
+      ensureChartCustomDataStructure();
+      const period = document.getElementById('pref-goal-period')?.value || 'Diaria';
+      const amount = Math.max(0, parseFloat(document.getElementById('pref-goal-amount')?.value) || 0);
+      const source = document.getElementById('pref-goal-source')?.value || 'custom';
+
+      appSettings.salesGoalPeriod = period;
+      appSettings.salesGoalAmount = amount;
+      appSettings.salesChartSource = source;
+
+      if (window.syncSettingsToCloud) {
+        window.syncSettingsToCloud(appSettings);
       }
 
-      const fefoBadge = document.getElementById('badge-expiring-lots');
-      if (criticalBatches > 0) {
-        fefoBadge.classList.remove('hidden');
-        fefoBadge.innerText = `${criticalBatches} Vencen`;
-      } else {
-        fefoBadge.classList.add('hidden');
-      }
-
-      const recentOrdersBody = document.getElementById('dashboard-recent-orders-body');
-      recentOrdersBody.innerHTML = '';
-      const recents = [...orders].slice(0, 5);
-
-      if (recents.length === 0) {
-        recentOrdersBody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No hay órdenes registradas en Firebase.</td></tr>`;
-      } else {
-        recents.forEach(ord => {
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-          tr.innerHTML = `
-            <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
-            <td class="py-3 px-4 text-slate-900 font-semibold">${escapeHtml(ord.clientName)}</td>
-            <td class="py-3 px-4 text-slate-500">${ord.date}</td>
-            <td class="py-3 px-4 font-bold text-slate-900">$${Number(ord.total).toFixed(2)}</td>
-            <td class="py-3 px-4 text-slate-600"><i class="fa-solid fa-truck text-xs text-slate-400 mr-1"></i> ${escapeHtml(ord.driver || 'Por asignar')}</td>
-            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
-            <td class="py-3 px-4 text-right">
-              <button onclick="viewInvoice('${ord.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-semibold transition">
-                <i class="fa-solid fa-eye"></i> Ver
-              </button>
-            </td>
-          `;
-          recentOrdersBody.appendChild(tr);
-        });
-      }
-
+      updateGoalPreviewPill();
       renderCharts();
-    }
+      showNotification(`Meta ${period} ($${amount.toLocaleString()}) actualizada (${window.getSyncTag()}).`, 'success');
+    };
 
     function renderCharts() {
       const salesCanvas = document.getElementById('salesTrendsChart');
       if (salesCanvas) {
         if (salesChartInstance) salesChartInstance.destroy();
 
+        ensureChartCustomDataStructure();
+        const goalPeriod = appSettings.salesGoalPeriod || 'Diaria';
+        const goalAmount = Number(appSettings.salesGoalAmount ?? 2200);
+        const chartSource = appSettings.salesChartSource || 'custom';
+
+        const periodBadgeEl = document.getElementById('chart-period-badge');
+        const subtitleEl = document.getElementById('chart-goal-subtitle');
+
+        if (periodBadgeEl) {
+          periodBadgeEl.innerText = goalPeriod === 'Diaria' ? 'Meta Diaria' : (goalPeriod === 'Semanal' ? 'Meta Semanal' : 'Meta Mensual');
+        }
+        if (subtitleEl) {
+          subtitleEl.innerText = `Meta ${goalPeriod}: $${goalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} • Operación mayorista`;
+        }
+
+        const customEntries = appSettings.salesChartCustomData[goalPeriod] || appSettings.salesChartCustomData.Diaria;
+        const barLabels = customEntries.map(e => e.label);
+        let barValues = customEntries.map(e => Number(e.value || 0));
+
+        if (chartSource === 'live_only') {
+          const validOrders = orders.filter(o => o.status !== 'Cancelado' && o.status !== 'Por Aprobar');
+          const totalReal = validOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+          barValues = barLabels.map((_, idx) => (idx === barLabels.length - 1 ? +totalReal.toFixed(2) : 0));
+        }
+
+        const goalLineValues = barLabels.map(() => goalAmount);
+
         salesChartInstance = new Chart(salesCanvas, {
           type: 'bar',
           data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            labels: barLabels,
             datasets: [
               {
                 label: 'Despachos ($)',
-                data: [1420, 2850, 1990, 3420, 2900, 2150],
+                data: barValues,
                 backgroundColor: 'rgba(37, 99, 235, 0.85)',
                 borderRadius: 8
               },
               {
-                label: 'Meta Diaria ($)',
+                label: `Meta ${goalPeriod} ($${goalAmount.toLocaleString()})`,
                 type: 'line',
-                data: [2200, 2200, 2200, 2200, 2200, 2200],
+                data: goalLineValues,
                 borderColor: '#ef4444',
                 borderDash: [5, 5],
                 borderWidth: 2,
@@ -3683,10 +5058,10 @@
         }
       }
 
-      if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
+      if ( window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
       closeModal('modal-status-picker');
       refreshActiveViews();
-      showNotification(`Estado del pedido ${order.id} cambiado a "${newStatus}" en Firebase.`, 'success');
+      showNotification(`Estado del pedido ${order.id} cambiado a "${newStatus}" (${window.getSyncTag()}).`, 'success');
     };
 
     window.openStatusPickerModal = function(orderId) {
@@ -3935,7 +5310,7 @@
       order.status = 'Despachando';
       if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
 
-      showNotification(`Pedido ${order.id} aprobado y sincronizado en Firebase.`, 'success');
+      showNotification(`Pedido ${order.id} aprobado (${window.getSyncTag()}).`, 'success');
       refreshActiveViews();
     }
 
@@ -3944,7 +5319,7 @@
       if (!order) return;
       order.status = 'Cancelado';
       if (window.syncDocToCloud) window.syncDocToCloud('orders', order.id, order);
-      showNotification(`Pedido ${order.id} cancelado en Firebase.`, 'info');
+      showNotification(`Pedido ${order.id} cancelado (${window.getSyncTag()}).`, 'info');
       refreshActiveViews();
     }
 
@@ -4943,11 +6318,11 @@
       }
 
       if (isClientMode) {
-        showNotification(`¡Tu pedido ${newId} fue enviado en tiempo real a la distribuidora!`, 'success');
+        showNotification(`¡Tu pedido ${newId} fue enviado a la distribuidora!`, 'success');
         clearCurrentCart();
         renderClientHistory(clientId);
       } else {
-        showNotification(`Pedido ${newId} generado y sincronizado en Firebase.`, 'success');
+        showNotification(`Pedido ${newId} generado (${window.getSyncTag()}).`, 'success');
         clearCurrentCart();
         refreshActiveViews();
         viewInvoice(newId);
@@ -5709,7 +7084,7 @@
       if (window.syncSettingsToCloud) {
         window.syncSettingsToCloud(appSettings);
       }
-      showNotification('Diseño completo de Factura y Ticket Térmico guardado en Firebase.', 'success');
+      showNotification(`Diseño completo de Factura y Ticket Térmico ${window.getSyncTag()}.`, 'success');
     };
 
     window.applyCompanyBrandingToInvoice = function() {
@@ -6423,7 +7798,7 @@
 
       closeModal('modal-product');
       refreshActiveViews();
-      showNotification('Artículo sincronizado exitosamente en Firebase.', 'success');
+      showNotification(`Artículo guardado (${window.getSyncTag()}).`, 'success');
     }
 
     function exportInventoryCSV() {
@@ -7927,7 +9302,7 @@
 
       closeModal('modal-edit-order');
       refreshActiveViews();
-      showNotification(`Factura ${ord.id} actualizada y sincronizada en Firebase.`, 'success');
+      showNotification(`Factura ${ord.id} actualizada (${window.getSyncTag()}).`, 'success');
     };
 
     function renderClientHistory(clientId) {
@@ -9794,7 +11169,11 @@
       document.body.removeChild(el);
       
       const roleName = clientId ? 'Cliente B2B' : role.toUpperCase();
-      window.showNotification(`Enlace para ${roleName} copiado con conexión directa a Firebase.`, 'success');
+      if (window.isFirebaseConnected()) {
+        window.showNotification(`Enlace para ${roleName} copiado con tus credenciales de Firebase incluidas.`, 'success');
+      } else {
+        window.showNotification(`Enlace para ${roleName} copiado (Aviso: Configura tus Keys de Firebase en Ajustes si deseas sincronizar entre distintos teléfonos).`, 'warning');
+      }
     };
 
     window.applyBrandSettings = function() {
@@ -9812,14 +11191,13 @@
       appSettings.brandPart2 = document.getElementById('brand-input-2').value.trim();
       appSettings.brandSubtitle = document.getElementById('brand-input-sub').value.trim();
       
-      // Enviamos el ajuste a Firebase para que todos los teléfonos cambien el nombre al instante
       if (window.syncSettingsToCloud) {
         window.syncSettingsToCloud(appSettings);
       }
       
       window.applyBrandSettings();
       window.closeModal('modal-brand');
-      window.showNotification('Identidad de marca guardada en Firebase (Todos los dispositivos).', 'success');
+      window.showNotification(`Identidad de marca actualizada (${window.getSyncTag()}).`, 'success');
     };
 
     window.openBrandModal = function() {
@@ -9909,7 +11287,7 @@
       window.closeModal('modal-client');
       renderClientsTable();
       if(document.getElementById('posClientSelect')) renderPosWorkspace();
-      window.showNotification(existingId ? `Cliente "${name}" actualizado en Firebase.` : `Cliente "${name}" sincronizado en la nube.`, 'success');
+      window.showNotification(`Cliente "${name}" ${window.getSyncTag()}.`, 'success');
     };
 
     // Funciones Auxiliares de Interfaz
