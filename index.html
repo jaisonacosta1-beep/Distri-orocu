@@ -68,6 +68,14 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    /* Soporte para pantallas móviles (100dvh y barra inferior del sistema) */
+    .app-viewport-height {
+      height: 100vh;
+      height: 100dvh;
+    }
+    .safe-bottom-pad {
+      padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 24px));
+    }
     @media print {
       body * {
         visibility: hidden !important;
@@ -87,7 +95,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex app-viewport-height overflow-hidden">
 
   <!-- Mobile Backdrop Overlay for Sidebar -->
   <div id="sidebar-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-40 hidden transition-opacity duration-300 pointer-events-auto"></div>
@@ -267,7 +275,7 @@
     <div id="toastContainer" class="fixed top-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- Scrollable Content Views -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 relative">
+    <main class="flex-1 overflow-y-auto p-4 pb-32 md:p-8 md:pb-12 bg-slate-50 relative">
 
       <!-- VIEW: DASHBOARD -->
       <section id="view-dashboard" class="space-y-6">
@@ -511,7 +519,7 @@
           </div>
 
           <!-- Right Column: Current Order Items & Summary -->
-          <div id="pos-cart-summary-card" class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sticky top-6" style="max-height: calc(100vh - 100px);">
+          <div id="pos-cart-summary-card" class="lg:col-span-5 bg-white p-5 pb-8 lg:pb-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:sticky lg:top-6 lg:max-h-[calc(100dvh-100px)]">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
               <div>
                 <label class="block text-[11px] font-black text-blue-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-3 mr-1"></i> Paso 3: Confirmar y Facturar</label>
@@ -661,23 +669,35 @@
                 </div>
               </div>
 
+              <!-- Preferencia de Impresión al Generar Pedido -->
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-print text-blue-600"></i> Al facturar abrir:
+                </span>
+                <select id="posAfterSubmitPrintMode" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
+                  <option value="BOTH" selected>📄 Factura + Botón Ticket</option>
+                  <option value="THERMAL">🧾 Ticket Térmico Directo (58/80mm)</option>
+                  <option value="A4">🖨️ Imprimir Factura A4 Directo</option>
+                </select>
+              </div>
+
               <!-- Submit Button -->
-              <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98">
-                <i class="fa-solid fa-file-invoice-dollar"></i> Generar Pedido e Imprimir Factura
+              <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98 text-sm sm:text-base">
+                <i class="fa-solid fa-file-invoice-dollar text-lg"></i> Generar Pedido e Imprimir Factura
               </button>
             </div>
           </div>
         </div>
 
         <!-- Floating Mobile Cart Bar for Easier Cashier & Client Navigation -->
-        <div id="pos-mobile-cart-bar" onclick="scrollToPosCart()" class="lg:hidden fixed bottom-5 left-4 right-20 z-30 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition transform hidden">
+        <div id="pos-mobile-cart-bar" onclick="scrollToPosCart()" class="lg:hidden fixed bottom-4 left-4 right-20 z-30 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition transform hidden">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
               <span id="pos-mobile-bar-qty">0</span>
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Ver Carrito y Facturar</p>
-              <p class="text-[10px] text-amber-300">Toca para ir al resumen</p>
+              <p class="text-xs font-bold text-white leading-tight">Ir a Confirmar e Imprimir</p>
+              <p class="text-[10px] text-amber-300">Toca para bajar al botón de facturar</p>
             </div>
           </div>
           <div class="text-right">
@@ -1727,33 +1747,50 @@
           <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
             <i class="fa-solid fa-link text-blue-600"></i> Enlaces de Acceso Rápido por Rol
           </h4>
-          <p class="text-xs text-slate-500">Copia y envía estos enlaces a tus empleados. Al abrirlos, el sistema se convertirá en una App instalable y ocultará las opciones que no les corresponden.</p>
+          <p class="text-xs text-slate-500">Copia y envía estos enlaces a tus empleados o pruébalos aquí mismo. Al abrirlos, el sistema entra directamente en el modo del rol seleccionado.</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onclick="copyRoleLink('cajero')" class="p-3 bg-blue-50 border border-blue-200 hover:bg-blue-100 rounded-xl flex items-center justify-between transition group shadow-sm">
+            <div class="p-3.5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col justify-between gap-3 shadow-sm">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
-                  <i class="fa-solid fa-cash-register text-xs"></i>
+                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+                  <i class="fa-solid fa-cash-register text-sm"></i>
                 </div>
                 <div class="text-left">
-                  <span class="block text-xs font-bold text-slate-800">Link para Cajero</span>
-                  <span class="block text-[10px] text-slate-500">Acceso a POS y Pedidos</span>
+                  <span class="block text-xs font-bold text-slate-800">Acceso para Cajero / Preventa</span>
+                  <span class="block text-[10px] text-slate-500">Abre directo en Preventa POS, Pedidos y Cobros</span>
                 </div>
               </div>
-              <i class="fa-solid fa-copy text-blue-400 group-hover:text-blue-600"></i>
-            </button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="copyRoleLink('cajero')" class="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-copy"></i> Copiar Link Cajero
+                </button>
+                <button type="button" onclick="activateRoleModeNow('cajero')" class="py-2 px-3 bg-white hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1" title="Probar vista de Cajero aquí">
+                  <i class="fa-solid fa-eye"></i> Probar
+                </button>
+              </div>
+            </div>
 
-            <button onclick="copyRoleLink('repartidor')" class="p-3 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-xl flex items-center justify-between transition group shadow-sm">
+            <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col justify-between gap-3 shadow-sm">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
-                  <i class="fa-solid fa-truck text-xs"></i>
+                <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
+                  <i class="fa-solid fa-truck text-sm"></i>
                 </div>
                 <div class="text-left">
-                  <span class="block text-xs font-bold text-slate-800">Link para Repartidor</span>
-                  <span class="block text-[10px] text-slate-500">Acceso a Rutas y Arqueo</span>
+                  <span class="block text-xs font-bold text-slate-800">Acceso para Chofer / Repartidor</span>
+                  <span class="block text-[10px] text-slate-500">Abre directo en Hoja de Ruta, Cobros, Vacíos y Arqueo</span>
                 </div>
               </div>
-              <i class="fa-solid fa-copy text-emerald-400 group-hover:text-emerald-600"></i>
-            </button>
+              <div class="flex items-center gap-2">
+                <select id="settings-driver-link-select" class="text-xs p-2 border border-emerald-300 rounded-lg bg-white font-semibold text-slate-800 max-w-[140px]">
+                  <option value="ALL">Todos los Choferes</option>
+                </select>
+                <button type="button" onclick="copyDriverRoleLinkFromSettings()" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-copy"></i> Copiar Link
+                </button>
+                <button type="button" onclick="activateDriverModeFromSettings()" class="py-2 px-2.5 bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1" title="Entrar al Modo Repartidor ahora">
+                  <i class="fa-solid fa-eye"></i> Probar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2156,8 +2193,8 @@
   </div>
 
   <!-- MODAL: AGREGAR PRODUCTO AL CARRITO (POS) -->
-  <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+  <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 hidden p-0 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92dvh] overflow-y-auto safe-bottom-pad">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
         <div class="flex items-center gap-3">
           <img id="mac-product-img" src="" alt="Producto" class="w-12 h-12 rounded-xl object-cover border border-slate-200 hidden">
@@ -2166,7 +2203,7 @@
             <p id="mac-product-sku" class="text-xs font-mono text-slate-400">SKU</p>
           </div>
         </div>
-        <button type="button" onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700">
+        <button type="button" onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700 p-1">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -2201,10 +2238,10 @@
           </div>
         </div>
 
-        <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
-          <button type="button" onclick="closeModal('modal-add-cart')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
-          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5">
-            <i class="fa-solid fa-cart-plus"></i> Agregar al Pedido
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2 sticky bottom-0 bg-white pb-2">
+          <button type="button" onclick="closeModal('modal-add-cart')" class="px-4 py-3 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="flex-1 sm:flex-none px-6 py-3 rounded-xl text-xs sm:text-sm font-black bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-cart-plus"></i> Aceptar y Agregar
           </button>
         </div>
       </form>
@@ -2250,13 +2287,40 @@
   </div>
 
   <!-- MODAL: FACTURA / GUÍA DE DESPACHO IMPRIMIBLE -->
-  <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[92vh] overflow-y-auto">
-      <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="font-mono font-black text-blue-600 text-base" id="inv-folio">ORD-0000</span>
-          <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700" id="inv-status">Estado</span>
+  <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 hidden p-0 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-2xl w-full shadow-2xl p-4 sm:p-6 space-y-4 my-0 sm:my-8 max-h-[94dvh] overflow-y-auto safe-bottom-pad">
+      <!-- Barra destacada de Impresión Rápida arriba y siempre visible -->
+      <div class="bg-slate-900 text-white p-3.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-lg">
+        <div class="flex items-center justify-between sm:justify-start gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">
+              <i class="fa-solid fa-print"></i>
+            </span>
+            <div>
+              <span class="font-mono font-black text-amber-400 text-sm block leading-none" id="inv-folio">ORD-0000</span>
+              <span class="text-[10px] text-slate-300 font-semibold" id="inv-status">Estado</span>
+            </div>
+          </div>
+          <button onclick="closeModal('modal-invoice')" class="sm:hidden text-slate-300 hover:text-white p-1.5 bg-slate-800 rounded-lg">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
         </div>
+        <div class="grid grid-cols-2 sm:flex items-center gap-2">
+          <button onclick="openThermalReceiptModal()" class="py-2.5 px-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-receipt"></i> Imprimir Ticket Térmico
+          </button>
+          <button onclick="printInvoiceA4Browser()" class="py-2.5 px-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-print"></i> Imprimir Factura A4
+          </button>
+          <button onclick="closeModal('modal-invoice')" class="hidden sm:inline-flex text-slate-400 hover:text-white p-1.5 ml-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Acciones operativas secundarias -->
+      <div class="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2.5">
+        <span class="text-[11px] font-bold text-slate-400 uppercase">Acciones del Pedido:</span>
         <div class="flex flex-wrap items-center gap-1.5">
           <button id="btn-approve-action" onclick="approveOrderFromInvoice()" class="hidden px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-check mr-1"></i> Aprobar Pedido
@@ -2264,7 +2328,7 @@
           <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-list-check mr-1"></i> Cambiar Estado
           </button>
-          <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition">
+          <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Cobrar / Vacíos
           </button>
           <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
@@ -2272,15 +2336,6 @@
           </button>
           <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-signature mr-1"></i> Firma POD
-          </button>
-          <button onclick="openThermalReceiptModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition">
-            <i class="fa-solid fa-receipt mr-1"></i> Ticket Térmico
-          </button>
-          <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">
-            <i class="fa-solid fa-print mr-1"></i> Imprimir A4
-          </button>
-          <button onclick="closeModal('modal-invoice')" class="text-slate-400 hover:text-slate-700 p-1">
-            <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
       </div>
@@ -3320,11 +3375,12 @@
 
     function resolveFirebaseCredentials() {
       const urlParams = new URLSearchParams(window.location.search);
-      const urlApiKey = urlParams.get('fb_key');
-      const urlProjectId = urlParams.get('fb_pid');
-      const urlAuthDomain = urlParams.get('fb_dom');
-      const urlAppId = urlParams.get('fb_aid');
-      const urlBucket = urlParams.get('fb_bkt');
+      const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+      const urlApiKey = urlParams.get('fb_key') || hashParams.get('fb_key');
+      const urlProjectId = urlParams.get('fb_pid') || hashParams.get('fb_pid');
+      const urlAuthDomain = urlParams.get('fb_dom') || hashParams.get('fb_dom');
+      const urlAppId = urlParams.get('fb_aid') || hashParams.get('fb_aid');
+      const urlBucket = urlParams.get('fb_bkt') || hashParams.get('fb_bkt');
 
       if (urlApiKey && urlProjectId) {
         window.fbCredentials = {
@@ -4564,6 +4620,13 @@
 
       renderReceiptLogoPreview();
 
+      const drvLinkSelect = document.getElementById('settings-driver-link-select');
+      if (drvLinkSelect) {
+        const prevDrv = drvLinkSelect.value || 'ALL';
+        drvLinkSelect.innerHTML = `<option value="ALL">Todos los Choferes</option>` +
+          drivers.map(d => `<option value="${escapeHtml(d.name)}" ${d.name === prevDrv ? 'selected' : ''}>${escapeHtml(d.name)}</option>`).join('');
+      }
+
       const botsList = document.getElementById('settings-bots-list');
       if (botsList) {
         botsList.innerHTML = '';
@@ -5517,7 +5580,13 @@
     };
 
     window.scrollToPosCart = function() {
-      document.getElementById('pos-cart-summary-card')?.scrollIntoView({ behavior: 'smooth' });
+      const submitBtn = document.getElementById('btn-submit-order');
+      const summaryCard = document.getElementById('pos-cart-summary-card');
+      if (submitBtn) {
+        submitBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (summaryCard) {
+        summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     };
 
     function getCategoryPlaceholderIcon(category) {
@@ -6322,10 +6391,22 @@
         clearCurrentCart();
         renderClientHistory(clientId);
       } else {
-        showNotification(`Pedido ${newId} generado (${window.getSyncTag()}).`, 'success');
+        const printMode = document.getElementById('posAfterSubmitPrintMode')?.value || 'BOTH';
+        showNotification(`Pedido ${newId} generado (${window.getSyncTag()}). Abriendo factura para imprimir...`, 'success');
         clearCurrentCart();
         refreshActiveViews();
+        currentViewingOrder = newOrder;
         viewInvoice(newId);
+
+        if (printMode === 'THERMAL') {
+          setTimeout(() => {
+            openThermalReceiptModal();
+          }, 180);
+        } else if (printMode === 'A4') {
+          setTimeout(() => {
+            printInvoiceA4Browser();
+          }, 250);
+        }
       }
     }
 
@@ -7327,6 +7408,41 @@
 
       openModal('modal-thermal-receipt');
     }
+
+    window.printInvoiceA4Browser = function() {
+      const invoiceArea = document.getElementById('printInvoiceArea');
+      if (!invoiceArea) {
+        window.print();
+        return;
+      }
+      const printWin = window.open('', '_blank', 'width=840,height=720');
+      if (!printWin) {
+        window.print();
+        return;
+      }
+      printWin.document.write(`<!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>Factura ${currentViewingOrder ? currentViewingOrder.id : ''}</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <style>
+            @page { size: A4; margin: 12mm; }
+            body { font-family: Arial, sans-serif; background: #fff; color: #0f172a; padding: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="max-w-3xl mx-auto">${invoiceArea.innerHTML}</div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); window.close(); }, 450);
+            };
+          <\/script>
+        </body>
+        </html>`);
+      printWin.document.close();
+    };
 
     window.printThermalTicketBrowser = function() {
       const textToPrint = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
@@ -9338,10 +9454,64 @@
       `;
     }
 
+    // Helper para leer parámetros de rol tanto de ?search como de #hash (evita bloqueos en iframes o redirecciones)
+    window.getActiveRoleParams = function() {
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashStr = (window.location.hash || '').replace(/^#/, '');
+      const hashParams = new URLSearchParams(hashStr);
+
+      return {
+        role: searchParams.get('role') || hashParams.get('role') || window.forcedAppRole || '',
+        cid: searchParams.get('cid') || hashParams.get('cid') || window.forcedAppCid || '',
+        driver: searchParams.get('driver') || hashParams.get('driver') || window.forcedAppDriver || ''
+      };
+    };
+
+    window.activateRoleModeNow = function(roleName, clientId = null, driverName = null) {
+      window.forcedAppRole = roleName || '';
+      window.forcedAppCid = clientId || '';
+      window.forcedAppDriver = driverName || '';
+
+      try {
+        const url = new URL(window.location.href);
+        if (roleName) {
+          url.searchParams.set('role', roleName);
+          url.hash = `role=${encodeURIComponent(roleName)}${clientId ? `&cid=${encodeURIComponent(clientId)}` : ''}${driverName && driverName !== 'ALL' ? `&driver=${encodeURIComponent(driverName)}` : ''}`;
+        } else {
+          url.searchParams.delete('role');
+          url.searchParams.delete('cid');
+          url.searchParams.delete('driver');
+          url.hash = '';
+        }
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {}
+
+      // Restaurar visibilidad base de navegación antes de aplicar el rol
+      ['nav-dashboard', 'nav-online-orders', 'nav-orders', 'nav-pos', 'nav-receivables', 'nav-history', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-logistics', 'nav-cashout', 'nav-settings'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('hidden');
+      });
+
+      window.setupRoleEnvironment();
+    };
+
+    window.copyDriverRoleLinkFromSettings = function() {
+      const drv = document.getElementById('settings-driver-link-select')?.value || 'ALL';
+      copyRoleLink('repartidor', null, drv);
+    };
+
+    window.activateDriverModeFromSettings = function() {
+      const drv = document.getElementById('settings-driver-link-select')?.value || 'ALL';
+      activateRoleModeNow('repartidor', null, drv);
+      showNotification(`Modo Repartidor activado${drv !== 'ALL' ? ` para ${drv}` : ''}.`, 'success');
+    };
+
     window.setupRoleEnvironment = function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const role = urlParams.get('role');
-      const cid = urlParams.get('cid');
+      const { role, cid, driver } = window.getActiveRoleParams();
+
+      // Quitar barra superior de modo rol previo si existía
+      const existingRoleBanner = document.getElementById('active-role-top-banner');
+      if (existingRoleBanner) existingRoleBanner.remove();
 
       if (role === 'cliente') {
         const sidebar = document.getElementById('sidebar');
@@ -9375,8 +9545,8 @@
               </div>
               <div>
                 <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Perfil de Cliente Verificado</span>
-                <h2 id="b2b-welcome-name" class="text-lg font-black text-white">${clientObj ? escapeHtml(clientObj.name) : 'Cargando cliente desde Firebase...'}</h2>
-                <p class="text-xs text-slate-300">${clientObj ? `${escapeHtml(clientObj.address)} • ${escapeHtml(clientObj.route)}` : 'Conectado en tiempo real'}</p>
+                <h2 id="b2b-welcome-name" class="text-lg font-black text-white">${clientObj ? escapeHtml(clientObj.name) : 'Cargando cliente...'}</h2>
+                <p class="text-xs text-slate-300">${clientObj ? `${escapeHtml(clientObj.address)} • ${escapeHtml(clientObj.route)}` : 'Portal de Pedidos B2B'}</p>
               </div>
             </div>
             <div class="flex items-center gap-4 bg-slate-950/50 px-4 py-2.5 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-end">
@@ -9418,17 +9588,45 @@
           const el = document.getElementById(id);
           if (el) el.classList.add('hidden');
         });
+        injectActiveRoleBanner('MODO CAJERO / PREVENTA ACTIVO', 'bg-blue-700');
         navigateTab('pos');
-      } else if (role === 'repartidor') {
+      } else if (role === 'repartidor' || role === 'chofer') {
         ['nav-dashboard', 'nav-online-orders', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-settings'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add('hidden');
         });
+
+        if (driver && driver !== 'ALL') {
+          const drvFilterEl = document.getElementById('logisticsDriverFilter');
+          if (drvFilterEl) {
+            drvFilterEl.value = driver;
+          }
+        }
+
+        injectActiveRoleBanner(`MODO CHOFER / REPARTIDOR${driver && driver !== 'ALL' ? `: ${driver.toUpperCase()}` : ' EN RUTA'}`, 'bg-emerald-700');
         navigateTab('logistics');
       } else {
         navigateTab('dashboard');
       }
     };
+
+    function injectActiveRoleBanner(label, bgClass) {
+      const mainContainer = document.querySelector('main');
+      if (!mainContainer) return;
+      const banner = document.createElement('div');
+      banner.id = 'active-role-top-banner';
+      banner.className = `${bgClass} text-white px-4 py-2.5 rounded-xl mb-4 flex items-center justify-between text-xs font-bold shadow-sm`;
+      banner.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-user-check"></i>
+          <span>${escapeHtml(label)}</span>
+        </div>
+        <button type="button" onclick="activateRoleModeNow('')" class="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-[11px] font-bold transition">
+          Salir a Vista Admin
+        </button>
+      `;
+      mainContainer.insertBefore(banner, mainContainer.firstChild);
+    }
 
     // =====================================================================
     // MÓDULO DE FACTURAS PENDIENTES POR COBRAR Y CONTROL DE VACÍOS
@@ -11143,7 +11341,7 @@
     // 100% SINCRONIZACIÓN EN LA NUBE Y ENLACES COMPARTIDOS (0 LocalStorage)
     // =====================================================================
     
-    window.copyRoleLink = function(role, clientId = null) {
+    window.copyRoleLink = function(role, clientId = null, driverName = null) {
       const url = new URL(window.location.href);
       url.searchParams.set('role', role);
       if (clientId) {
@@ -11155,11 +11353,27 @@
       } else {
         url.searchParams.delete('cid');
       }
+
+      if (driverName && driverName !== 'ALL') {
+        url.searchParams.set('driver', driverName);
+      } else {
+        url.searchParams.delete('driver');
+      }
       
       // Incrustar siempre las credenciales de Firebase en el enlace a copiar
       if (typeof window.embedFirebaseParamsInUrl === 'function') {
         window.embedFirebaseParamsInUrl(url);
       }
+
+      // También agregamos #role=... como respaldo por si el servidor o visor limpia los query params (?)
+      const hashParts = [`role=${encodeURIComponent(role)}`];
+      if (clientId) hashParts.push(`cid=${encodeURIComponent(clientId)}`);
+      if (driverName && driverName !== 'ALL') hashParts.push(`driver=${encodeURIComponent(driverName)}`);
+      if (window.fbCredentials && window.fbCredentials.apiKey && window.fbCredentials.projectId) {
+        hashParts.push(`fb_pid=${encodeURIComponent(window.fbCredentials.rawProjectId || window.fbCredentials.projectId)}`);
+        hashParts.push(`fb_key=${encodeURIComponent(window.fbCredentials.apiKey)}`);
+      }
+      url.hash = hashParts.join('&');
       
       const el = document.createElement('textarea');
       el.value = url.toString();
@@ -11168,11 +11382,11 @@
       document.execCommand('copy');
       document.body.removeChild(el);
       
-      const roleName = clientId ? 'Cliente B2B' : role.toUpperCase();
+      const roleName = clientId ? 'Cliente B2B' : (driverName && driverName !== 'ALL' ? `Chofer (${driverName})` : role.toUpperCase());
       if (window.isFirebaseConnected()) {
         window.showNotification(`Enlace para ${roleName} copiado con tus credenciales de Firebase incluidas.`, 'success');
       } else {
-        window.showNotification(`Enlace para ${roleName} copiado (Aviso: Configura tus Keys de Firebase en Ajustes si deseas sincronizar entre distintos teléfonos).`, 'warning');
+        window.showNotification(`Enlace para ${roleName} copiado correctamente.`, 'success');
       }
     };
 
@@ -11342,6 +11556,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
       refreshActiveViews();
+      window.setupRoleEnvironment();
+    });
+
+    // Si el usuario pega un enlace con #role=repartidor en la misma pestaña, detectar el cambio de inmediato
+    window.addEventListener('hashchange', () => {
       window.setupRoleEnvironment();
     });
   </script>
