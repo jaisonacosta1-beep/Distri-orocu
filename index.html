@@ -1,3 +1,4 @@
+E
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,6 +17,9 @@
 
   <!-- HTML5 QR / Barcode Scanner library -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- QRCode Generator Library for Client B2B Stickers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Leaflet CSS & JS for Interactive Routing & Dispatch Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -152,6 +156,19 @@
       <button onclick="navigateTab('pos')" id="nav-pos" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:text-white hover:bg-slate-800">
         <i class="fa-solid fa-cart-plus w-5 text-center text-emerald-400"></i>
         <span>Preventa / Pedido Cervezas</span>
+      </button>
+
+      <button onclick="navigateTab('receivables')" id="nav-receivables" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-hand-holding-dollar w-5 text-center text-amber-400"></i>
+        <div class="flex-1 flex justify-between items-center text-left">
+          <span>Por Cobrar & Vacíos</span>
+          <span id="badge-receivables" class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+        </div>
+      </button>
+
+      <button onclick="navigateTab('history')" id="nav-history" class="nav-item w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-clock-rotate-left w-5 text-center text-purple-400"></i>
+        <span>Historial & Movimientos</span>
       </button>
 
       <p class="px-3 text-[11px] font-semibold uppercase text-slate-400 tracking-wider mt-4 mb-2">Cadena de Frío & Suministro</p>
@@ -380,6 +397,7 @@
             <select id="orderStatusFilter" onchange="renderOrdersList()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="ALL">Todos los Estados</option>
               <option value="Por Aprobar">Por Aprobar (Nuevos)</option>
+              <option value="En Consignación">En Consignación (Eventos / Fiestas)</option>
               <option value="Pendiente">Pendiente de Preparación</option>
               <option value="En Preparación">En Preparación / Picking</option>
               <option value="En Ruta">En Ruta de Entrega</option>
@@ -442,6 +460,11 @@
             </div>
             <p class="text-sm text-slate-700">Deuda: <strong id="posClientDebt" class="text-rose-600">$0.00</strong></p>
             <p class="text-xs text-slate-400 mt-0.5">Límite Crédito: <span id="posClientCreditLimit">$0.00</span></p>
+            <div id="posClientCreditEmptiesBox" class="mt-2 pt-1.5 border-t border-slate-200/80 hidden">
+              <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                <i class="fa-solid fa-Scale-balanced"></i> Vacíos a Favor: <strong id="posClientCreditEmptiesText">0</strong>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -548,6 +571,85 @@
                 </div>
               </div>
 
+              <!-- Cobro, Retiro de Vacíos y Firma al Momento de Facturar -->
+              <div id="pos-checkout-empties-box" class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold text-amber-900 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-recycle text-amber-600"></i> Cobro y Vacíos al Facturar
+                  </span>
+                  <select id="posImmediatePaymentStatus" onchange="handlePosPaymentStatusChange()" class="text-[11px] font-bold px-2 py-1 rounded-lg border border-amber-300 bg-white text-slate-800 focus:outline-none">
+                    <option value="Pagado">Cobrado ahora (Pagado)</option>
+                    <option value="Pendiente">Pendiente por Cobrar</option>
+                    <option value="Mixto">Pago Mixto (Efectivo + Yape/Banco)</option>
+                    <option value="Consignacion">Modo Consignación / Evento</option>
+                  </select>
+                </div>
+
+                <div id="posPartialPayRow" class="hidden flex items-center justify-between gap-2 pt-1">
+                  <label class="text-[11px] text-slate-600 font-semibold">Abono inicial ($):</label>
+                  <input type="number" step="0.01" min="0" id="posInitialPaidAmount" value="0" class="w-28 text-right text-xs p-1.5 border border-slate-200 rounded-lg bg-white font-bold">
+                </div>
+
+                <!-- Opción 18: Desglose de Pago Mixto en POS -->
+                <div id="posMixedPaymentBox" class="hidden p-2.5 rounded-xl bg-white border border-blue-200 space-y-2 pt-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase text-blue-700"><i class="fa-solid fa-money-bill-transfer mr-1"></i> Desglose de Pago Mixto</span>
+                    <span id="posMixedRemainingLabel" class="text-[10px] font-bold text-rose-600">Resta a Crédito: $0.00</span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div>
+                      <label class="block text-[9px] font-bold text-slate-500 uppercase">Efectivo ($)</label>
+                      <input type="number" step="0.01" min="0" id="posMixCash" value="0" oninput="recalcPosMixedPayment()" class="w-full text-xs p-1.5 border border-slate-200 rounded-lg font-bold text-emerald-700 bg-emerald-50/40">
+                    </div>
+                    <div>
+                      <label class="block text-[9px] font-bold text-slate-500 uppercase">Yape ($)</label>
+                      <input type="number" step="0.01" min="0" id="posMixYape" value="0" oninput="recalcPosMixedPayment()" class="w-full text-xs p-1.5 border border-slate-200 rounded-lg font-bold text-purple-700 bg-purple-50/40">
+                    </div>
+                    <div>
+                      <label class="block text-[9px] font-bold text-slate-500 uppercase">Banco/ACH ($)</label>
+                      <input type="number" step="0.01" min="0" id="posMixBank" value="0" oninput="recalcPosMixedPayment()" class="w-full text-xs p-1.5 border border-slate-200 rounded-lg font-bold text-blue-700 bg-blue-50/40">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Opción 10: Despacho en Consignación / Eventos y Fiestas -->
+                <div id="posConsignmentBox" class="hidden p-2.5 rounded-xl bg-purple-50 border border-purple-200 space-y-1.5">
+                  <span class="text-[10px] font-black uppercase text-purple-800 block"><i class="fa-solid fa-champagne-glasses mr-1"></i> Despacho en Consignación (Eventos / Fiestas)</span>
+                  <p class="text-[10px] text-purple-700 leading-tight">Se reserva el stock y al finalizar el evento podrás devolver las cajas cerradas no consumidas para facturar solo lo destapado.</p>
+                  <input type="text" id="posConsignmentNotes" placeholder="Equipos prestados / Evento (Ej: 2 Cavas grandes + Dispensador Chopp)" class="w-full text-[11px] p-1.5 border border-purple-200 rounded-lg bg-white">
+                </div>
+
+                <!-- Lista dinámica de vacíos retirados y de qué son -->
+                <div class="pt-1 border-t border-amber-200/70 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-bold text-slate-700">¿Cuántos vacíos se retiraron y de qué?</label>
+                    <button type="button" onclick="addPosCustomEmptyRow()" class="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                      <i class="fa-solid fa-plus"></i> Otro vacío
+                    </button>
+                  </div>
+                  <div id="pos-empties-pickup-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Firma rápida opcional al facturar -->
+                <div class="pt-1 border-t border-amber-200/70">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                      <i class="fa-solid fa-signature text-indigo-600"></i> Firma para Ticket Térmico
+                    </span>
+                    <button type="button" onclick="togglePosInlineSignature()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100">
+                      <span id="pos-sig-toggle-label">Firmar Aquí</span>
+                    </button>
+                  </div>
+                  <div id="pos-inline-sig-container" class="hidden mt-2 space-y-1.5">
+                    <input type="text" id="pos-sig-receiver" placeholder="Nombre de quien firma / recibe" class="w-full text-[11px] p-1.5 border border-slate-200 rounded-lg bg-white">
+                    <div class="border border-dashed border-slate-300 rounded-lg bg-white relative h-24 overflow-hidden">
+                      <canvas id="posInlineSignatureCanvas" class="w-full h-full cursor-crosshair touch-none"></canvas>
+                      <button type="button" onclick="clearPosInlineSignature()" class="absolute top-1 right-1 text-[9px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded font-bold">Borrar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Submit Button -->
               <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Generar Pedido e Imprimir Factura
@@ -629,6 +731,288 @@
                 </tr>
               </thead>
               <tbody id="online-orders-history-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: RECEIVABLES & EMPTIES (FACTURAS PENDIENTES POR COBRAR Y PENDIENTES DE VACÍO) -->
+      <section id="view-receivables" class="space-y-6 hidden">
+        <!-- Header Banner -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+              <i class="fa-solid fa-hand-holding-dollar text-amber-500"></i> Facturas Pendientes por Cobrar y Control de Vacíos
+            </h3>
+            <p class="text-xs text-slate-500">Panel compartido para Cajero, Chofer y Administración: cobra facturas, registra vacíos retirados, vacíos a favor del cliente e imprime con firma.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openClientCreditEmptiesModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition">
+              <i class="fa-solid fa-boxes-packing"></i> Registrar Vacíos a Favor del Cliente
+            </button>
+            <button onclick="navigateTab('pos')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition">
+              <i class="fa-solid fa-plus"></i> Nueva Factura
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Total por Cobrar</p>
+              <h4 id="rec-stat-total-due" class="text-2xl font-black text-rose-600 mt-1">$0.00</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5"><span id="rec-stat-invoices-due">0</span> facturas con saldo</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Vacíos Pendientes</p>
+              <h4 id="rec-stat-empties-pending" class="text-2xl font-black text-amber-600 mt-1">0 Envases</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5"><span id="rec-stat-invoices-empties">0</span> facturas deben vacío</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-wine-bottle"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-indigo-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-indigo-600">Vacíos a Favor</p>
+              <h4 id="rec-stat-empties-in-favor" class="text-2xl font-black text-indigo-600 mt-1">0 Envases</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5"><span id="rec-stat-clients-in-favor">0</span> clientes con saldo a favor</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-hand-holding-heart"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Total Cobrado</p>
+              <h4 id="rec-stat-total-collected" class="text-2xl font-black text-emerald-600 mt-1">$0.00</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Pagos recibidos y validados</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Vacíos Retirados</p>
+              <h4 id="rec-stat-empties-returned" class="text-2xl font-black text-blue-600 mt-1">0 Envases</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Cajas y barriles recuperados</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-recycle"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div class="relative flex-1 w-full">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="receivablesSearchInput" oninput="renderReceivablesView()" placeholder="Buscar por cliente, folio, chofer o tipo de envase vacío..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+          <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            <select id="receivablesModeFilter" onchange="renderReceivablesView()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 focus:outline-none">
+              <option value="ALL_PENDING">Pendientes o Con Vacíos a Favor</option>
+              <option value="PAYMENT_PENDING">Solo Facturas Pendientes por Cobrar ($)</option>
+              <option value="EMPTIES_PENDING">Solo Pendientes de Vacíos (Envases)</option>
+              <option value="EMPTIES_IN_FAVOR">Solo con Vacíos a Favor del Cliente</option>
+              <option value="ALL">Todas las Facturas</option>
+            </select>
+            <select id="receivablesDriverFilter" onchange="renderReceivablesView()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 focus:outline-none">
+              <option value="ALL">Todos los Choferes / Caja</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Clientes con Vacíos a Favor Acumulados -->
+        <div id="receivables-clients-in-favor-card" class="bg-indigo-50/70 rounded-2xl border border-indigo-200 p-4 space-y-3 hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-indigo-600"></i> Clientes con Vacíos a Favor en Bodega
+              </h4>
+              <p class="text-[11px] text-indigo-700">Envases entregados por adelantado o excedentes a favor del cliente para próximos despachos.</p>
+            </div>
+            <button onclick="openClientCreditEmptiesModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl transition self-start sm:self-auto">
+              <i class="fa-solid fa-plus mr-1"></i> Ajustar / Usar Vacíos a Favor
+            </button>
+          </div>
+          <div id="receivables-clients-in-favor-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <!-- Receivables & Empties Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Folio / Fecha</th>
+                  <th class="py-3 px-4">Cliente & Chofer</th>
+                  <th class="py-3 px-4">Estado de Cobro ($)</th>
+                  <th class="py-3 px-4">Control de Envases Vacíos (¿Cuántos y de qué?)</th>
+                  <th class="py-3 px-4 text-center">Firma POD</th>
+                  <th class="py-3 px-4 text-right">Acciones (Cobrar / Vacíos / Editar / Ticket)</th>
+                </tr>
+              </thead>
+              <tbody id="receivables-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: HISTORY OF INVOICES, COLLECTIONS & MOVEMENTS (HISTORIAL Y KARDEX) -->
+      <section id="view-history" class="space-y-6 hidden">
+        <!-- Header Banner -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-purple-600"></i> Historial General de Facturas, Cobros y Movimientos
+            </h3>
+            <p class="text-xs text-slate-500">Auditoría cronológica completa: emisiones de facturas, abonos y cobros recibidos, retiro/saldo de envases vacíos, arqueos y entradas de almacén.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openManualMovementModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition active:scale-95">
+              <i class="fa-solid fa-plus"></i> Registrar Movimiento / Ajuste Manual
+            </button>
+            <button onclick="exportHistoryCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition">
+              <i class="fa-solid fa-file-csv text-emerald-600"></i> Exportar Historial CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards for History -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Movimientos Totales</p>
+              <h4 id="hist-stat-count" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Eventos en bitácora</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Total Facturado</p>
+              <h4 id="hist-stat-invoiced" class="text-2xl font-black text-blue-600 mt-1">$0.00</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">En el periodo filtrado</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-file-invoice"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Cobros Ingresados</p>
+              <h4 id="hist-stat-collected" class="text-2xl font-black text-emerald-600 mt-1">$0.00</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Pagos y abonos recibidos</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-sack-dollar"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Mov. de Envases</p>
+              <h4 id="hist-stat-empties" class="text-2xl font-black text-amber-600 mt-1">0</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Vacíos retirados / a favor</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-recycle"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase text-slate-400">Compras & Stock</p>
+              <h4 id="hist-stat-purchases" class="text-2xl font-black text-indigo-600 mt-1">$0.00</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Órdenes a cerveceras</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-dolly"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Category Pills + Search & Filters -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <!-- Type Filter Pills -->
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="history-type-pills">
+            <button onclick="setHistoryTypeFilter('ALL')" data-hist-pill="ALL" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-xs flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-layer-group"></i> Todos los Movimientos
+            </button>
+            <button onclick="setHistoryTypeFilter('FACTURA')" data-hist-pill="FACTURA" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-file-invoice text-blue-600"></i> Facturas Emitidas
+            </button>
+            <button onclick="setHistoryTypeFilter('COBRO')" data-hist-pill="COBRO" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> Cobros y Abonos ($)
+            </button>
+            <button onclick="setHistoryTypeFilter('VACIOS')" data-hist-pill="VACIOS" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-recycle text-amber-600"></i> Envases Vacíos & A Favor
+            </button>
+            <button onclick="setHistoryTypeFilter('ARQUEO')" data-hist-pill="ARQUEO" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-cash-register text-teal-600"></i> Arqueos de Chofer
+            </button>
+            <button onclick="setHistoryTypeFilter('COMPRA')" data-hist-pill="COMPRA" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+              <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Compras y Entradas
+            </button>
+          </div>
+
+          <!-- Search, Client, and Date Filters -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+            <div class="relative lg:col-span-2">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input type="text" id="historySearchInput" oninput="renderHistoryView()" placeholder="Buscar por folio, cliente, chofer, producto o detalle..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+              <select id="historyClientFilter" onchange="renderHistoryView()" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 focus:outline-none">
+                <option value="ALL">Todos los Clientes / Entidades</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Desde:</span>
+              <input type="date" id="historyDateFrom" onchange="renderHistoryView()" class="w-full border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 focus:outline-none">
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Hasta:</span>
+              <input type="date" id="historyDateTo" onchange="renderHistoryView()" class="w-full border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 focus:outline-none">
+              <button onclick="clearHistoryFilters()" title="Limpiar filtros" class="p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl text-xs shrink-0">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unified Movements Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Fecha / Hora</th>
+                  <th class="py-3 px-4">Tipo de Movimiento</th>
+                  <th class="py-3 px-4">Folio / Ref.</th>
+                  <th class="py-3 px-4">Cliente / Responsable</th>
+                  <th class="py-3 px-4">Concepto y Detalle del Movimiento</th>
+                  <th class="py-3 px-4 text-right">Impacto ($ / Envases)</th>
+                  <th class="py-3 px-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
@@ -790,6 +1174,20 @@
           <button onclick="openClientModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition active:scale-95">
             <i class="fa-solid fa-user-plus"></i> Registrar Cliente
           </button>
+        </div>
+
+        <!-- Opción 14: Radar de Recompra e Inactividad de Clientes (Alerta Cliente Frío) -->
+        <div id="clients-inactivity-radar" class="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 space-y-3 hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-temperature-arrow-down text-rose-600 animate-pulse"></i> Radar de Recompra e Inactividad (Alerta "Cliente Frío")
+              </h4>
+              <p class="text-[11px] text-amber-800">Clientes que superaron su ciclo habitual de recompra semanal sin facturar mercancía.</p>
+            </div>
+            <span id="clients-cold-count-badge" class="text-xs bg-rose-600 text-white font-bold px-3 py-1 rounded-full self-start sm:self-auto">0 Alertas</span>
+          </div>
+          <div id="clients-inactivity-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="clients-card-container"></div>
@@ -1752,6 +2150,9 @@
             <p id="inv-company-footer" class="text-xs font-bold text-slate-700 mt-0.5">¡Gracias por su compra!</p>
           </div>
         </div>
+
+        <!-- Resumen de Cobro y Envases Vacíos en la Factura Impresa -->
+        <div id="inv-payment-empties-box" class="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-xs space-y-1"></div>
       </div>
 
       <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2 print:hidden">
@@ -1764,6 +2165,9 @@
           </button>
         </div>
         <div class="flex flex-wrap gap-2">
+          <button onclick="openCollectAndEmptiesFromInvoice()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs md:text-sm font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Cobrar / Retirar Vacíos
+          </button>
           <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5">
             <i class="fa-solid fa-signature"></i> POD
           </button>
@@ -1781,6 +2185,257 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COBRAR FACTURA, RETIRAR VACÍOS Y FIRMA DIGITAL PARA TICKET TÉRMICO -->
+  <div id="modal-collect-empties" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl p-6 space-y-4 my-8 max-h-[94vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-lg">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Cobrar Factura, Retirar Vacíos y Firma</h3>
+            <p class="text-xs text-slate-500" id="mce-subtitle">Folio: ORD-0000</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-collect-empties')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="collectEmptiesForm" onsubmit="saveCollectAndEmpties(event, false)" class="space-y-4">
+        <input type="hidden" id="mce-order-id">
+
+        <!-- 1. Cobro de la Factura -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-black uppercase text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-sack-dollar text-emerald-600"></i> 1. Liquidación y Cobro de Factura
+            </h4>
+            <span id="mce-payment-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700">PENDIENTE</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+            <div>
+              <span class="block text-[10px] text-slate-400 uppercase font-bold">Total Factura</span>
+              <span id="mce-total-amount" class="font-black text-slate-800 text-sm">$0.00</span>
+            </div>
+            <div>
+              <span class="block text-[10px] text-slate-400 uppercase font-bold">Ya Abonado</span>
+              <span id="mce-paid-amount" class="font-black text-emerald-600 text-sm">$0.00</span>
+            </div>
+            <div>
+              <span class="block text-[10px] text-slate-400 uppercase font-bold">Saldo por Cobrar</span>
+              <span id="mce-due-amount" class="font-black text-rose-600 text-sm">$0.00</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-semibold text-slate-600">Monto Cobrado Ahora ($)</label>
+                <button type="button" onclick="fillFullBalanceInModal()" class="text-[10px] font-bold text-blue-600 hover:underline">Cobrar Todo</button>
+              </div>
+              <input type="number" step="0.01" min="0" id="mce-pay-now" class="w-full text-sm font-black text-emerald-700 p-2 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Método de Cobro</label>
+              <select id="mce-pay-method" onchange="toggleMceMixedPaymentUI()" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Yape">Yape</option>
+                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Pago Mixto">Pago Mixto (Efectivo + Yape + Banco)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Opción 18: Desglose de Pago Mixto dentro del Modal de Cobro -->
+          <div id="mce-mixed-payment-box" class="hidden p-3 rounded-xl bg-blue-50/60 border border-blue-200 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-black uppercase text-blue-800"><i class="fa-solid fa-layer-group mr-1"></i> Dividir Cobro en Varios Métodos</span>
+              <span id="mce-mixed-sum-label" class="text-[11px] font-bold text-emerald-700">Suma: $0.00</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600">Efectivo ($)</label>
+                <input type="number" step="0.01" min="0" id="mce-mix-cash" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold text-emerald-700">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600">Yape ($)</label>
+                <input type="number" step="0.01" min="0" id="mce-mix-yape" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold text-purple-700">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600">Banco / ACH ($)</label>
+                <input type="number" step="0.01" min="0" id="mce-mix-bank" value="0" oninput="recalcMceMixedTotal()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg bg-white font-bold text-blue-700">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Retiro de Envases Vacíos (¿Cuántos y de qué?) -->
+        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-recycle text-amber-600"></i> 2. Retiro de Vacíos (¿Cuántos se retiraron y de qué?)
+              </h4>
+              <p class="text-[11px] text-amber-800/80">Indica cuántos envases vacíos entrega el cliente ahora y su tipo o marca.</p>
+            </div>
+            <button type="button" onclick="addCustomEmptyLineInModal()" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold transition shrink-0">
+              <i class="fa-solid fa-plus"></i> Agregar Tipo de Vacío
+            </button>
+          </div>
+
+          <div id="mce-empties-list" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- 3. Firma Digital del Cliente para Imprimir en el Ticket Térmico -->
+        <div class="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-black uppercase text-indigo-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-signature text-indigo-600"></i> 3. Firma del Cliente (Sale en Impresora Térmica)
+            </h4>
+            <button type="button" onclick="clearMceSignature()" class="text-[11px] text-rose-600 font-bold hover:underline">Limpiar Firma</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input type="text" id="mce-receiver-name" placeholder="Nombre de quien firma (Cliente)" class="text-xs p-2 border border-slate-200 rounded-xl bg-white">
+            <input type="text" id="mce-receiver-id" placeholder="Cédula / RUC (Opcional)" class="text-xs p-2 border border-slate-200 rounded-xl bg-white">
+          </div>
+          <div class="border-2 border-dashed border-indigo-300 rounded-xl bg-white relative h-32 overflow-hidden">
+            <canvas id="mceSignatureCanvas" class="w-full h-full cursor-crosshair touch-none"></canvas>
+            <div id="mceCanvasPlaceholder" class="pointer-events-none absolute inset-0 flex items-center justify-center text-slate-400 text-xs font-medium">
+              El cliente puede firmar aquí con el dedo para el ticket térmico
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex flex-wrap justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-collect-empties')" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Cobro y Vacíos
+          </button>
+          <button type="button" onclick="saveCollectAndEmpties(null, true)" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-md">
+            <i class="fa-brands fa-bluetooth-b"></i> Guardar e Imprimir Ticket con Firma
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VACÍOS A FAVOR DEL CLIENTE -->
+  <div id="modal-client-credit-empties" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-lg">
+            <i class="fa-solid fa-hand-holding-heart"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Vacíos a Favor del Cliente</h3>
+            <p class="text-xs text-slate-500">Registra o descuenta envases vacíos que el cliente tiene a su favor</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-client-credit-empties')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveClientCreditEmptiesModal(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Seleccionar Cliente</label>
+          <select id="cce-client-select" onchange="loadClientCreditEmptiesRows()" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black uppercase text-indigo-900">Detalle de Envases a Favor (¿Cuántos y de qué?)</span>
+            <button type="button" onclick="addClientCreditEmptyLine()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold transition">
+              <i class="fa-solid fa-plus"></i> Añadir Envase a Favor
+            </button>
+          </div>
+          <div id="cce-rows-container" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-client-credit-empties')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Vacíos a Favor en Firebase
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR MOVIMIENTO / AJUSTE MANUAL EN BITÁCORA -->
+  <div id="modal-manual-movement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Registrar Movimiento en Historial</h3>
+            <p class="text-xs text-slate-500">Anota un cobro externo, gasto de ruta, ajuste de vacíos o nota contable</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-manual-movement')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="manualMovementForm" onsubmit="saveManualMovement(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Categoría</label>
+            <select id="mm-category" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold text-slate-700">
+              <option value="COBRO">Cobro / Abono Recibido ($)</option>
+              <option value="VACIOS">Movimiento de Envases Vacíos</option>
+              <option value="FACTURA">Ajuste de Facturación</option>
+              <option value="ARQUEO">Gasto / Movimiento de Caja Ruta</option>
+              <option value="COMPRA">Movimiento de Almacén / Merma</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Referencia / Folio</label>
+            <input type="text" id="mm-ref" placeholder="Ej: REC-501 o ORD-1001" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Cliente / Chofer / Entidad</label>
+          <input type="text" id="mm-entity" required placeholder="Ej: Bar El Taburete / Chofer Carlos Mendoza" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Detalle / Concepto del Movimiento</label>
+          <input type="text" id="mm-concept" required placeholder="Ej: Abono en efectivo a cuenta o devolución de 10 cajas Panamá" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Monto en Dinero ($ USD)</label>
+            <input type="number" step="0.01" id="mm-amount" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Cant. Envases (Opcional)</label>
+            <input type="number" id="mm-empties" value="0" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1 font-bold">
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-manual-movement')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-sm">Guardar en Bitácora</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2268,8 +2923,14 @@
         <textarea id="thermal-receipt-text" rows="14" oninput="currentThermalReceiptPlainText = this.value" class="w-full bg-transparent text-[11px] font-mono text-slate-800 leading-tight focus:outline-none resize-y border-0 p-0"></textarea>
         <div id="thermal-modal-sig-wrap" class="flex flex-col items-center pt-2 border-t border-dashed border-slate-300 hidden">
           <p class="text-[10px] font-mono font-bold text-slate-600 uppercase mb-1">Firma Digital del Cliente (POD)</p>
-          <img id="thermal-modal-sig" src="" alt="Firma Cliente" class="max-h-16 object-contain bg-white px-3 py-1 rounded border border-slate-200">
+          <img id="thermal-modal-sig" src="" alt="Firma Cliente" class="max-h-20 object-contain bg-white px-3 py-1 rounded border border-slate-200">
           <p id="thermal-modal-sig-meta" class="text-[9px] font-mono text-slate-500 mt-0.5"></p>
+        </div>
+        <div id="thermal-modal-nosig-bar" class="pt-2 border-t border-dashed border-slate-300 flex items-center justify-between text-xs hidden">
+          <span class="text-[11px] text-amber-700 font-semibold"><i class="fa-solid fa-signature mr-1"></i>Sin firma digital aún</span>
+          <button type="button" onclick="openCollectAndEmptiesFromThermal()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold transition">
+            Firmar / Cobrar / Vacíos
+          </button>
         </div>
       </div>
 
@@ -2356,6 +3017,7 @@
             <label class="block text-xs font-semibold text-slate-600">Estado del Pedido</label>
             <select id="eo-status" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
               <option value="Por Aprobar">Por Aprobar</option>
+              <option value="En Consignación">En Consignación (Evento)</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Despachando">Despachando</option>
               <option value="En Preparación">En Preparación</option>
@@ -2446,6 +3108,82 @@
         <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
           <button type="button" onclick="closeModal('modal-driver')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
           <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white font-bold">Guardar Unidad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL OPCIÓN 16: GENERADOR DE CÓDIGO QR B2B PARA CLIENTE -->
+  <div id="modal-client-qr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 space-y-4 text-center">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-left">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-qrcode text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">Código QR de Pedidos B2B</h3>
+            <p class="text-[11px] text-slate-500">Etiqueta para pegar en nevera o mostrador</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-client-qr')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="qr-printable-sticker" class="p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 space-y-2 flex flex-col items-center">
+        <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-100 px-2.5 py-0.5 rounded-full">Escanea para Pedir Cerveza</span>
+        <h4 id="qr-client-title" class="font-black text-slate-900 text-sm leading-tight">Cliente</h4>
+        <div id="qr-canvas-holder" class="p-3 bg-white rounded-xl shadow-xs border border-slate-200 flex items-center justify-center my-1"></div>
+        <p id="qr-client-route" class="text-[11px] font-semibold text-slate-500"></p>
+        <p class="text-[10px] text-slate-400">Portal de Pedidos Directo en Línea</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button type="button" onclick="printClientQrSticker()" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-print"></i> Imprimir Sticker
+        </button>
+        <button type="button" onclick="copyCurrentQrLink()" class="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-link"></i> Copiar Link
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL OPCIÓN 10: LIQUIDACIÓN DE CONSIGNACIÓN / EVENTOS (DEVOLUCIÓN DE CAJAS CERRADAS) -->
+  <div id="modal-consignment-settle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-lg">
+            <i class="fa-solid fa-champagne-glasses"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Liquidar Consignación / Evento</h3>
+            <p class="text-xs text-slate-500" id="consign-modal-subtitle">Indica cuántas cajas regresaron llenas/cerradas para facturar solo lo consumido</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-consignment-settle')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveConsignmentSettlement(event)" class="space-y-4">
+        <input type="hidden" id="consign-order-id">
+        <div id="consign-equipment-banner" class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 font-semibold hidden"></div>
+
+        <div id="consign-items-container" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-600 uppercase">Nuevo Total Neto a Facturar (Solo Consumido):</span>
+          <span id="consign-new-total-preview" class="text-base font-black text-emerald-700">$0.00</span>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-consignment-settle')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-check-double"></i> Reintegrar Sobrantes al Stock y Facturar Consumido
+          </button>
         </div>
       </form>
     </div>
@@ -2722,6 +3460,7 @@
         'batches',
         'suppliers',
         'cashouts',
+        'movements',
         'telegram_bots',
         'telegram_chats'
       ];
@@ -2800,7 +3539,7 @@
 
     window.wipeCloudCollections = async function() {
       if (!isCloudActive || !db || !auth?.currentUser || !currentProjectId) return;
-      const cols = ['products', 'clients', 'orders', 'drivers', 'purchases', 'batches', 'suppliers', 'cashouts'];
+      const cols = ['products', 'clients', 'orders', 'drivers', 'purchases', 'batches', 'suppliers', 'cashouts', 'movements'];
       for (const cName of cols) {
         try {
           const snap = await getDocs(collection(db, 'artifacts', currentProjectId, 'public', 'data', cName));
@@ -3072,6 +3811,7 @@
     let batches = [];
     let suppliers = [];
     let cashouts = [];
+    let movementsLog = [];
     let telegramBots = [];
     let telegramChats = [];
     let activeCart = [];
@@ -3225,11 +3965,21 @@
         date: '2026-10-15',
         driver: 'Carlos Mendoza',
         paymentMethod: 'Crédito 15 días',
+        paymentStatus: 'Pendiente',
+        amountPaid: 300.00,
         status: 'En Ruta',
         items: [
-          { id: '1', sku: 'CERV-PAN-24', name: 'Cerveza Panamá Lager 330ml (Caja x 24 Retornable)', quantity: 25, price: 20.80, batchAssigned: 'L-2026-PAN-09' },
-          { id: '7', sku: 'BARR-LAG-50L', name: 'Barril Cervecero Chopp Lager 50L (Keg con Válvula Micromatic)', quantity: 2, price: 95.00, batchAssigned: 'L-2026-BAR-02' },
-          { id: '11', sku: 'SNK-MAN-SAL', name: 'Maní Salado Tostado Bar Pack 50g (Tira x 24 Bolsas)', quantity: 10, price: 10.50, batchAssigned: 'L-2026-MANI-04' }
+          { id: '1', sku: 'CERV-PAN-24', name: 'Cerveza Panamá Lager 330ml (Caja x 24 Retornable)', quantity: 25, price: 20.80, batchAssigned: 'L-2026-PAN-09', requiresEmpty: true },
+          { id: '7', sku: 'BARR-LAG-50L', name: 'Barril Cervecero Chopp Lager 50L (Keg con Válvula Micromatic)', quantity: 2, price: 95.00, batchAssigned: 'L-2026-BAR-02', requiresEmpty: true },
+          { id: '11', sku: 'SNK-MAN-SAL', name: 'Maní Salado Tostado Bar Pack 50g (Tira x 24 Bolsas)', quantity: 10, price: 10.50, batchAssigned: 'L-2026-MANI-04', requiresEmpty: false }
+        ],
+        emptiesTracking: [
+          { type: 'Cerveza Panamá Lager 330ml (Caja x 24 Retornable)', delivered: 25, returned: 15 },
+          { type: 'Barril Cervecero Chopp Lager 50L (Keg con Válvula Micromatic)', delivered: 2, returned: 1 }
+        ],
+        emptiesHistory: [
+          { date: '2026-10-15 14:20', type: 'Cerveza Panamá Lager 330ml (Caja x 24 Retornable)', qty: 15 },
+          { date: '2026-10-15 14:20', type: 'Barril Cervecero Chopp Lager 50L (Keg con Válvula Micromatic)', qty: 1 }
         ],
         subtotal: 815.00,
         discountRate: 5,
@@ -3247,11 +3997,15 @@
         date: '2026-10-16',
         driver: 'Marcos Villegas',
         paymentMethod: 'Transferencia Bancaria',
+        paymentStatus: 'Pendiente',
+        amountPaid: 0,
         status: 'En Preparación',
         items: [
-          { id: '3', sku: 'CERV-ATL-LAT', name: 'Cerveza Atlas Golden Light 12oz (Fardo x 24 Latas)', quantity: 40, price: 18.00, batchAssigned: 'L-GENERAL' },
-          { id: '12', sku: 'SNK-PAP-150', name: 'Papas Artesanales Lisas & Limón 150g (Caja x 20 Bolsas)', quantity: 8, price: 19.00, batchAssigned: 'L-GENERAL' }
+          { id: '3', sku: 'CERV-ATL-LAT', name: 'Cerveza Atlas Golden Light 12oz (Fardo x 24 Latas)', quantity: 40, price: 18.00, batchAssigned: 'L-GENERAL', requiresEmpty: false },
+          { id: '12', sku: 'SNK-PAP-150', name: 'Papas Artesanales Lisas & Limón 150g (Caja x 20 Bolsas)', quantity: 8, price: 19.00, batchAssigned: 'L-GENERAL', requiresEmpty: false }
         ],
+        emptiesTracking: [],
+        emptiesHistory: [],
         subtotal: 872.00,
         discountRate: 0,
         discountAmount: 0,
@@ -3260,6 +4014,84 @@
         pod: null
       }
     ];
+
+    function isProductReturnable(nameOrUnit, explicitFlag) {
+      if (explicitFlag === true) return true;
+      const lower = String(nameOrUnit || '').toLowerCase();
+      return lower.includes('retornable') || lower.includes('caja x 24') || lower.includes('barril') || lower.includes('keg') || lower.includes('chopp');
+    }
+
+    function ensureOrderFinancialAndEmpties(ord) {
+      if (!ord) return ord;
+      const total = Number(ord.total || 0);
+      if (ord.amountPaid === undefined || ord.amountPaid === null) {
+        const isCredit = String(ord.paymentMethod || '').toLowerCase().includes('crédito');
+        if (ord.paymentStatus === 'Pagado' || (!isCredit && ord.status === 'Entregado')) {
+          ord.amountPaid = total;
+        } else {
+          ord.amountPaid = 0;
+        }
+      }
+      ord.amountPaid = Number(ord.amountPaid || 0);
+      const due = Math.max(0, +(total - ord.amountPaid).toFixed(2));
+      ord.amountDue = due;
+      ord.paymentStatus = due <= 0.01 ? 'Pagado' : 'Pendiente';
+
+      if (!Array.isArray(ord.emptiesTracking)) {
+        ord.emptiesTracking = [];
+        (ord.items || []).forEach(it => {
+          if (isProductReturnable(it.name, it.requiresEmpty)) {
+            ord.emptiesTracking.push({
+              type: it.name,
+              delivered: Number(it.quantity || 0),
+              returned: Number(it.emptiesReturned || 0)
+            });
+          }
+        });
+      }
+      if (!Array.isArray(ord.emptiesHistory)) {
+        ord.emptiesHistory = [];
+      }
+      return ord;
+    }
+
+    function getOrderEmptiesSummary(ord) {
+      ensureOrderFinancialAndEmpties(ord);
+      let delivered = 0;
+      let returned = 0;
+      let pending = 0;
+      let inFavor = 0;
+      (ord.emptiesTracking || []).forEach(e => {
+        const del = Number(e.delivered || 0);
+        const ret = Number(e.returned || 0);
+        delivered += del;
+        returned += ret;
+        if (ret > del) {
+          inFavor += (ret - del);
+        } else {
+          pending += (del - ret);
+        }
+      });
+      return { delivered, returned, pending, inFavor, list: ord.emptiesTracking || [] };
+    }
+
+    function getClientCreditEmptiesTotal(clientObj) {
+      if (!clientObj || !Array.isArray(clientObj.creditEmpties)) return 0;
+      return clientObj.creditEmpties.reduce((s, e) => s + Math.max(0, Number(e.qty || 0)), 0);
+    }
+
+    function addOrUpdateClientCreditEmpty(clientObj, emptyType, deltaQty) {
+      if (!clientObj || !emptyType || !deltaQty) return;
+      if (!Array.isArray(clientObj.creditEmpties)) clientObj.creditEmpties = [];
+      const cleanType = String(emptyType).trim();
+      const existing = clientObj.creditEmpties.find(e => e.type.toLowerCase() === cleanType.toLowerCase());
+      if (existing) {
+        existing.qty = Math.max(0, Number(existing.qty || 0) + Number(deltaQty));
+      } else if (deltaQty > 0) {
+        clientObj.creditEmpties.push({ type: cleanType, qty: Number(deltaQty) });
+      }
+      clientObj.creditEmpties = clientObj.creditEmpties.filter(e => Number(e.qty || 0) > 0);
+    }
 
     function initDatabase() {
       products = JSON.parse(JSON.stringify(defaultProducts));
@@ -3295,6 +4127,7 @@
       batches.forEach(b => promises.push(window.syncDocToCloud('batches', b.id, b)));
       suppliers.forEach(s => promises.push(window.syncDocToCloud('suppliers', s.id, s)));
       cashouts.forEach(cs => promises.push(window.syncDocToCloud('cashouts', cs.id, cs)));
+      movementsLog.forEach(mv => promises.push(window.syncDocToCloud('movements', mv.id, mv)));
       telegramBots.forEach(tb => promises.push(window.syncDocToCloud('telegram_bots', tb.id, tb)));
       telegramChats.forEach(tc => promises.push(window.syncDocToCloud('telegram_chats', tc.id, tc)));
       await Promise.all(promises);
@@ -3334,6 +4167,7 @@
       if (colName === 'batches') batches = dataList;
       if (colName === 'suppliers') suppliers = dataList;
       if (colName === 'cashouts') cashouts = dataList;
+      if (colName === 'movements') movementsLog = dataList;
       if (colName === 'telegram_bots') telegramBots = dataList;
       if (colName === 'telegram_chats') telegramChats = dataList;
 
@@ -3390,9 +4224,12 @@
     }
 
     function refreshActiveViews() {
+      orders.forEach(o => ensureOrderFinancialAndEmpties(o));
       renderDashboard();
       renderOrdersList();
       renderOnlineOrders();
+      renderReceivablesView();
+      renderHistoryView();
       renderPurchases();
       renderBatches();
       renderInventoryTable();
@@ -3409,12 +4246,14 @@
     }
 
     function navigateTab(tabId) {
-      const sections = ['dashboard', 'online-orders', 'orders', 'pos', 'purchases', 'fefo', 'inventory', 'clients', 'logistics', 'cashout', 'settings'];
+      const sections = ['dashboard', 'online-orders', 'orders', 'pos', 'receivables', 'history', 'purchases', 'fefo', 'inventory', 'clients', 'logistics', 'cashout', 'settings'];
       const titles = {
         'dashboard': 'Panel de Control Distribuidora',
         'online-orders': 'Pedidos en Línea (Portal B2B)',
         'orders': 'Gestión de Pedidos & Despacho',
         'pos': 'Punto de Venta / Preventa Mayorista',
+        'receivables': 'Facturas por Cobrar & Control de Vacíos',
+        'history': 'Historial de Facturas, Cobros y Movimientos',
         'purchases': 'Compras, Proveedores y Recepción',
         'fefo': 'Control de Lotes y Caducidad (FEFO)',
         'inventory': 'Almacén Central e Inventario',
@@ -3428,12 +4267,14 @@
         'dashboard': 'Monitoreo de despachos, almacén central y flujo comercial en tiempo real',
         'online-orders': 'Aprobación y rechazo de órdenes ingresadas por los clientes en vivo',
         'orders': 'Control de picking, facturación y estados de ruta sincronizados',
-        'pos': 'Carga rápida con escaneo de código de barras y precios B2B desde Firebase',
+        'pos': 'Carga rápida con retiro de vacíos, cobro al momento y firma térmica',
+        'receivables': 'Módulo compartido para Cajero y Chofer: cobro de facturas pendientes y retiro detallado de envases vacíos',
+        'history': 'Bitácora cronológica y auditable de facturas, abonos recibidos, envases vacíos, arqueos y entradas de mercancía',
         'purchases': 'Emisión de órdenes de compra y recepción con ajuste de Costo Promedio (PPP)',
         'fefo': 'Priorización de despacho First Expired, First Out para evitar mermas',
         'inventory': 'Existencias, lotes, precios mayoristas y alertas de reorden en la nube',
         'clients': 'Saldos pendientes, límites de crédito comercial, precios B2B y enlaces',
-        'logistics': 'Unidades de transporte, mapa en vivo de clientes y prueba POD',
+        'logistics': 'Unidades de transporte, cobros en ruta, retiro de vacíos y prueba POD',
         'cashout': 'Liquidación de efectivo de ruta, cheques recibidos y envases retornables recolectados',
         'settings': 'Conexión 100% Firebase Firestore, registro de múltiples bots (@BotFather) y canales'
       };
@@ -3463,6 +4304,8 @@
       if (tabId === 'online-orders') renderOnlineOrders();
       if (tabId === 'orders') renderOrdersList();
       if (tabId === 'pos') renderPosWorkspace();
+      if (tabId === 'receivables') renderReceivablesView();
+      if (tabId === 'history') renderHistoryView();
       if (tabId === 'purchases') renderPurchases();
       if (tabId === 'fefo') renderBatches();
       if (tabId === 'inventory') renderInventoryTable();
@@ -3666,6 +4509,7 @@
       batches = [];
       suppliers = [];
       cashouts = [];
+      movementsLog = [];
       activeCart = [];
       currentViewingOrder = null;
       
@@ -3692,9 +4536,14 @@
     window.toggleCreditDays = function() {
       const method = document.getElementById('posPaymentMethod').value;
       const container = document.getElementById('posCreditDaysContainer');
+      const statusSel = document.getElementById('posImmediatePaymentStatus');
       if (method === 'Crédito') {
         container.classList.remove('hidden');
         document.getElementById('posCreditDays').value = appSettings.defaultCreditDays || 15;
+        if (statusSel) {
+          statusSel.value = 'Pendiente';
+          handlePosPaymentStatusChange();
+        }
       } else {
         container.classList.add('hidden');
       }
@@ -3892,6 +4741,8 @@
       switch (status) {
         case 'Por Aprobar':
           return `<span class="bg-fuchsia-100 text-fuchsia-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-bell text-[10px] animate-pulse"></i> Por Aprobar</span>`;
+        case 'En Consignación':
+          return `<span class="bg-purple-100 text-purple-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-champagne-glasses text-[10px]"></i> En Consignación</span>`;
         case 'Pendiente':
           return `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-hourglass-start text-[10px]"></i> Pendiente</span>`;
         case 'En Preparación':
@@ -3931,11 +4782,23 @@
       }
 
       filtered.forEach(ord => {
+        ensureOrderFinancialAndEmpties(ord);
+        const empSum = getOrderEmptiesSummary(ord);
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition border-b border-slate-100 font-medium";
 
         const itemsCount = (ord.items || []).reduce((s, it) => s + Number(it.quantity || 0), 0);
         const batchesSummary = (ord.items || []).map(it => it.batchAssigned || 'FEFO').filter((v, i, a) => a.indexOf(v) === i).join(', ');
+
+        const payBadge = ord.amountDue > 0.01
+          ? `<span class="block text-[10px] font-bold text-rose-600">Por cobrar: $${ord.amountDue.toFixed(2)}</span>`
+          : `<span class="block text-[10px] font-bold text-emerald-600">Pagado</span>`;
+
+        const empBadge = empSum.pending > 0
+          ? `<span class="block text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5">Debe ${empSum.pending} vacíos</span>`
+          : (empSum.inFavor > 0
+              ? `<span class="block text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5">+${empSum.inFavor} vacíos a favor</span>`
+              : (empSum.returned > 0 ? `<span class="block text-[10px] font-bold text-emerald-700 mt-0.5">${empSum.returned} vacíos retirados</span>` : ''));
 
         tr.innerHTML = `
           <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
@@ -3946,8 +4809,12 @@
           <td class="py-3 px-4">
             <span class="text-slate-800 font-semibold block">${itemsCount} bultos/cajas</span>
             <span class="text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">Lotes: ${batchesSummary}</span>
+            ${empBadge}
           </td>
-          <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
+          <td class="py-3 px-4">
+            <span class="font-black text-slate-900">$${Number(ord.total).toFixed(2)}</span>
+            ${payBadge}
+          </td>
           <td class="py-3 px-4 text-xs font-semibold text-slate-600">${ord.paymentMethod}</td>
           <td class="py-3 px-4">${getStatusBadge(ord.status)}</td>
           <td class="py-3 px-4 text-slate-700 text-xs">
@@ -3955,7 +4822,20 @@
           </td>
           <td class="py-3 px-4 text-center">
             <div class="flex items-center justify-center gap-1">
-              <button onclick="viewInvoice('${ord.id}')" title="Ver Guía / Factura" class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition">
+              ${
+                ord.status === 'En Consignación' || ord.isConsignment
+                  ? `<button onclick="openConsignmentSettleModal('${ord.id}')" title="Liquidar Evento / Devolver Cajas Cerradas" class="p-2 bg-purple-100 hover:bg-purple-600 text-purple-700 hover:text-white rounded-lg transition font-bold text-xs">
+                      <i class="fa-solid fa-champagne-glasses"></i>
+                    </button>`
+                  : ''
+              }
+              <button onclick="openCollectAndEmptiesModal('${ord.id}')" title="Cobrar Factura / Retirar Vacíos / Firmar" class="p-2 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg transition font-bold text-xs">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </button>
+              <button onclick="editOrderDirect('${ord.id}')" title="Editar Factura" class="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="viewInvoice('${ord.id}')" title="Ver Guía / Factura / Ticket" class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition">
                 <i class="fa-solid fa-file-invoice"></i>
               </button>
               ${
@@ -4169,6 +5049,8 @@
       const limitEl = document.getElementById('posClientCreditLimit');
       const badge = document.getElementById('posClientBadge');
       const genericInputContainer = document.getElementById('posGenericNameContainer');
+      const creditEmptiesBox = document.getElementById('posClientCreditEmptiesBox');
+      const creditEmptiesText = document.getElementById('posClientCreditEmptiesText');
       
       if (clientId === 'GENERICO') {
         if (debtEl) debtEl.innerText = `$0.00`;
@@ -4177,6 +5059,7 @@
           badge.innerText = 'VENTA RÁPIDA';
           badge.className = 'px-3 py-1 rounded-lg font-bold text-[10px] bg-blue-100 text-blue-700 uppercase tracking-wider shadow-sm';
         }
+        if (creditEmptiesBox) creditEmptiesBox.classList.add('hidden');
         if (genericInputContainer) genericInputContainer.classList.remove('hidden');
         filterPosCatalog();
         recalculateTotals();
@@ -4190,6 +5073,17 @@
 
       if (debtEl) debtEl.innerText = `$${Number(client.currentDebt || 0).toFixed(2)}`;
       if (limitEl) limitEl.innerText = `$${Number(client.creditLimit || 0).toLocaleString()}`;
+
+      const favTotal = getClientCreditEmptiesTotal(client);
+      if (creditEmptiesBox && creditEmptiesText) {
+        if (favTotal > 0) {
+          const detailStr = (client.creditEmpties || []).map(e => `${e.qty} ${e.type}`).join(', ');
+          creditEmptiesText.innerText = `${favTotal} (${detailStr})`;
+          creditEmptiesBox.classList.remove('hidden');
+        } else {
+          creditEmptiesBox.classList.add('hidden');
+        }
+      }
       
       if (badge) {
         if (client.currentDebt > client.creditLimit * 0.8) {
@@ -4267,6 +5161,7 @@
         }
         existing.quantity += 1;
       } else {
+        const autoReturnable = isProductReturnable(prod.name + ' ' + prod.unit, false);
         activeCart.push({
           id: prod.id,
           sku: prod.sku,
@@ -4275,7 +5170,8 @@
           quantity: 1,
           batchAssigned: assignedBatch,
           isCold: false,
-          requiresEmpty: false,
+          requiresEmpty: autoReturnable,
+          emptiesReturnedNow: 0,
           note: '',
           isCustom: false
         });
@@ -4509,6 +5405,7 @@
         }
         existing.quantity += qty;
       } else {
+        const autoReturnable = isProductReturnable(prod.name + ' ' + prod.unit, false);
         activeCart.push({
           id: prod.id,
           sku: prod.sku,
@@ -4517,7 +5414,8 @@
           quantity: qty,
           batchAssigned: assignedBatch,
           isCold: isCold,
-          requiresEmpty: false,
+          requiresEmpty: autoReturnable,
+          emptiesReturnedNow: 0,
           note: note,
           isCustom: false
         });
@@ -4560,6 +5458,15 @@
       }
     }
 
+    function toggleItemRequiresEmpty(productId) {
+      const item = activeCart.find(it => it.id === productId);
+      if (item) {
+        item.requiresEmpty = !item.requiresEmpty;
+        if (!item.requiresEmpty) item.emptiesReturnedNow = 0;
+        renderCartUI();
+      }
+    }
+
     function promptItemNote(productId) {
       const item = activeCart.find(it => it.id === productId);
       if (!item) return;
@@ -4568,6 +5475,8 @@
 
     function clearCurrentCart() {
       activeCart = [];
+      posCustomEmptiesPickedUp = [];
+      clearPosInlineSignature();
       renderCartUI();
       filterPosCatalog();
     }
@@ -4583,6 +5492,7 @@
 
       if (activeCart.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">El carrito está vacío. Toca "+ Añadir" o haz clic en cualquier producto.</p>`;
+        renderPosEmptiesPickupList();
         recalculateTotals();
         return;
       }
@@ -4612,6 +5522,9 @@
               <button onclick="toggleItemCold('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.isCold ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'}">
                 <i class="fa-solid fa-snowflake ${item.isCold ? 'animate-pulse' : ''}"></i> ${item.isCold ? 'Frío' : 'Clima'}
               </button>
+              <button onclick="toggleItemRequiresEmpty('${item.id}')" class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-colors flex items-center gap-1 ${item.requiresEmpty ? 'bg-amber-100 border-amber-300 text-amber-800 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200'}" title="Marcar si usa envase retornable / vacío">
+                <i class="fa-solid fa-recycle"></i> ${item.requiresEmpty ? 'Retornable' : 'Sin Vacío'}
+              </button>
             </div>
 
             <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
@@ -4628,31 +5541,175 @@
         container.appendChild(itemRow);
       });
 
+      renderPosEmptiesPickupList();
       recalculateTotals();
     }
 
+    let posCustomEmptiesPickedUp = [];
+    let posInlineSignatureData = null;
+    let isDrawingPosInlineSig = false;
+
+    window.handlePosPaymentStatusChange = function() {
+      const status = document.getElementById('posImmediatePaymentStatus')?.value || 'Pagado';
+      const partialRow = document.getElementById('posPartialPayRow');
+      const mixedBox = document.getElementById('posMixedPaymentBox');
+      const consignBox = document.getElementById('posConsignmentBox');
+
+      if (partialRow) partialRow.classList.toggle('hidden', status !== 'Pendiente');
+      if (mixedBox) mixedBox.classList.toggle('hidden', status !== 'Mixto');
+      if (consignBox) consignBox.classList.toggle('hidden', status !== 'Consignacion');
+
+      if (status !== 'Pendiente') {
+        const inp = document.getElementById('posInitialPaidAmount');
+        if (inp) inp.value = '0';
+      }
+      if (status === 'Mixto') {
+        recalcPosMixedPayment();
+      }
+    };
+
+    window.recalcPosMixedPayment = function() {
+      const { total } = recalculateTotals();
+      const cash = Math.max(0, parseFloat(document.getElementById('posMixCash')?.value) || 0);
+      const yape = Math.max(0, parseFloat(document.getElementById('posMixYape')?.value) || 0);
+      const bank = Math.max(0, parseFloat(document.getElementById('posMixBank')?.value) || 0);
+      const sumPaid = cash + yape + bank;
+      const rem = Math.max(0, +(total - sumPaid).toFixed(2));
+      const lbl = document.getElementById('posMixedRemainingLabel');
+      if (lbl) {
+        lbl.innerText = rem > 0.01 ? `Resta a Crédito: $${rem.toFixed(2)}` : '¡Total Cubierto!';
+        lbl.className = rem > 0.01 ? 'text-[10px] font-bold text-rose-600' : 'text-[10px] font-bold text-emerald-600';
+      }
+    };
+
+    window.renderPosEmptiesPickupList = function() {
+      const listEl = document.getElementById('pos-empties-pickup-list');
+      if (!listEl) return;
+
+      const returnableCartItems = activeCart.filter(it => it.requiresEmpty);
+      const cartRows = returnableCartItems.map((it) => {
+        const retVal = Number(it.emptiesReturnedNow || 0);
+        const pendVal = Math.max(0, it.quantity - retVal);
+        const favVal = Math.max(0, retVal - it.quantity);
+        return `
+        <div class="flex items-center justify-between gap-2 bg-white p-1.5 rounded-lg border border-amber-200 text-[11px]">
+          <div class="flex-1 min-w-0">
+            <span class="font-bold text-slate-800 block truncate">${escapeHtml(it.name)}</span>
+            <span class="text-[9px] text-slate-500">Lleva: <b>${it.quantity}</b> | ${favVal > 0 ? `<b class="text-indigo-600">+${favVal} A FAVOR</b>` : `Pendientes: <b>${pendVal}</b>`}</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <span class="text-[10px] text-amber-800 font-semibold">Retiró:</span>
+            <input type="number" min="0" value="${retVal}" oninput="updatePosCartItemEmpty('${it.id}', this.value)" class="w-14 text-center font-black text-xs p-1 border border-amber-300 rounded bg-amber-50">
+          </div>
+        </div>
+      `;
+      }).join('');
+
+      const customRows = posCustomEmptiesPickedUp.map((ce, idx) => `
+        <div class="flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-blue-200 text-[11px]">
+          <input type="text" value="${escapeHtml(ce.type)}" oninput="posCustomEmptiesPickedUp[${idx}].type = this.value" placeholder="¿De qué es el vacío? (Ej: Cajas Panamá)" class="flex-1 p-1 border border-slate-200 rounded text-[11px]">
+          <input type="number" min="0" value="${ce.returned}" oninput="posCustomEmptiesPickedUp[${idx}].returned = parseInt(this.value) || 0" placeholder="Cant" class="w-14 text-center font-black p-1 border border-slate-200 rounded text-[11px]">
+          <button type="button" onclick="posCustomEmptiesPickedUp.splice(${idx}, 1); renderPosEmptiesPickupList();" class="text-rose-500 px-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      `).join('');
+
+      listEl.innerHTML = cartRows + customRows;
+    };
+
+    window.updatePosCartItemEmpty = function(itemId, val) {
+      const it = activeCart.find(i => i.id === itemId);
+      if (it) {
+        it.emptiesReturnedNow = Math.max(0, parseInt(val) || 0);
+        renderPosEmptiesPickupList();
+      }
+    };
+
+    window.addPosCustomEmptyRow = function() {
+      posCustomEmptiesPickedUp.push({ type: '', delivered: 0, returned: 1 });
+      renderPosEmptiesPickupList();
+    };
+
+    window.togglePosInlineSignature = function() {
+      const box = document.getElementById('pos-inline-sig-container');
+      if (!box) return;
+      box.classList.toggle('hidden');
+      if (!box.classList.contains('hidden')) {
+        setTimeout(initPosInlineSignatureCanvas, 80);
+      }
+    };
+
+    function initPosInlineSignatureCanvas() {
+      const canvas = document.getElementById('posInlineSignatureCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width || 280;
+      canvas.height = rect.height || 90;
+      ctx.lineWidth = 2.8;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#0f172a';
+
+      const getPos = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: cx - r.left, y: cy - r.top };
+      };
+      const start = (e) => {
+        isDrawingPosInlineSig = true;
+        const p = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+      };
+      const move = (e) => {
+        if (!isDrawingPosInlineSig) return;
+        const p = getPos(e);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      };
+      const end = () => {
+        if (isDrawingPosInlineSig) {
+          isDrawingPosInlineSig = false;
+          posInlineSignatureData = canvas.toDataURL('image/png');
+        }
+      };
+      canvas.onmousedown = start;
+      canvas.onmousemove = move;
+      canvas.onmouseup = end;
+      canvas.onmouseleave = end;
+      canvas.ontouchstart = (e) => { e.preventDefault(); start(e); };
+      canvas.ontouchmove = (e) => { e.preventDefault(); move(e); };
+      canvas.ontouchend = (e) => { e.preventDefault(); end(); };
+    }
+
+    window.clearPosInlineSignature = function() {
+      const canvas = document.getElementById('posInlineSignatureCanvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      posInlineSignatureData = null;
+      const recInput = document.getElementById('pos-sig-receiver');
+      if (recInput) recInput.value = '';
+    };
+
     function recalculateTotals() {
-      const subtotal = activeCart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-      const discountInput = document.getElementById('pos-discount-rate');
-      const discountRate = Math.min(100, Math.max(0, Number(discountInput?.value || 0)));
+      const subtotal = activeCart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
+      const discountRate = Math.min(100, Math.max(0, parseFloat(document.getElementById('pos-discount-rate')?.value || 0)));
       const discountAmount = subtotal * (discountRate / 100);
       const taxable = subtotal - discountAmount;
-      
-      let taxRate = 0.07;
-      const clientId = document.getElementById('posClientSelect')?.value;
-      if (clientId && clientId !== 'GENERICO') {
-        const client = clients.find(c => c.id === clientId);
-        if (client && client.isExempt) {
-          taxRate = 0;
-        }
-      }
-      
-      const tax = taxable * taxRate;
+
+      const clientId = document.getElementById('posClientSelect')?.value || 'GENERICO';
+      const clientObj = clients.find(c => c.id === clientId);
+      const isExempt = clientObj ? Boolean(clientObj.isExempt) : false;
+
+      const tax = isExempt ? 0 : taxable * 0.07;
       const total = taxable + tax;
 
       const subEl = document.getElementById('pos-subtotal');
       const taxEl = document.getElementById('pos-tax');
       const totEl = document.getElementById('pos-total');
+
       if (subEl) subEl.innerText = `$${subtotal.toFixed(2)}`;
       if (taxEl) taxEl.innerText = `$${tax.toFixed(2)}`;
       if (totEl) totEl.innerText = `$${total.toFixed(2)}`;
@@ -4661,6 +5718,7 @@
       const mobileQty = document.getElementById('pos-mobile-bar-qty');
       const mobileTot = document.getElementById('pos-mobile-bar-total');
       const totalUnits = activeCart.reduce((s, i) => s + Number(i.quantity || 0), 0);
+
       if (mobileBar) {
         if (totalUnits > 0) {
           mobileBar.classList.remove('hidden');
@@ -4670,75 +5728,144 @@
           mobileBar.classList.add('hidden');
         }
       }
+
+      return { subtotal, discountRate, discountAmount, tax, total };
     }
 
     function submitOrder() {
       if (activeCart.length === 0) {
-        showNotification('Agrega al menos un producto al pedido.', 'warning');
+        showNotification('Agrega al menos un producto al pedido antes de facturar.', 'warning');
         return;
       }
 
       const urlParams = new URLSearchParams(window.location.search);
       const isClientMode = urlParams.get('role') === 'cliente';
-      const forcedCid = urlParams.get('cid');
+      const forcedClientId = urlParams.get('cid');
 
-      const clientId = (isClientMode && forcedCid) ? forcedCid : document.getElementById('posClientSelect').value;
-      let finalClientName = 'Consumidor Final';
+      const clientId = (isClientMode && forcedClientId)
+        ? forcedClientId
+        : (document.getElementById('posClientSelect')?.value || 'GENERICO');
+
+      let finalClientName = 'Consumidor Final / Mostrador';
       let finalClientTax = 'C/F';
-      let finalClientAddress = 'Venta Rápida de Mostrador';
+      let finalClientAddress = 'Mostrador / Despacho Local';
 
       if (clientId === 'GENERICO') {
-        const typedName = document.getElementById('posGenericClientName').value.trim();
-        if (typedName) {
-          finalClientName = typedName;
+        const customGenericName = (document.getElementById('posGenericClientName')?.value || '').trim();
+        if (customGenericName) {
+          finalClientName = customGenericName;
         }
       } else {
-        const client = clients.find(c => c.id === clientId);
-        if (!client) {
-          showNotification('Selecciona un cliente válido.', 'warning');
-          return;
+        const cli = clients.find(c => c.id === clientId);
+        if (cli) {
+          finalClientName = cli.name;
+          finalClientTax = cli.taxId || 'C/F';
+          finalClientAddress = cli.address || 'Dirección registrada';
         }
-        finalClientName = client.name;
-        finalClientTax = client.taxId;
-        finalClientAddress = client.address;
       }
 
-      const driver = isClientMode ? 'Por asignar' : document.getElementById('posAssignedDriver').value;
-      let paymentMethod = document.getElementById('posPaymentMethod').value;
+      let paymentMethod = document.getElementById('posPaymentMethod')?.value || 'Efectivo';
       if (paymentMethod === 'Crédito') {
-        if (clientId === 'GENERICO') {
-          showNotification('Un consumidor final no puede usar método de crédito. Presione "Nuevo Fijo" para crear al cliente.', 'warning');
-          return;
-        }
-        const days = document.getElementById('posCreditDays').value || 15;
+        const days = parseInt(document.getElementById('posCreditDays')?.value || appSettings.defaultCreditDays || 15);
         paymentMethod = `Crédito ${days} días`;
       }
-      const discountRate = Number(document.getElementById('pos-discount-rate').value || 0);
 
-      for (const item of activeCart) {
-        if (!item.isCustom) {
-          const prod = products.find(p => p.id === item.id);
-          if (prod && prod.stock < item.quantity) {
-            showNotification(`No hay stock suficiente para ${prod.name}`, 'warning');
-            return;
+      const driver = isClientMode
+        ? 'Por asignar'
+        : (document.getElementById('posAssignedDriver')?.value || 'Retiro en Bodega');
+
+      const { subtotal, discountRate, discountAmount, tax, total } = recalculateTotals();
+
+      const posPayStatus = isClientMode ? 'Pendiente' : (document.getElementById('posImmediatePaymentStatus')?.value || 'Pagado');
+      const isConsignmentOrder = !isClientMode && posPayStatus === 'Consignacion';
+      const consignmentNotes = isConsignmentOrder ? (document.getElementById('posConsignmentNotes')?.value || '').trim() : '';
+      const isCreditMethod = paymentMethod.includes('Crédito');
+      let amountPaidNow = total;
+      let initialPaymentsBreakdown = [];
+
+      if (isClientMode || isConsignmentOrder) {
+        amountPaidNow = 0;
+        if (isConsignmentOrder) {
+          paymentMethod = 'Consignación / Evento';
+        }
+      } else if (posPayStatus === 'Mixto') {
+        const mCash = Math.max(0, parseFloat(document.getElementById('posMixCash')?.value) || 0);
+        const mYape = Math.max(0, parseFloat(document.getElementById('posMixYape')?.value) || 0);
+        const mBank = Math.max(0, parseFloat(document.getElementById('posMixBank')?.value) || 0);
+        amountPaidNow = Math.min(total, +(mCash + mYape + mBank).toFixed(2));
+        const partsDesc = [];
+        if (mCash > 0) partsDesc.push(`Efectivo $${mCash.toFixed(2)}`);
+        if (mYape > 0) partsDesc.push(`Yape $${mYape.toFixed(2)}`);
+        if (mBank > 0) partsDesc.push(`Banco $${mBank.toFixed(2)}`);
+        paymentMethod = partsDesc.length > 0 ? `Mixto (${partsDesc.join(' + ')})` : 'Pago Mixto';
+        initialPaymentsBreakdown = [
+          ...(mCash > 0 ? [{ method: 'Efectivo', amount: mCash }] : []),
+          ...(mYape > 0 ? [{ method: 'Yape', amount: mYape }] : []),
+          ...(mBank > 0 ? [{ method: 'Transferencia Bancaria', amount: mBank }] : [])
+        ];
+      } else if (isCreditMethod || posPayStatus === 'Pendiente') {
+        const initialInput = parseFloat(document.getElementById('posInitialPaidAmount')?.value || '0') || 0;
+        amountPaidNow = Math.min(total, Math.max(0, initialInput));
+      }
+      const amountDueNow = Math.max(0, +(total - amountPaidNow).toFixed(2));
+      const finalPaymentStatus = amountDueNow <= 0.01 ? 'Pagado' : 'Pendiente';
+
+      const emptiesTracking = [];
+      const emptiesHistory = [];
+      const nowStamp = new Date().toLocaleString();
+
+      activeCart.forEach(it => {
+        if (it.requiresEmpty || isProductReturnable(it.name, false)) {
+          const retNow = Math.max(0, parseInt(it.emptiesReturnedNow) || 0);
+          const delivQty = Number(it.quantity || 0);
+          emptiesTracking.push({
+            type: it.name,
+            delivered: delivQty,
+            returned: retNow
+          });
+          if (retNow > 0) {
+            emptiesHistory.push({
+              date: nowStamp,
+              type: it.name,
+              qty: retNow
+            });
+          }
+          // Si retiró más vacíos de los que llevó, la diferencia queda a favor del cliente
+          if (retNow > delivQty && clientId !== 'GENERICO') {
+            const cliObj = clients.find(c => c.id === clientId);
+            if (cliObj) {
+              addOrUpdateClientCreditEmpty(cliObj, it.name, retNow - delivQty);
+              if (window.syncDocToCloud) window.syncDocToCloud('clients', cliObj.id, cliObj);
+            }
           }
         }
-      }
+      });
 
-      const subtotal = activeCart.reduce((s, it) => s + (it.quantity * it.price), 0);
-      const discountAmount = subtotal * (discountRate / 100);
-      const taxable = subtotal - discountAmount;
-      
-      let taxRate = 0.07;
-      if (clientId !== 'GENERICO') {
-        const client = clients.find(c => c.id === clientId);
-        if (client && client.isExempt) taxRate = 0;
-      }
-      
-      const tax = taxable * taxRate;
-      const total = taxable + tax;
+      posCustomEmptiesPickedUp.forEach(ce => {
+        const cleanType = (ce.type || '').trim();
+        const retQty = Math.max(0, parseInt(ce.returned) || 0);
+        const delivQty = Number(ce.delivered || 0);
+        if (cleanType && retQty > 0) {
+          emptiesTracking.push({
+            type: cleanType,
+            delivered: delivQty,
+            returned: retQty
+          });
+          emptiesHistory.push({
+            date: nowStamp,
+            type: cleanType,
+            qty: retQty
+          });
+          if (retQty > delivQty && clientId !== 'GENERICO') {
+            const cliObj = clients.find(c => c.id === clientId);
+            if (cliObj) {
+              addOrUpdateClientCreditEmpty(cliObj, cleanType, retQty - delivQty);
+              if (window.syncDocToCloud) window.syncDocToCloud('clients', cliObj.id, cliObj);
+            }
+          }
+        }
+      });
 
-      // Only deduct stock immediately if not 'Por Aprobar' (when approved, stock is deducted)
       if (!isClientMode) {
         activeCart.forEach(item => {
           if (!item.isCustom) {
@@ -4756,20 +5883,45 @@
         });
       }
 
-      if (paymentMethod.includes('Crédito') && clientId !== 'GENERICO') {
+      if (amountDueNow > 0 && clientId !== 'GENERICO') {
         const client = clients.find(c => c.id === clientId);
         if (client) {
-          client.currentDebt = (Number(client.currentDebt) || 0) + total;
+          client.currentDebt = (Number(client.currentDebt) || 0) + amountDueNow;
           if (window.syncDocToCloud) window.syncDocToCloud('clients', client.id, client);
         }
       }
 
-      const newStatus = isClientMode ? 'Por Aprobar' : (driver.includes('Bodega') ? 'Entregado' : 'Despachando');
+      const newStatus = isClientMode
+        ? 'Por Aprobar'
+        : (isConsignmentOrder ? 'En Consignación' : (driver.includes('Bodega') ? 'Entregado' : 'Despachando'));
       const maxOrderNum = orders.reduce((max, o) => {
         const num = parseInt(String(o.id).replace('ORD-', '')) || 1000;
         return num > max ? num : max;
       }, 1000);
       const newId = `ORD-${maxOrderNum + 1}`;
+
+      const receiverSigned = (document.getElementById('pos-sig-receiver')?.value || '').trim() || finalClientName;
+      const initialPod = posInlineSignatureData ? {
+        receiverName: receiverSigned,
+        receiverId: finalClientTax || 'C/F',
+        timestamp: nowStamp,
+        signature: posInlineSignatureData,
+        photo: null
+      } : null;
+
+      const builtPaymentsHistory = initialPaymentsBreakdown.length > 0
+        ? initialPaymentsBreakdown.map(pb => ({
+            date: nowStamp,
+            amount: pb.amount,
+            method: pb.method,
+            note: `Pago mixto al facturar (${pb.method})`
+          }))
+        : (amountPaidNow > 0 ? [{
+            date: nowStamp,
+            amount: amountPaidNow,
+            method: paymentMethod,
+            note: amountDueNow <= 0.01 ? 'Pago completo al facturar' : 'Abono inicial al facturar'
+          }] : []);
 
       const newOrder = {
         id: newId,
@@ -4781,14 +5933,22 @@
         date: new Date().toISOString().split('T')[0],
         driver: driver,
         paymentMethod: paymentMethod,
+        paymentStatus: finalPaymentStatus,
+        amountPaid: amountPaidNow,
+        amountDue: amountDueNow,
         status: newStatus,
-        items: activeCart.map(item => ({ ...item })),
+        isConsignment: isConsignmentOrder,
+        consignmentNotes: consignmentNotes,
+        items: activeCart.map(item => ({ ...item, initialDispatchedQty: item.quantity })),
+        emptiesTracking: emptiesTracking,
+        emptiesHistory: emptiesHistory,
+        paymentsHistory: builtPaymentsHistory,
         subtotal: subtotal,
         discountRate: discountRate,
         discountAmount: discountAmount,
         tax: tax,
         total: total,
-        pod: null
+        pod: initialPod
       };
 
       orders.unshift(newOrder);
@@ -4803,6 +5963,7 @@
       } else {
         showNotification(`Pedido ${newId} generado y sincronizado en Firebase.`, 'success');
         clearCurrentCart();
+        refreshActiveViews();
         viewInvoice(newId);
       }
     }
@@ -5355,6 +6516,31 @@
         photoContainer.innerHTML = `<span class="text-xs text-slate-400">Sin foto adjunta</span>`;
       }
 
+      // Mostrar resumen de cobro y vacíos (incluyendo vacíos a favor del cliente) en la factura impresa
+      ensureOrderFinancialAndEmpties(order);
+      const empSum = getOrderEmptiesSummary(order);
+      const payEmpBox = document.getElementById('inv-payment-empties-box');
+      if (payEmpBox) {
+        const empDetails = empSum.list.map(e => {
+          const del = Number(e.delivered || 0);
+          const ret = Number(e.returned || 0);
+          const pend = Math.max(0, del - ret);
+          const fav = Math.max(0, ret - del);
+          return `<div class="flex justify-between text-[11px]">
+            <span>• ${escapeHtml(e.type)}</span>
+            <span>Entregados: <b>${del}</b> | Retirados: <b class="text-emerald-700">${ret}</b> | ${fav > 0 ? `<b class="text-indigo-700">A Favor: +${fav}</b>` : `Pendientes: <b class="text-rose-600">${pend}</b>`}</span>
+          </div>`;
+        }).join('');
+
+        payEmpBox.innerHTML = `
+          <div class="flex flex-wrap justify-between items-center border-b border-amber-200 pb-1">
+            <span class="font-bold text-amber-900 uppercase text-[10px]">Estado de Cobro: <strong class="${order.amountDue > 0.01 ? 'text-rose-600' : 'text-emerald-700'}">${order.paymentStatus}</strong></span>
+            <span class="text-[11px]">Abonado: <b>$${Number(order.amountPaid || 0).toFixed(2)}</b> | Por Cobrar: <b class="text-rose-600">$${Number(order.amountDue || 0).toFixed(2)}</b></span>
+          </div>
+          ${empDetails ? `<div class="pt-1 space-y-0.5"><p class="font-bold text-[10px] uppercase text-amber-900">Control de Envases Vacíos:</p>${empDetails}</div>` : ''}
+        `;
+      }
+
       openModal('modal-invoice');
 
       const approveBtn = document.getElementById('btn-approve-action');
@@ -5631,7 +6817,28 @@
       txt += pad('IMPUESTO (7%):', labelW, 'left') + pad(`$${Number(order.tax || 0).toFixed(2)}`, 10, 'right') + '\n';
       txt += line + '\n';
       txt += pad('TOTAL A PAGAR:', labelW, 'left') + pad(`$${seg.productTotal.toFixed(2)}`, 10, 'right') + '\n';
+      ensureOrderFinancialAndEmpties(order);
+      txt += pad('ABONADO / PAGADO:', labelW, 'left') + pad(`$${Number(order.amountPaid || 0).toFixed(2)}`, 10, 'right') + '\n';
+      txt += pad('SALDO POR COBRAR:', labelW, 'left') + pad(`$${Number(order.amountDue || 0).toFixed(2)}`, 10, 'right') + '\n';
       txt += line + '\n';
+
+      const empSum = getOrderEmptiesSummary(order);
+      if (empSum.list.length > 0) {
+        txt += center('CONTROL DE ENVASES VACIOS', W) + '\n';
+        empSum.list.forEach(e => {
+          const del = Number(e.delivered || 0);
+          const ret = Number(e.returned || 0);
+          const pend = Math.max(0, del - ret);
+          const fav = Math.max(0, ret - del);
+          txt += `${(e.type || '').substring(0, W)}\n`;
+          if (fav > 0) {
+            txt += `  Llevo:${del} Retiro:${ret} A FAVOR:+${fav}\n`;
+          } else {
+            txt += `  Llevo:${del} Retiro:${ret} Pend:${pend}\n`;
+          }
+        });
+        txt += dash + '\n';
+      }
 
       if (appSettings.receiptShowSignLine !== false) {
         txt += '\n\n';
@@ -6185,6 +7392,8 @@
       if (!container) return;
       container.innerHTML = '';
 
+      renderClientInactivityRadar();
+
       const query = (document.getElementById('clientSearch')?.value || '').toLowerCase();
 
       const filtered = clients.filter(c => {
@@ -6200,26 +7409,49 @@
         const card = document.createElement('div');
         card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between";
         const specialCount = c.specialPrices ? Object.keys(c.specialPrices).length : 0;
+        const creditEmptiesTotal = getClientCreditEmptiesTotal(c);
+        const creditEmptiesBadges = (c.creditEmpties || [])
+          .filter(e => Number(e.qty || 0) > 0)
+          .map(e => `<span class="inline-block bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded-md">+${e.qty} ${escapeHtml(e.type)}</span>`)
+          .join(' ');
+
+        const daysSinceLastOrder = getClientDaysSinceLastOrder(c.id, c.name);
+        const reorderBadgeHtml = daysSinceLastOrder === null
+          ? `<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md"><i class="fa-regular fa-clock mr-1"></i>Sin compras aún</span>`
+          : (daysSinceLastOrder >= 7
+              ? `<span class="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md"><i class="fa-solid fa-fire-flame-curved mr-1"></i>Hace ${daysSinceLastOrder} días sin pedir</span>`
+              : `<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md"><i class="fa-solid fa-check mr-1"></i>Compró hace ${daysSinceLastOrder}d</span>`);
+
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-start gap-2">
               <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">${escapeHtml(c.route)}</span>
               <div class="flex flex-wrap items-center justify-end gap-1">
+                <button onclick="openClientCreditEmptiesModal('${c.id}')" title="Gestionar Vacíos a Favor del Cliente" class="text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-hand-holding-heart"></i> A Favor (${creditEmptiesTotal})
+                </button>
                 <button onclick="editClientModal('${c.id}')" title="Editar datos del cliente" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-pen"></i> Editar
                 </button>
                 <button onclick="openSpecialPricesModal('${c.id}')" title="Configurar precios especiales B2B en Firebase" class="text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-tags"></i> Precios (${specialCount})
                 </button>
+                <button onclick="openClientQrModal('${c.id}')" title="Generar Código QR para Nevera / B2B" class="text-slate-800 hover:text-black bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-qrcode"></i> QR
+                </button>
                 <button onclick="copyRoleLink('cliente', '${c.id}')" title="Copiar enlace B2B para cliente" class="text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-link"></i> Link Cliente
                 </button>
               </div>
             </div>
-            <h5 class="font-bold text-slate-900 text-sm mt-2">${escapeHtml(c.name)}</h5>
+            <div class="flex items-center justify-between gap-2 mt-2">
+              <h5 class="font-bold text-slate-900 text-sm">${escapeHtml(c.name)}</h5>
+              ${reorderBadgeHtml}
+            </div>
             <p class="text-xs text-slate-500 font-mono">${escapeHtml(c.taxId)}</p>
             <p class="text-xs text-slate-600 mt-1"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i> ${escapeHtml(c.address || 'Sin dirección')}</p>
             <p class="text-xs text-slate-600 mt-1"><i class="fa-solid fa-phone text-slate-400 mr-1"></i> ${escapeHtml(c.phone)}</p>
+            ${creditEmptiesTotal > 0 ? `<div class="mt-2 pt-2 border-t border-dashed border-indigo-100"><span class="block text-[10px] font-bold uppercase text-indigo-600 mb-1"><i class="fa-solid fa-box-open mr-1"></i>Vacíos a Favor del Cliente:</span><div class="flex flex-wrap gap-1">${creditEmptiesBadges}</div></div>` : ''}
           </div>
           <div class="mt-3 pt-2 border-t border-slate-200 text-xs flex justify-between text-slate-600 font-medium">
             <span>Deuda / Límite:</span>
@@ -6229,6 +7461,307 @@
         container.appendChild(card);
       });
     }
+
+    // =====================================================================
+    // OPCIÓN 14: PREDICCIÓN DE RECOMPRA E INACTIVIDAD DE CLIENTES ("CLIENTE FRÍO")
+    // =====================================================================
+    function getClientDaysSinceLastOrder(clientId, clientName) {
+      const clientOrders = orders.filter(o =>
+        o.status !== 'Cancelado' &&
+        (o.clientId === clientId || (o.clientName || '').toLowerCase() === (clientName || '').toLowerCase())
+      );
+      if (clientOrders.length === 0) return null;
+
+      let latestMs = 0;
+      clientOrders.forEach(o => {
+        const dMs = o.date ? new Date(o.date + 'T12:00:00').getTime() : (o.createdAt || 0);
+        if (dMs > latestMs) latestMs = dMs;
+      });
+      if (!latestMs) return null;
+
+      const referenceNow = new Date('2026-10-22T12:00:00').getTime();
+      const nowMs = Math.max(Date.now(), referenceNow);
+      const diffDays = Math.max(0, Math.floor((nowMs - latestMs) / (1000 * 60 * 60 * 24)));
+      return diffDays;
+    }
+
+    function renderClientInactivityRadar() {
+      const radarBox = document.getElementById('clients-inactivity-radar');
+      const listEl = document.getElementById('clients-inactivity-list');
+      const badgeEl = document.getElementById('clients-cold-count-badge');
+      if (!radarBox || !listEl) return;
+
+      const coldClients = [];
+      clients.forEach(c => {
+        const days = getClientDaysSinceLastOrder(c.id, c.name);
+        if (days === null || days >= 6) {
+          coldClients.push({ client: c, days });
+        }
+      });
+
+      if (coldClients.length === 0) {
+        radarBox.classList.add('hidden');
+        return;
+      }
+
+      radarBox.classList.remove('hidden');
+      if (badgeEl) badgeEl.innerText = `${coldClients.length} Clientes por Contactar`;
+
+      listEl.innerHTML = coldClients.map(({ client, days }) => {
+        const cleanPhone = String(client.phone || '').replace(/[^0-9]/g, '');
+        const msgText = encodeURIComponent(`¡Hola ${client.name}! Te saludamos de ${appSettings.brandPart1 || 'Cerveza'}${appSettings.brandPart2 || 'Logix'}. Hoy pasa nuestro camión por ${client.route} con cerveza bien fría y promociones. ¿Te agendamos pedido?`);
+        const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${msgText}` : '#';
+        const statusMsg = days === null ? 'Sin pedidos recientes' : `${days} días sin pedir (Ciclo: 7d)`;
+
+        return `
+          <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-xs flex flex-col justify-between gap-2">
+            <div>
+              <div class="flex items-center justify-between gap-1">
+                <span class="font-bold text-slate-900 text-xs truncate">${escapeHtml(client.name)}</span>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-700 shrink-0">${statusMsg}</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(client.route)} • ${escapeHtml(client.phone || '')}</p>
+            </div>
+            <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100">
+              ${cleanPhone ? `<a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> Avisar Ruta</a>` : ''}
+              <button onclick="startOrderForColdClient('${client.id}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-cart-plus"></i> Levantar Pedido
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.startOrderForColdClient = function(clientId) {
+      navigateTab('pos');
+      const sel = document.getElementById('posClientSelect');
+      if (sel) {
+        sel.value = clientId;
+        updatePosClientDetails();
+      }
+    };
+
+    // =====================================================================
+    // OPCIÓN 16: GENERADOR DE CÓDIGO QR DINÁMICO B2B POR CLIENTE
+    // =====================================================================
+    let currentQrClientId = null;
+
+    window.openClientQrModal = function(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      currentQrClientId = clientId;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', 'cliente');
+      url.searchParams.set('cid', client.id);
+      if (typeof window.embedFirebaseParamsInUrl === 'function') {
+        window.embedFirebaseParamsInUrl(url);
+      }
+
+      document.getElementById('qr-client-title').innerText = client.name;
+      document.getElementById('qr-client-route').innerText = `${client.route} | ${client.taxId}`;
+
+      const holder = document.getElementById('qr-canvas-holder');
+      if (holder) {
+        holder.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(holder, {
+            text: url.toString(),
+            width: 176,
+            height: 176,
+            colorDark: '#0f172a',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } else {
+          holder.innerHTML = `<p class="text-xs text-slate-500 p-4">QR listo para enlace B2B</p>`;
+        }
+      }
+
+      openModal('modal-client-qr');
+    };
+
+    window.copyCurrentQrLink = function() {
+      if (!currentQrClientId) return;
+      copyRoleLink('cliente', currentQrClientId);
+    };
+
+    window.printClientQrSticker = function() {
+      const stickerEl = document.getElementById('qr-printable-sticker');
+      if (!stickerEl) return;
+      const win = window.open('', '_blank', 'width=400,height=520');
+      if (!win) {
+        window.print();
+        return;
+      }
+      win.document.write(`<!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Etiqueta QR B2B</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+            .box { border: 3px dashed #1e293b; border-radius: 16px; padding: 20px; max-width: 280px; margin: 0 auto; }
+            .tag { background: #fef3c7; color: #b45309; font-weight: bold; font-size: 11px; padding: 4px 10px; border-radius: 99px; display: inline-block; text-transform: uppercase; }
+            h2 { margin: 10px 0 6px; font-size: 18px; color: #0f172a; }
+            p { margin: 6px 0; font-size: 12px; color: #475569; }
+            img, canvas { margin: 10px auto; display: block; }
+          </style>
+        </head>
+        <body>
+          <div class="box">${stickerEl.innerHTML}</div>
+          <script>window.onload = function(){ setTimeout(function(){ window.print(); window.close(); }, 300); };<\/script>
+        </body>
+        </html>`);
+      win.document.close();
+    };
+
+    // =====================================================================
+    // OPCIÓN 10: LIQUIDACIÓN DE CONSIGNACIÓN / EVENTOS Y FIESTAS
+    // =====================================================================
+    let consignTempItems = [];
+
+    window.openConsignmentSettleModal = function(orderId) {
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) return;
+
+      document.getElementById('consign-order-id').value = ord.id;
+      document.getElementById('consign-modal-subtitle').innerText = `Folio: ${ord.id} • Cliente: ${ord.clientName}`;
+
+      const eqBanner = document.getElementById('consign-equipment-banner');
+      if (eqBanner) {
+        if (ord.consignmentNotes) {
+          eqBanner.innerText = `Equipos / Notas del Evento: ${ord.consignmentNotes}`;
+          eqBanner.classList.remove('hidden');
+        } else {
+          eqBanner.classList.add('hidden');
+        }
+      }
+
+      consignTempItems = (ord.items || []).map(it => ({
+        ...it,
+        dispatchedQty: Number(it.initialDispatchedQty || it.quantity || 0),
+        returnedFullQty: Number(it.returnedFullQty || 0)
+      }));
+
+      renderConsignmentSettleRows();
+      openModal('modal-consignment-settle');
+    };
+
+    window.renderConsignmentSettleRows = function() {
+      const container = document.getElementById('consign-items-container');
+      if (!container) return;
+
+      let newSubtotal = 0;
+      container.innerHTML = consignTempItems.map((it, idx) => {
+        const consumed = Math.max(0, it.dispatchedQty - (parseInt(it.returnedFullQty) || 0));
+        const lineTotal = consumed * Number(it.price || 0);
+        newSubtotal += lineTotal;
+
+        return `
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-12 gap-2 items-center text-xs">
+            <div class="col-span-12 sm:col-span-5">
+              <span class="font-bold text-slate-900 block">${escapeHtml(it.name)}</span>
+              <span class="text-[11px] text-slate-500">Se enviaron: <b>${it.dispatchedQty}</b> a $${Number(it.price).toFixed(2)} c/u</span>
+            </div>
+            <div class="col-span-6 sm:col-span-4">
+              <label class="block text-[10px] font-bold text-purple-800 uppercase">Devueltas Llenas (Cerradas)</label>
+              <input type="number" min="0" max="${it.dispatchedQty}" value="${it.returnedFullQty}" oninput="consignTempItems[${idx}].returnedFullQty = Math.min(${it.dispatchedQty}, Math.max(0, parseInt(this.value) || 0)); renderConsignmentSettleRows();" class="w-full p-1.5 border-2 border-purple-300 rounded-lg text-center font-black bg-white text-purple-900 mt-0.5">
+            </div>
+            <div class="col-span-6 sm:col-span-3 text-right">
+              <span class="block text-[10px] font-bold uppercase text-slate-400">Consumidas: ${consumed}</span>
+              <span class="font-black text-slate-900 text-sm">$${lineTotal.toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const ordId = document.getElementById('consign-order-id')?.value;
+      const ord = orders.find(o => o.id === ordId);
+      const hasTax = ord && Number(ord.tax || 0) > 0;
+      const newTotal = newSubtotal * (hasTax ? 1.07 : 1);
+      const previewEl = document.getElementById('consign-new-total-preview');
+      if (previewEl) previewEl.innerText = `$${newTotal.toFixed(2)}`;
+    };
+
+    window.saveConsignmentSettlement = function(e) {
+      e.preventDefault();
+      const ordId = document.getElementById('consign-order-id')?.value;
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+
+      let totalReturnedBoxes = 0;
+      const returnedDetails = [];
+
+      ord.items = consignTempItems.map(it => {
+        const retFull = Math.min(it.dispatchedQty, Math.max(0, parseInt(it.returnedFullQty) || 0));
+        const prevRetFull = Number(it.previousReturnedFullQty || 0);
+        const deltaReturnToStock = retFull - prevRetFull;
+
+        if (deltaReturnToStock !== 0 && !it.isCustom) {
+          const prod = products.find(p => p.id === it.id);
+          if (prod) {
+            prod.stock = Math.max(0, Number(prod.stock || 0) + deltaReturnToStock);
+            if (window.syncDocToCloud) window.syncDocToCloud('products', prod.id, prod);
+          }
+        }
+        if (retFull > 0) {
+          totalReturnedBoxes += retFull;
+          returnedDetails.push(`${retFull}x ${it.name}`);
+        }
+
+        const finalConsumed = Math.max(0, it.dispatchedQty - retFull);
+        return {
+          ...it,
+          quantity: finalConsumed,
+          returnedFullQty: retFull,
+          previousReturnedFullQty: retFull
+        };
+      });
+
+      const oldTotal = Number(ord.total || 0);
+      const subtotal = ord.items.reduce((s, i) => s + (Number(i.quantity) * Number(i.price)), 0);
+      const discountAmount = subtotal * (Number(ord.discountRate || 0) / 100);
+      const taxable = subtotal - discountAmount;
+      const hasTax = Number(ord.tax || 0) > 0;
+      const tax = hasTax ? taxable * 0.07 : 0;
+      const newTotal = +(taxable + tax).toFixed(2);
+
+      ord.subtotal = subtotal;
+      ord.discountAmount = discountAmount;
+      ord.tax = tax;
+      ord.total = newTotal;
+      ord.status = 'Entregado';
+      ensureOrderFinancialAndEmpties(ord);
+
+      if (ord.clientId && ord.clientId !== 'GENERICO') {
+        const cli = clients.find(c => c.id === ord.clientId);
+        if (cli) {
+          const diff = oldTotal - newTotal;
+          cli.currentDebt = Math.max(0, +(Number(cli.currentDebt || 0) - diff).toFixed(2));
+          if (window.syncDocToCloud) window.syncDocToCloud('clients', cli.id, cli);
+        }
+      }
+
+      if (totalReturnedBoxes > 0) {
+        recordSystemMovement({
+          category: 'COMPRA',
+          ref: ord.id,
+          entity: ord.clientName,
+          concept: `Liquidación de Consignación/Evento: regresaron ${totalReturnedBoxes} cajas cerradas al stock (${returnedDetails.join(', ')}). Total final consumido: $${newTotal.toFixed(2)}`,
+          amount: newTotal,
+          emptiesQty: 0,
+          orderId: ord.id
+        });
+      }
+
+      if (window.syncDocToCloud) window.syncDocToCloud('orders', ord.id, ord);
+      closeModal('modal-consignment-settle');
+      refreshActiveViews();
+      showNotification(`Consignación ${ord.id} liquidada. Se reintegraron ${totalReturnedBoxes} cajas al stock.`, 'success');
+      openCollectAndEmptiesModal(ord.id);
+    };
 
     let currentSpecialPriceClientId = null;
 
@@ -6836,118 +8369,77 @@
       const taxable = subtotal - discountAmount;
       const taxRate = document.getElementById('eo-tax-mode').value === '7' ? 0.07 : 0;
       const tax = taxable * taxRate;
+      const total = taxable + tax;
 
       ord.subtotal = subtotal;
       ord.discountAmount = discountAmount;
       ord.tax = tax;
-      ord.total = taxable + tax;
+      ord.total = total;
+      ensureOrderFinancialAndEmpties(ord);
 
-      if (window.syncDocToCloud) window.syncDocToCloud('orders', ord.id, ord);
+      if (window.syncDocToCloud) {
+        window.syncDocToCloud('orders', ord.id, ord);
+      }
+
       closeModal('modal-edit-order');
       refreshActiveViews();
       showNotification(`Factura ${ord.id} actualizada y sincronizada en Firebase.`, 'success');
-      viewInvoice(ord.id);
     };
 
-    window.renderClientHistory = function(clientId) {
-      let historySection = document.getElementById('b2b-client-history-section');
+    function renderClientHistory(clientId) {
+      let histBox = document.getElementById('b2b-client-orders-history');
       const posSection = document.getElementById('view-pos');
-      if (!posSection) return;
-
-      if (!historySection) {
-        historySection = document.createElement('div');
-        historySection.id = 'b2b-client-history-section';
-        historySection.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6';
-        posSection.appendChild(historySection);
+      if (!histBox && posSection) {
+        histBox = document.createElement('div');
+        histBox.id = 'b2b-client-orders-history';
+        posSection.appendChild(histBox);
       }
+      if (!histBox) return;
 
       const myOrders = orders.filter(o => o.clientId === clientId);
-      historySection.innerHTML = `
-        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-          <div>
-            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Mis Pedidos Enviados (Sincronizado en Vivo)
-            </h4>
-            <p class="text-xs text-slate-500">Estado en tiempo real de tus solicitudes a la distribuidora</p>
-          </div>
-          <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">${myOrders.length} pedidos</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-sm">
-            <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold">
-              <tr>
-                <th class="py-3 px-4">Folio</th>
-                <th class="py-3 px-4">Fecha</th>
-                <th class="py-3 px-4">Artículos</th>
-                <th class="py-3 px-4">Total</th>
-                <th class="py-3 px-4 text-center">Estado en Distribuidora</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              ${
-                myOrders.length === 0
-                  ? `<tr><td colspan="5" class="text-center py-6 text-slate-400 text-xs">Aún no has enviado pedidos desde tu portal.</td></tr>`
-                  : myOrders.map(o => {
-                      const count = (o.items || []).reduce((s, i) => s + Number(i.quantity || 0), 0);
-                      return `
-                        <tr>
-                          <td class="py-3 px-4 font-mono font-bold text-blue-600">${o.id}</td>
-                          <td class="py-3 px-4 text-xs text-slate-500">${o.date}</td>
-                          <td class="py-3 px-4 font-semibold text-slate-800">${count} bultos/cajas</td>
-                          <td class="py-3 px-4 font-black text-slate-900">$${Number(o.total).toFixed(2)}</td>
-                          <td class="py-3 px-4 text-center">${getStatusBadge(o.status)}</td>
-                        </tr>
-                      `;
-                    }).join('')
-              }
-            </tbody>
-          </table>
-        </div>
+      histBox.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mt-6 space-y-3';
+      histBox.innerHTML = `
+        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Mis Pedidos Recientes
+        </h4>
+        ${
+          myOrders.length === 0
+            ? `<p class="text-xs text-slate-400 py-4 text-center">Aún no has enviado pedidos desde tu portal B2B.</p>`
+            : `<div class="space-y-2">${myOrders.map(o => `
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span class="font-mono font-bold text-blue-600">${o.id}</span>
+                    <span class="text-slate-400 ml-2">${o.date}</span>
+                  </div>
+                  <div class="font-black text-slate-900">$${Number(o.total || 0).toFixed(2)}</div>
+                  <div>${getStatusBadge(o.status)}</div>
+                </div>
+              `).join('')}</div>`
+        }
       `;
-    };
+    }
 
     window.setupRoleEnvironment = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const role = urlParams.get('role');
       const cid = urlParams.get('cid');
 
-      const sidebar = document.getElementById('sidebar');
-      const sidebarOverlay = document.getElementById('sidebar-overlay');
-      const btnToggle = document.getElementById('btn-toggle-sidebar');
-
       if (role === 'cliente') {
-        // 1. Ocultar por completo el menú lateral del panel administrativo y botones del header
-        if (sidebar) {
-          sidebar.classList.add('hidden', '!hidden');
-          sidebar.style.display = 'none';
-        }
-        if (sidebarOverlay) sidebarOverlay.style.display = 'none';
-        if (btnToggle) btnToggle.style.display = 'none';
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('btn-toggle-sidebar');
+        if (sidebar) sidebar.classList.add('hidden');
+        if (toggleBtn) toggleBtn.classList.add('hidden');
 
-        const headerActions = document.querySelector('header > div:nth-child(2)');
-        if (headerActions) headerActions.style.display = 'none';
+        const step1 = document.getElementById('pos-step-1-container');
+        if (step1) step1.classList.add('hidden');
 
-        // 2. Ir directamente a la vista de pedidos del cliente y ocultar las demás vistas
+        const emptiesBox = document.getElementById('pos-checkout-empties-box');
+        if (emptiesBox) emptiesBox.classList.add('hidden');
+
         navigateTab('pos');
 
-        // 3. Ocultar el selector administrativo de clientes ("Paso 1") y mostrar el Perfil del Cliente B2B
-        const step1Container = document.getElementById('pos-step-1-container');
-        if (step1Container) step1Container.classList.add('hidden');
-
         const clientObj = clients.find(c => c.id === cid);
-        const pageTitle = document.getElementById('page-title');
-        const pageSubtitle = document.getElementById('page-subtitle');
-        if (pageTitle) {
-          pageTitle.innerText = clientObj ? `Portal B2B: ${clientObj.name}` : 'Portal de Pedidos para Clientes B2B';
-        }
-        if (pageSubtitle) {
-          pageSubtitle.innerText = clientObj
-            ? `RUC: ${clientObj.taxId} | ${clientObj.route} | Catálogo exclusivo sincronizado con Firebase`
-            : 'Sincronizando perfil del cliente desde Firebase...';
-          pageSubtitle.classList.remove('hidden');
-        }
 
-        // Crear o actualizar el banner exclusivo del perfil del cliente arriba del catálogo
         let clientBanner = document.getElementById('b2b-client-profile-banner');
         const posSection = document.getElementById('view-pos');
         if (!clientBanner && posSection) {
@@ -6982,7 +8474,6 @@
           `;
         }
 
-        // Ocultar asignación de chofer y descuento manual para el cliente
         const driverSelect = document.getElementById('posAssignedDriver');
         if (driverSelect && driverSelect.parentElement) {
           driverSelect.parentElement.classList.add('hidden');
@@ -7010,7 +8501,7 @@
         });
         navigateTab('pos');
       } else if (role === 'repartidor') {
-        ['nav-dashboard', 'nav-online-orders', 'nav-pos', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-settings'].forEach(id => {
+        ['nav-dashboard', 'nav-online-orders', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-settings'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add('hidden');
         });
@@ -7018,6 +8509,1065 @@
       } else {
         navigateTab('dashboard');
       }
+    };
+
+    // =====================================================================
+    // MÓDULO DE FACTURAS PENDIENTES POR COBRAR Y CONTROL DE VACÍOS
+    // =====================================================================
+    let mceEmptiesTemp = [];
+    let mceSignatureData = null;
+    let isDrawingMceSig = false;
+
+    window.renderReceivablesView = function() {
+      const tbody = document.getElementById('receivables-table-body');
+      if (!tbody) return;
+
+      const drvFilterEl = document.getElementById('receivablesDriverFilter');
+      if (drvFilterEl) {
+        const currentDrv = drvFilterEl.value || 'ALL';
+        const drvNames = [...new Set(orders.map(o => o.driver || 'Retiro en Bodega'))];
+        drvFilterEl.innerHTML = `<option value="ALL">Todos los Choferes / Caja</option>` +
+          drvNames.map(d => `<option value="${escapeHtml(d)}" ${d === currentDrv ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('');
+      }
+
+      let totalDueAmount = 0;
+      let invoicesWithDue = 0;
+      let totalEmptiesPending = 0;
+      let invoicesWithEmpties = 0;
+      let totalEmptiesInFavorOrders = 0;
+      let totalCollectedAmount = 0;
+      let totalEmptiesReturned = 0;
+
+      orders.forEach(o => {
+        if (o.status === 'Cancelado') return;
+        ensureOrderFinancialAndEmpties(o);
+        const emp = getOrderEmptiesSummary(o);
+        totalCollectedAmount += Number(o.amountPaid || 0);
+        totalEmptiesReturned += emp.returned;
+        totalEmptiesInFavorOrders += emp.inFavor;
+        if (o.amountDue > 0.01) {
+          totalDueAmount += o.amountDue;
+          invoicesWithDue++;
+        }
+        if (emp.pending > 0) {
+          totalEmptiesPending += emp.pending;
+          invoicesWithEmpties++;
+        }
+      });
+
+      const clientsWithCreditEmpties = clients.filter(c => getClientCreditEmptiesTotal(c) > 0);
+      const totalClientCreditEmpties = clientsWithCreditEmpties.reduce((s, c) => s + getClientCreditEmptiesTotal(c), 0);
+      const combinedInFavor = Math.max(totalClientCreditEmpties, totalEmptiesInFavorOrders);
+
+      const elDue = document.getElementById('rec-stat-total-due');
+      const elInvDue = document.getElementById('rec-stat-invoices-due');
+      const elEmpPend = document.getElementById('rec-stat-empties-pending');
+      const elInvEmp = document.getElementById('rec-stat-invoices-empties');
+      const elEmpFav = document.getElementById('rec-stat-empties-in-favor');
+      const elCliFav = document.getElementById('rec-stat-clients-in-favor');
+      const elColl = document.getElementById('rec-stat-total-collected');
+      const elEmpRet = document.getElementById('rec-stat-empties-returned');
+      const navBadge = document.getElementById('badge-receivables');
+
+      if (elDue) elDue.innerText = `$${totalDueAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (elInvDue) elInvDue.innerText = invoicesWithDue;
+      if (elEmpPend) elEmpPend.innerText = `${totalEmptiesPending} Envases`;
+      if (elInvEmp) elInvEmp.innerText = invoicesWithEmpties;
+      if (elEmpFav) elEmpFav.innerText = `${combinedInFavor} Envases`;
+      if (elCliFav) elCliFav.innerText = clientsWithCreditEmpties.length;
+      if (elColl) elColl.innerText = `$${totalCollectedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (elEmpRet) elEmpRet.innerText = `${totalEmptiesReturned} Envases`;
+
+      // Renderizar tarjeta de Clientes con Vacíos a Favor
+      const favCard = document.getElementById('receivables-clients-in-favor-card');
+      const favList = document.getElementById('receivables-clients-in-favor-list');
+      if (favCard && favList) {
+        if (clientsWithCreditEmpties.length > 0) {
+          favCard.classList.remove('hidden');
+          favList.innerHTML = clientsWithCreditEmpties.map(c => {
+            const pills = (c.creditEmpties || []).map(e => `<span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold text-[11px]">+${e.qty} ${escapeHtml(e.type)}</span>`).join(' ');
+            return `
+              <div class="bg-white p-3 rounded-xl border border-indigo-200 shadow-xs flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="font-bold text-slate-900 text-xs truncate">${escapeHtml(c.name)}</p>
+                  <div class="flex flex-wrap gap-1 mt-1">${pills}</div>
+                </div>
+                <button onclick="openClientCreditEmptiesModal('${c.id}')" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold shrink-0">
+                  Editar
+                </button>
+              </div>
+            `;
+          }).join('');
+        } else {
+          favCard.classList.add('hidden');
+        }
+      }
+
+      const alertTotal = invoicesWithDue + invoicesWithEmpties;
+      if (navBadge) {
+        if (alertTotal > 0) {
+          navBadge.classList.remove('hidden');
+          navBadge.innerText = alertTotal;
+        } else {
+          navBadge.classList.add('hidden');
+        }
+      }
+
+      const query = (document.getElementById('receivablesSearchInput')?.value || '').toLowerCase();
+      const mode = document.getElementById('receivablesModeFilter')?.value || 'ALL_PENDING';
+      const drvFilter = document.getElementById('receivablesDriverFilter')?.value || 'ALL';
+
+      const filtered = orders.filter(o => {
+        if (o.status === 'Cancelado') return false;
+        ensureOrderFinancialAndEmpties(o);
+        const emp = getOrderEmptiesSummary(o);
+
+        if (mode === 'ALL_PENDING' && o.amountDue <= 0.01 && emp.pending <= 0 && emp.inFavor <= 0) return false;
+        if (mode === 'PAYMENT_PENDING' && o.amountDue <= 0.01) return false;
+        if (mode === 'EMPTIES_PENDING' && emp.pending <= 0) return false;
+        if (mode === 'EMPTIES_IN_FAVOR' && emp.inFavor <= 0) return false;
+
+        if (drvFilter !== 'ALL' && (o.driver || 'Retiro en Bodega') !== drvFilter) return false;
+
+        if (query) {
+          const empTypes = emp.list.map(e => e.type).join(' ').toLowerCase();
+          const match = o.id.toLowerCase().includes(query) ||
+                        (o.clientName || '').toLowerCase().includes(query) ||
+                        (o.driver || '').toLowerCase().includes(query) ||
+                        empTypes.includes(query);
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      tbody.innerHTML = '';
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-slate-400 font-medium">No hay facturas que coincidan con los filtros seleccionados.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(o => {
+        const emp = getOrderEmptiesSummary(o);
+        const hasSig = Boolean(o.pod && o.pod.signature);
+
+        const emptiesBreakdownHtml = emp.list.length === 0
+          ? `<span class="text-xs text-slate-400">Sin envases retornables</span>`
+          : emp.list.map(e => {
+              const del = Number(e.delivered || 0);
+              const ret = Number(e.returned || 0);
+              const pend = Math.max(0, del - ret);
+              const fav = Math.max(0, ret - del);
+              return `
+                <div class="flex items-center justify-between gap-2 text-xs bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 mb-1">
+                  <span class="font-semibold text-slate-800 truncate max-w-[200px]" title="${escapeHtml(e.type)}">${escapeHtml(e.type)}</span>
+                  <div class="flex items-center gap-1.5 shrink-0 text-[11px]">
+                    <span class="text-emerald-700 font-bold" title="Vacíos Retirados">Ret: ${ret}</span>
+                    <span class="text-slate-300">|</span>
+                    ${
+                      fav > 0
+                        ? `<span class="bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-black" title="Envases vacíos a favor del cliente">A Favor: +${fav}</span>`
+                        : `<span class="${pend > 0 ? 'bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-black' : 'text-slate-400 font-semibold'}">Pend: ${pend}</span>`
+                    }
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100 align-top";
+        tr.innerHTML = `
+          <td class="py-3.5 px-4">
+            <span class="font-mono font-black text-blue-600 block">${o.id}</span>
+            <span class="text-[11px] text-slate-400 block">${o.date}</span>
+            <div class="mt-1">${getStatusBadge(o.status)}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="font-bold text-slate-900 block">${escapeHtml(o.clientName)}</span>
+            <span class="text-xs text-slate-500 block"><i class="fa-solid fa-truck text-slate-400 mr-1"></i>${escapeHtml(o.driver || 'Retiro en Bodega')}</span>
+            <span class="text-[11px] text-slate-400">${escapeHtml(o.paymentMethod || '')}</span>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="space-y-0.5 text-xs">
+              <div>Total: <strong class="text-slate-900">$${Number(o.total).toFixed(2)}</strong></div>
+              <div>Cobrado: <strong class="text-emerald-600">$${Number(o.amountPaid || 0).toFixed(2)}</strong></div>
+              ${
+                o.amountDue > 0.01
+                  ? `<div class="inline-block mt-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-black text-xs">Por Cobrar: $${o.amountDue.toFixed(2)}</div>`
+                  : `<div class="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-bold text-[11px]"><i class="fa-solid fa-check mr-1"></i>Pagado</div>`
+              }
+            </div>
+          </td>
+          <td class="py-3.5 px-4">
+            ${emptiesBreakdownHtml}
+          </td>
+          <td class="py-3.5 px-4 text-center">
+            ${
+              hasSig
+                ? `<div class="inline-flex flex-col items-center">
+                     <img src="${o.pod.signature}" alt="Firma" class="h-9 w-20 object-contain border border-slate-200 rounded bg-white p-0.5">
+                     <span class="text-[10px] text-emerald-600 font-bold mt-0.5">Firmado</span>
+                   </div>`
+                : `<span class="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg inline-block">Sin firma</span>`
+            }
+          </td>
+          <td class="py-3.5 px-4 text-right">
+            <div class="flex flex-wrap items-center justify-end gap-1.5">
+              ${
+                o.status === 'En Consignación' || o.isConsignment
+                  ? `<button onclick="openConsignmentSettleModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Liquidar Evento / Devolver Cajas Llenas">
+                      <i class="fa-solid fa-champagne-glasses"></i> Liquidar Evento
+                    </button>`
+                  : ''
+              }
+              <button onclick="openCollectAndEmptiesModal('${o.id}')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Cobrar / Vacíos
+              </button>
+              <button onclick="editOrderDirect('${o.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition" title="Editar Factura">
+                <i class="fa-solid fa-pen"></i> Editar
+              </button>
+              <button onclick="openThermalDirectForOrder('${o.id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1" title="Imprimir Ticket Térmico con Firma">
+                <i class="fa-solid fa-receipt"></i> Ticket
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.editOrderDirect = function(orderId) {
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) return;
+      currentViewingOrder = ord;
+      editInvoiceFromModal();
+    };
+
+    window.openThermalDirectForOrder = function(orderId) {
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) return;
+      ensureOrderFinancialAndEmpties(ord);
+      currentViewingOrder = ord;
+      openThermalReceiptModal();
+    };
+
+    window.openCollectAndEmptiesFromInvoice = function() {
+      if (!currentViewingOrder) return;
+      const id = currentViewingOrder.id;
+      closeModal('modal-invoice');
+      openCollectAndEmptiesModal(id);
+    };
+
+    window.openCollectAndEmptiesFromThermal = function() {
+      if (!currentViewingOrder) return;
+      const id = currentViewingOrder.id;
+      closeModal('modal-thermal-receipt');
+      openCollectAndEmptiesModal(id);
+    };
+
+    window.openCollectAndEmptiesModal = function(orderId) {
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) return;
+      ensureOrderFinancialAndEmpties(ord);
+      currentViewingOrder = ord;
+
+      document.getElementById('mce-order-id').value = ord.id;
+      document.getElementById('mce-subtitle').innerText = `Folio: ${ord.id} | Cliente: ${ord.clientName} | Chofer: ${ord.driver || 'Bodega'}`;
+      document.getElementById('mce-total-amount').innerText = `$${Number(ord.total || 0).toFixed(2)}`;
+      document.getElementById('mce-paid-amount').innerText = `$${Number(ord.amountPaid || 0).toFixed(2)}`;
+      document.getElementById('mce-due-amount').innerText = `$${Number(ord.amountDue || 0).toFixed(2)}`;
+      document.getElementById('mce-pay-now').value = Number(ord.amountDue || 0).toFixed(2);
+      document.getElementById('mce-pay-method').value = 'Efectivo';
+      if (document.getElementById('mce-mix-cash')) document.getElementById('mce-mix-cash').value = '0';
+      if (document.getElementById('mce-mix-yape')) document.getElementById('mce-mix-yape').value = '0';
+      if (document.getElementById('mce-mix-bank')) document.getElementById('mce-mix-bank').value = '0';
+      toggleMceMixedPaymentUI();
+
+      const badge = document.getElementById('mce-payment-badge');
+      if (badge) {
+        if (ord.amountDue <= 0.01) {
+          badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+          badge.innerText = 'PAGADO';
+        } else {
+          badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700';
+          badge.innerText = `POR COBRAR: $${ord.amountDue.toFixed(2)}`;
+        }
+      }
+
+      // Clonar lista de vacíos para editar cuántos se retiran ahora y de qué son
+      mceEmptiesTemp = (ord.emptiesTracking || []).map(e => ({
+        type: e.type,
+        delivered: Number(e.delivered || 0),
+        returnedBefore: Number(e.returned || 0),
+        pickupNow: 0
+      }));
+
+      if (mceEmptiesTemp.length === 0) {
+        // Si no tenía vacíos marcados, pre-cargar con los productos de la orden para facilitar el retiro
+        (ord.items || []).forEach(it => {
+          mceEmptiesTemp.push({
+            type: it.name,
+            delivered: Number(it.quantity || 0),
+            returnedBefore: 0,
+            pickupNow: 0
+          });
+        });
+      }
+
+      renderMceEmptiesRows();
+
+      document.getElementById('mce-receiver-name').value = ord.pod?.receiverName || ord.clientName || '';
+      document.getElementById('mce-receiver-id').value = ord.pod?.receiverId || ord.clientTax || '';
+      mceSignatureData = ord.pod?.signature || null;
+
+      openModal('modal-collect-empties');
+      setTimeout(() => {
+        initMceSignatureCanvas();
+        if (mceSignatureData) {
+          const canvas = document.getElementById('mceSignatureCanvas');
+          const ctx = canvas?.getContext('2d');
+          const img = new Image();
+          img.onload = () => {
+            if (ctx && canvas) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+          };
+          img.src = mceSignatureData;
+          const ph = document.getElementById('mceCanvasPlaceholder');
+          if (ph) ph.style.display = 'none';
+        }
+      }, 100);
+    };
+
+    window.fillFullBalanceInModal = function() {
+      const ordId = document.getElementById('mce-order-id').value;
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+      ensureOrderFinancialAndEmpties(ord);
+      document.getElementById('mce-pay-now').value = Number(ord.amountDue || 0).toFixed(2);
+    };
+
+    window.toggleMceMixedPaymentUI = function() {
+      const method = document.getElementById('mce-pay-method')?.value;
+      const box = document.getElementById('mce-mixed-payment-box');
+      if (box) {
+        box.classList.toggle('hidden', method !== 'Pago Mixto');
+      }
+      if (method === 'Pago Mixto') {
+        recalcMceMixedTotal();
+      }
+    };
+
+    window.recalcMceMixedTotal = function() {
+      const c = Math.max(0, parseFloat(document.getElementById('mce-mix-cash')?.value) || 0);
+      const y = Math.max(0, parseFloat(document.getElementById('mce-mix-yape')?.value) || 0);
+      const b = Math.max(0, parseFloat(document.getElementById('mce-mix-bank')?.value) || 0);
+      const totalMix = +(c + y + b).toFixed(2);
+      const payNowInput = document.getElementById('mce-pay-now');
+      if (payNowInput) payNowInput.value = totalMix.toFixed(2);
+      const lbl = document.getElementById('mce-mixed-sum-label');
+      if (lbl) lbl.innerText = `Suma Mixta: $${totalMix.toFixed(2)}`;
+    };
+
+    window.renderMceEmptiesRows = function() {
+      const container = document.getElementById('mce-empties-list');
+      if (!container) return;
+      if (mceEmptiesTemp.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Haz clic en "+ Agregar Tipo de Vacío" para registrar envases retirados.</p>`;
+        return;
+      }
+
+      container.innerHTML = mceEmptiesTemp.map((row, idx) => {
+        const totalRetAfter = row.returnedBefore + (parseInt(row.pickupNow) || 0);
+        const currentPending = Math.max(0, row.delivered - totalRetAfter);
+        const currentInFavor = Math.max(0, totalRetAfter - row.delivered);
+        return `
+          <div class="bg-white p-2.5 rounded-xl border border-amber-200 grid grid-cols-12 gap-2 items-center text-xs">
+            <div class="col-span-12 sm:col-span-6">
+              <label class="block text-[9px] uppercase font-bold text-slate-400">¿De qué es el vacío? (Producto / Envase)</label>
+              <input type="text" value="${escapeHtml(row.type)}" oninput="mceEmptiesTemp[${idx}].type = this.value" placeholder="Ej: Caja 24 Bot. Cerveza Panamá" class="w-full p-1.5 border border-slate-200 rounded-lg font-semibold text-slate-800 text-xs mt-0.5">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Entregados: <b>${row.delivered}</b> | Ya retirados: <b class="text-emerald-700">${row.returnedBefore}</b> | ${
+                currentInFavor > 0
+                  ? `<b class="text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">A Favor del Cliente: +${currentInFavor}</b>`
+                  : `Quedan pend.: <b class="text-rose-600">${currentPending}</b>`
+              }</span>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label class="block text-[9px] uppercase font-bold text-amber-800">Retirados Ahora</label>
+              <input type="number" min="0" value="${row.pickupNow}" oninput="mceEmptiesTemp[${idx}].pickupNow = parseInt(this.value) || 0; renderMceEmptiesRows();" class="w-full p-1.5 border-2 border-amber-400 rounded-lg text-center font-black text-sm bg-amber-50 text-slate-900 mt-0.5">
+            </div>
+            <div class="col-span-6 sm:col-span-3 flex flex-col items-end justify-center gap-1">
+              <button type="button" onclick="mceEmptiesTemp[${idx}].pickupNow = Math.max(0, ${row.delivered - row.returnedBefore}); renderMceEmptiesRows();" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">
+                Retirar Todo (${Math.max(0, row.delivered - row.returnedBefore)})
+              </button>
+              <button type="button" onclick="mceEmptiesTemp[${idx}].pickupNow = (parseInt(mceEmptiesTemp[${idx}].pickupNow) || 0) + 1; renderMceEmptiesRows();" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded text-[10px] font-bold" title="Sumar envase extra a favor del cliente">
+                +1 A Favor
+              </button>
+              <button type="button" onclick="mceEmptiesTemp.splice(${idx}, 1); renderMceEmptiesRows();" class="text-[10px] text-rose-500 hover:underline">
+                Quitar fila
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.addCustomEmptyLineInModal = function() {
+      mceEmptiesTemp.push({
+        type: '',
+        delivered: 0,
+        returnedBefore: 0,
+        pickupNow: 1
+      });
+      renderMceEmptiesRows();
+    };
+
+    function initMceSignatureCanvas() {
+      const canvas = document.getElementById('mceSignatureCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width || 420;
+      canvas.height = rect.height || 120;
+      ctx.lineWidth = 2.8;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#0f172a';
+
+      const getPos = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: cx - r.left, y: cy - r.top };
+      };
+      const start = (e) => {
+        isDrawingMceSig = true;
+        const p = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        const ph = document.getElementById('mceCanvasPlaceholder');
+        if (ph) ph.style.display = 'none';
+      };
+      const move = (e) => {
+        if (!isDrawingMceSig) return;
+        const p = getPos(e);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      };
+      const end = () => {
+        if (isDrawingMceSig) {
+          isDrawingMceSig = false;
+          mceSignatureData = canvas.toDataURL('image/png');
+        }
+      };
+
+      canvas.onmousedown = start;
+      canvas.onmousemove = move;
+      canvas.onmouseup = end;
+      canvas.onmouseleave = end;
+      canvas.ontouchstart = (e) => { e.preventDefault(); start(e); };
+      canvas.ontouchmove = (e) => { e.preventDefault(); move(e); };
+      canvas.ontouchend = (e) => { e.preventDefault(); end(); };
+    }
+
+    window.clearMceSignature = function() {
+      const canvas = document.getElementById('mceSignatureCanvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      mceSignatureData = null;
+      const ph = document.getElementById('mceCanvasPlaceholder');
+      if (ph) ph.style.display = 'flex';
+    };
+
+    window.saveCollectAndEmpties = function(e, openThermalAfter = false) {
+      if (e) e.preventDefault();
+      const ordId = document.getElementById('mce-order-id').value;
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+      ensureOrderFinancialAndEmpties(ord);
+
+      const payNow = Math.max(0, parseFloat(document.getElementById('mce-pay-now').value) || 0);
+      const payMethod = document.getElementById('mce-pay-method').value;
+
+      if (payNow > 0) {
+        ord.amountPaid = Math.min(Number(ord.total || 0), Number(ord.amountPaid || 0) + payNow);
+        ord.amountDue = Math.max(0, +(Number(ord.total || 0) - ord.amountPaid).toFixed(2));
+        ord.paymentStatus = ord.amountDue <= 0.01 ? 'Pagado' : 'Pendiente';
+
+        if (!Array.isArray(ord.paymentsHistory)) ord.paymentsHistory = [];
+        const nowPayStr = new Date().toLocaleString();
+
+        if (payMethod === 'Pago Mixto') {
+          const mCash = Math.max(0, parseFloat(document.getElementById('mce-mix-cash')?.value) || 0);
+          const mYape = Math.max(0, parseFloat(document.getElementById('mce-mix-yape')?.value) || 0);
+          const mBank = Math.max(0, parseFloat(document.getElementById('mce-mix-bank')?.value) || 0);
+          const mixParts = [];
+          if (mCash > 0) {
+            mixParts.push(`Efectivo $${mCash.toFixed(2)}`);
+            ord.paymentsHistory.push({ date: nowPayStr, amount: mCash, method: 'Efectivo', note: 'Cobro Mixto (Parte en Efectivo)' });
+          }
+          if (mYape > 0) {
+            mixParts.push(`Yape $${mYape.toFixed(2)}`);
+            ord.paymentsHistory.push({ date: nowPayStr, amount: mYape, method: 'Yape', note: 'Cobro Mixto (Parte por Yape)' });
+          }
+          if (mBank > 0) {
+            mixParts.push(`Banco $${mBank.toFixed(2)}`);
+            ord.paymentsHistory.push({ date: nowPayStr, amount: mBank, method: 'Transferencia Bancaria', note: 'Cobro Mixto (Parte por Banco/ACH)' });
+          }
+          ord.lastPaymentMethod = mixParts.length > 0 ? `Mixto (${mixParts.join(' + ')})` : 'Pago Mixto';
+        } else {
+          ord.lastPaymentMethod = payMethod;
+          ord.paymentsHistory.push({
+            date: nowPayStr,
+            amount: payNow,
+            method: payMethod,
+            note: ord.amountDue <= 0.01 ? 'Liquidación total de saldo' : `Abono parcial (Resta: $${ord.amountDue.toFixed(2)})`
+          });
+        }
+
+        if (ord.clientId && ord.clientId !== 'GENERICO') {
+          const cli = clients.find(c => c.id === ord.clientId);
+          if (cli) {
+            cli.currentDebt = Math.max(0, +(Number(cli.currentDebt || 0) - payNow).toFixed(2));
+            if (window.syncDocToCloud) window.syncDocToCloud('clients', cli.id, cli);
+          }
+        }
+      }
+
+      const nowStr = new Date().toLocaleString();
+      if (!Array.isArray(ord.emptiesHistory)) ord.emptiesHistory = [];
+
+      const updatedTracking = [];
+      mceEmptiesTemp.forEach(r => {
+        const cleanType = (r.type || '').trim();
+        if (!cleanType) return;
+        const addedNow = Math.max(0, parseInt(r.pickupNow) || 0);
+        const prevRet = Number(r.returnedBefore || 0);
+        const deliv = Number(r.delivered || 0);
+        const totalRet = prevRet + addedNow;
+        updatedTracking.push({
+          type: cleanType,
+          delivered: deliv,
+          returned: totalRet
+        });
+        if (addedNow > 0) {
+          ord.emptiesHistory.push({
+            date: nowStr,
+            type: cleanType,
+            qty: addedNow
+          });
+        }
+        // Si este retiro genera excedente a favor del cliente, actualizar su cartera en Firebase
+        const prevSurplus = Math.max(0, prevRet - deliv);
+        const newSurplus = Math.max(0, totalRet - deliv);
+        const surplusDelta = newSurplus - prevSurplus;
+        if (surplusDelta > 0 && ord.clientId && ord.clientId !== 'GENERICO') {
+          const cli = clients.find(c => c.id === ord.clientId);
+          if (cli) {
+            addOrUpdateClientCreditEmpty(cli, cleanType, surplusDelta);
+            if (window.syncDocToCloud) window.syncDocToCloud('clients', cli.id, cli);
+          }
+        }
+      });
+      ord.emptiesTracking = updatedTracking;
+
+      const receiverName = (document.getElementById('mce-receiver-name').value || '').trim() || ord.clientName;
+      const receiverId = (document.getElementById('mce-receiver-id').value || '').trim() || ord.clientTax || 'C/F';
+      if (mceSignatureData) {
+        ord.pod = {
+          receiverName,
+          receiverId,
+          timestamp: nowStr,
+          signature: mceSignatureData,
+          photo: ord.pod?.photo || null
+        };
+      }
+
+      if (window.syncDocToCloud) {
+        window.syncDocToCloud('orders', ord.id, ord);
+      }
+
+      closeModal('modal-collect-empties');
+      refreshActiveViews();
+      showNotification(`Cobro y vacíos actualizados en la factura ${ord.id}.`, 'success');
+
+      if (openThermalAfter) {
+        currentViewingOrder = ord;
+        openThermalReceiptModal();
+      }
+    };
+
+    // Gestión directa de Vacíos a Favor por Cliente
+    let cceTempRows = [];
+
+    window.openClientCreditEmptiesModal = function(preselectedClientId = null) {
+      const sel = document.getElementById('cce-client-select');
+      if (!sel) return;
+      if (clients.length === 0) {
+        showNotification('Primero registra al menos un cliente.', 'warning');
+        return;
+      }
+      sel.innerHTML = clients.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${escapeHtml(c.route)})</option>`).join('');
+      if (preselectedClientId && clients.some(c => c.id === preselectedClientId)) {
+        sel.value = preselectedClientId;
+      }
+      loadClientCreditEmptiesRows();
+      openModal('modal-client-credit-empties');
+    };
+
+    window.loadClientCreditEmptiesRows = function() {
+      const clientId = document.getElementById('cce-client-select')?.value;
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      cceTempRows = Array.isArray(client.creditEmpties)
+        ? client.creditEmpties.map(e => ({ type: e.type, qty: Number(e.qty || 0) }))
+        : [];
+      if (cceTempRows.length === 0) {
+        cceTempRows.push({ type: 'Cerveza Panamá Lager 330ml (Caja x 24 Retornable)', qty: 1 });
+      }
+      renderCceRows();
+    };
+
+    window.renderCceRows = function() {
+      const container = document.getElementById('cce-rows-container');
+      if (!container) return;
+      if (cceTempRows.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Este cliente no tiene vacíos a favor. Pulsa "+ Añadir Envase a Favor".</p>`;
+        return;
+      }
+      const productSuggestions = products
+        .filter(p => isProductReturnable(p.name + ' ' + p.unit, false))
+        .map(p => p.name);
+
+      container.innerHTML = cceTempRows.map((row, idx) => `
+        <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-indigo-200 text-xs">
+          <div class="flex-1">
+            <input type="text" list="cce-returnable-types" value="${escapeHtml(row.type)}" oninput="cceTempRows[${idx}].type = this.value" placeholder="¿De qué es el vacío a favor? (Ej: Caja x 24 Panamá)" class="w-full p-1.5 border border-slate-200 rounded-lg font-semibold text-slate-800">
+          </div>
+          <div class="w-24">
+            <input type="number" min="0" value="${row.qty}" oninput="cceTempRows[${idx}].qty = parseInt(this.value) || 0" class="w-full p-1.5 border-2 border-indigo-300 rounded-lg text-center font-black text-indigo-700 bg-indigo-50">
+          </div>
+          <button type="button" onclick="cceTempRows.splice(${idx}, 1); renderCceRows();" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `).join('') + `<datalist id="cce-returnable-types">${productSuggestions.map(n => `<option value="${escapeHtml(n)}">`).join('')}</datalist>`;
+    };
+
+    window.addClientCreditEmptyLine = function() {
+      cceTempRows.push({ type: '', qty: 1 });
+      renderCceRows();
+    };
+
+    window.saveClientCreditEmptiesModal = function(e) {
+      e.preventDefault();
+      const clientId = document.getElementById('cce-client-select')?.value;
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+
+      client.creditEmpties = cceTempRows
+        .map(r => ({ type: (r.type || '').trim(), qty: Math.max(0, parseInt(r.qty) || 0) }))
+        .filter(r => r.type && r.qty > 0);
+
+      const totalFavQty = client.creditEmpties.reduce((s, r) => s + r.qty, 0);
+      const summaryTypes = client.creditEmpties.map(r => `${r.qty}x ${r.type}`).join(', ') || 'Sin vacíos a favor';
+      recordSystemMovement({
+        category: 'VACIOS',
+        ref: `FAV-${client.id.substring(0, 6).toUpperCase()}`,
+        entity: client.name,
+        concept: `Actualización de Vacíos a Favor del Cliente: ${summaryTypes}`,
+        amount: 0,
+        emptiesQty: totalFavQty,
+        emptiesSign: 'FAVOR'
+      });
+
+      if (window.syncDocToCloud) {
+        window.syncDocToCloud('clients', client.id, client);
+      }
+
+      closeModal('modal-client-credit-empties');
+      refreshActiveViews();
+      showNotification(`Vacíos a favor de "${client.name}" actualizados en Firebase.`, 'success');
+    };
+
+    // =====================================================================
+    // MÓDULO DE HISTORIAL DE FACTURAS, COBROS Y MOVIMIENTOS (BITÁCORA / KARDEX)
+    // =====================================================================
+    let currentHistoryTypeFilter = 'ALL';
+
+    window.recordSystemMovement = function(movData) {
+      const newMov = {
+        id: 'MOV-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        timestamp: Date.now(),
+        dateStr: new Date().toISOString().split('T')[0],
+        timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        category: movData.category || 'FACTURA',
+        ref: movData.ref || 'S/R',
+        entity: movData.entity || 'General',
+        concept: movData.concept || '',
+        amount: Number(movData.amount || 0),
+        emptiesQty: Number(movData.emptiesQty || 0),
+        emptiesSign: movData.emptiesSign || '',
+        orderId: movData.orderId || null
+      };
+      movementsLog.unshift(newMov);
+      if (window.syncDocToCloud) {
+        window.syncDocToCloud('movements', newMov.id, newMov);
+      }
+    };
+
+    window.setHistoryTypeFilter = function(typeVal) {
+      currentHistoryTypeFilter = typeVal;
+      document.querySelectorAll('#history-type-pills .hist-pill').forEach(btn => {
+        if (btn.getAttribute('data-hist-pill') === typeVal) {
+          btn.className = 'hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-xs flex items-center gap-1.5 whitespace-nowrap transition';
+        } else {
+          btn.className = 'hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 whitespace-nowrap transition';
+        }
+      });
+      renderHistoryView();
+    };
+
+    window.clearHistoryFilters = function() {
+      const sInput = document.getElementById('historySearchInput');
+      const cFilter = document.getElementById('historyClientFilter');
+      const dFrom = document.getElementById('historyDateFrom');
+      const dTo = document.getElementById('historyDateTo');
+      if (sInput) sInput.value = '';
+      if (cFilter) cFilter.value = 'ALL';
+      if (dFrom) dFrom.value = '';
+      if (dTo) dTo.value = '';
+      setHistoryTypeFilter('ALL');
+    };
+
+    function buildUnifiedHistoryFeed() {
+      const unified = [];
+
+      // 1. Facturas emitidas, Cobros/Abonos y Movimientos de Vacíos de cada Orden
+      orders.forEach(ord => {
+        ensureOrderFinancialAndEmpties(ord);
+        const totalUnits = (ord.items || []).reduce((s, i) => s + Number(i.quantity || 0), 0);
+        const itemsSummary = (ord.items || []).map(i => `${i.quantity}x ${i.name}`).join(', ');
+        const baseTs = ord.createdAt || new Date(ord.date + 'T10:00:00').getTime() || Date.now();
+
+        // Evento A: Emisión de la Factura / Pedido
+        unified.push({
+          id: `HIST-INV-${ord.id}`,
+          timestamp: baseTs,
+          dateStr: ord.date || new Date(baseTs).toISOString().split('T')[0],
+          displayDate: ord.date || '',
+          category: 'FACTURA',
+          ref: ord.id,
+          entity: ord.clientName || 'Cliente',
+          subEntity: `Chofer: ${ord.driver || 'Bodega'} • ${ord.status}`,
+          concept: `Factura Emitida (${totalUnits} bultos): ${itemsSummary}`,
+          amount: Number(ord.total || 0),
+          emptiesQty: 0,
+          orderId: ord.id,
+          status: ord.status
+        });
+
+        // Evento B: Historial de Cobros / Abonos de esta Factura
+        if (Array.isArray(ord.paymentsHistory) && ord.paymentsHistory.length > 0) {
+          ord.paymentsHistory.forEach((ph, idx) => {
+            unified.push({
+              id: `HIST-PAY-${ord.id}-${idx}`,
+              timestamp: baseTs + 1000 + idx,
+              dateStr: (ph.date || ord.date || '').substring(0, 10),
+              displayDate: ph.date || ord.date,
+              category: 'COBRO',
+              ref: ord.id,
+              entity: ord.clientName || 'Cliente',
+              subEntity: `Método: ${ph.method || ord.paymentMethod || 'Efectivo'}`,
+              concept: `${ph.note || 'Cobro recibido de factura'} (${ord.id})`,
+              amount: Number(ph.amount || 0),
+              emptiesQty: 0,
+              orderId: ord.id
+            });
+          });
+        } else if (Number(ord.amountPaid || 0) > 0 && ord.status !== 'Cancelado') {
+          unified.push({
+            id: `HIST-PAY-AUTO-${ord.id}`,
+            timestamp: baseTs + 1000,
+            dateStr: ord.date || new Date(baseTs).toISOString().split('T')[0],
+            displayDate: ord.date,
+            category: 'COBRO',
+            ref: ord.id,
+            entity: ord.clientName || 'Cliente',
+            subEntity: `Método: ${ord.lastPaymentMethod || ord.paymentMethod || 'Contado'}`,
+            concept: ord.amountDue <= 0.01
+              ? `Factura cobrada en su totalidad (${ord.id})`
+              : `Abono recibido a cuenta de factura (${ord.id}). Saldo pendiente: $${ord.amountDue.toFixed(2)}`,
+            amount: Number(ord.amountPaid || 0),
+            emptiesQty: 0,
+            orderId: ord.id
+          });
+        }
+
+        // Evento C: Historial de Retiro de Envases Vacíos y Vacíos a Favor
+        if (Array.isArray(ord.emptiesHistory) && ord.emptiesHistory.length > 0) {
+          ord.emptiesHistory.forEach((eh, idx) => {
+            unified.push({
+              id: `HIST-EMP-${ord.id}-${idx}`,
+              timestamp: baseTs + 2000 + idx,
+              dateStr: (eh.date || ord.date || '').substring(0, 10),
+              displayDate: eh.date || ord.date,
+              category: 'VACIOS',
+              ref: ord.id,
+              entity: ord.clientName || 'Cliente',
+              subEntity: `Chofer: ${ord.driver || 'Bodega'}`,
+              concept: `Retiro de envases vacíos: ${eh.qty}x ${eh.type}`,
+              amount: 0,
+              emptiesQty: Number(eh.qty || 0),
+              emptiesSign: 'RETIRADO',
+              orderId: ord.id
+            });
+          });
+        }
+      });
+
+      // 2. Arqueos y Liquidaciones de Choferes
+      cashouts.forEach((cs, idx) => {
+        const csTs = new Date((cs.date || '2026-10-15') + 'T18:00:00').getTime() + idx;
+        const totalLiquidated = Number(cs.cash || 0) + Number(cs.bank || 0);
+        const totalEmptiesCs = Number(cs.crates || 0) + Number(cs.kegs || 0);
+        unified.push({
+          id: `HIST-CS-${cs.id}`,
+          timestamp: csTs,
+          dateStr: cs.date || '',
+          displayDate: cs.date || '',
+          category: 'ARQUEO',
+          ref: cs.id,
+          entity: `Chofer: ${cs.driver}`,
+          subEntity: `Efectivo: $${Number(cs.cash || 0).toFixed(2)} | Banco: $${Number(cs.bank || 0).toFixed(2)}`,
+          concept: `Cierre de Ruta (${cs.crates || 0} cajas, ${cs.kegs || 0} barriles devueltos). ${cs.notes || ''}`,
+          amount: totalLiquidated,
+          emptiesQty: totalEmptiesCs,
+          emptiesSign: 'BODEGA',
+          orderId: null
+        });
+      });
+
+      // 3. Órdenes de Compra a Cerveceras y Recepciones en Muelle
+      purchases.forEach((po, idx) => {
+        const poTs = new Date((po.estimatedDate || '2026-10-15') + 'T09:00:00').getTime() + idx;
+        unified.push({
+          id: `HIST-PO-${po.id}`,
+          timestamp: poTs,
+          dateStr: po.estimatedDate || '',
+          displayDate: po.estimatedDate || '',
+          category: 'COMPRA',
+          ref: po.id,
+          entity: po.supplierName || 'Proveedor',
+          subEntity: `Estado: ${po.status}`,
+          concept: `Compra Mayorista: ${po.quantity} bultos de ${po.productName} ($${Number(po.unitCost).toFixed(2)} c/u)`,
+          amount: Number(po.totalCost || 0),
+          emptiesQty: 0,
+          orderId: null
+        });
+      });
+
+      // 4. Movimientos / Ajustes manuales en bitácora (incluye ajustes de Vacíos a Favor)
+      movementsLog.forEach(mv => {
+        unified.push({
+          id: mv.id,
+          timestamp: mv.timestamp || Date.now(),
+          dateStr: mv.dateStr || '',
+          displayDate: `${mv.dateStr || ''} ${mv.timeStr || ''}`.trim(),
+          category: mv.category || 'FACTURA',
+          ref: mv.ref || 'MANUAL',
+          entity: mv.entity || 'Ajuste Manual',
+          subEntity: 'Registro en Bitácora',
+          concept: mv.concept || '',
+          amount: Number(mv.amount || 0),
+          emptiesQty: Number(mv.emptiesQty || 0),
+          emptiesSign: mv.emptiesSign || 'AJUSTE',
+          orderId: mv.orderId || null
+        });
+      });
+
+      return unified.sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    window.renderHistoryView = function() {
+      const tbody = document.getElementById('history-table-body');
+      if (!tbody) return;
+
+      const allEvents = buildUnifiedHistoryFeed();
+
+      // Populate Client / Entity filter dropdown preserving selection
+      const clientFilterEl = document.getElementById('historyClientFilter');
+      if (clientFilterEl) {
+        const prevSelected = clientFilterEl.value || 'ALL';
+        const entityNames = [...new Set([
+          ...clients.map(c => c.name),
+          ...allEvents.map(ev => ev.entity)
+        ])].filter(Boolean);
+        clientFilterEl.innerHTML = `<option value="ALL">Todos los Clientes / Entidades</option>` +
+          entityNames.map(name => `<option value="${escapeHtml(name)}" ${name === prevSelected ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('');
+      }
+
+      const query = (document.getElementById('historySearchInput')?.value || '').toLowerCase();
+      const selectedEntity = document.getElementById('historyClientFilter')?.value || 'ALL';
+      const dateFrom = document.getElementById('historyDateFrom')?.value || '';
+      const dateTo = document.getElementById('historyDateTo')?.value || '';
+
+      const filtered = allEvents.filter(ev => {
+        if (currentHistoryTypeFilter !== 'ALL' && ev.category !== currentHistoryTypeFilter) return false;
+        if (selectedEntity !== 'ALL' && ev.entity !== selectedEntity) return false;
+        if (dateFrom && ev.dateStr && ev.dateStr < dateFrom) return false;
+        if (dateTo && ev.dateStr && ev.dateStr > dateTo) return false;
+        if (query) {
+          const hay = `${ev.ref} ${ev.entity} ${ev.subEntity} ${ev.concept} ${ev.category}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+
+      // Calculate KPIs for filtered results
+      let totalInvoiced = 0;
+      let totalCollected = 0;
+      let totalEmptiesMoved = 0;
+      let totalPurchases = 0;
+
+      filtered.forEach(ev => {
+        if (ev.category === 'FACTURA' && ev.status !== 'Cancelado') totalInvoiced += ev.amount;
+        if (ev.category === 'COBRO') totalCollected += ev.amount;
+        if (ev.category === 'VACIOS' || ev.emptiesQty > 0) totalEmptiesMoved += ev.emptiesQty;
+        if (ev.category === 'COMPRA') totalPurchases += ev.amount;
+      });
+
+      const elCount = document.getElementById('hist-stat-count');
+      const elInv = document.getElementById('hist-stat-invoiced');
+      const elCol = document.getElementById('hist-stat-collected');
+      const elEmp = document.getElementById('hist-stat-empties');
+      const elPur = document.getElementById('hist-stat-purchases');
+
+      if (elCount) elCount.innerText = filtered.length;
+      if (elInv) elInv.innerText = `$${totalInvoiced.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (elCol) elCol.innerText = `$${totalCollected.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (elEmp) elEmp.innerText = `${totalEmptiesMoved} Envases`;
+      if (elPur) elPur.innerText = `$${totalPurchases.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      tbody.innerHTML = '';
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400 font-medium">No se encontraron movimientos con los filtros seleccionados.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(ev => {
+        let typeBadge = '';
+        if (ev.category === 'FACTURA') {
+          typeBadge = `<span class="bg-blue-100 text-blue-800 text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-file-invoice"></i> Factura</span>`;
+        } else if (ev.category === 'COBRO') {
+          typeBadge = `<span class="bg-emerald-100 text-emerald-800 text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-sack-dollar"></i> Cobro / Abono</span>`;
+        } else if (ev.category === 'VACIOS') {
+          typeBadge = `<span class="bg-amber-100 text-amber-800 text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-recycle"></i> Envases Vacíos</span>`;
+        } else if (ev.category === 'ARQUEO') {
+          typeBadge = `<span class="bg-teal-100 text-teal-800 text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-cash-register"></i> Arqueo Ruta</span>`;
+        } else {
+          typeBadge = `<span class="bg-indigo-100 text-indigo-800 text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1"><i class="fa-solid fa-dolly"></i> Compra / Stock</span>`;
+        }
+
+        let impactHtml = '';
+        if (ev.amount > 0) {
+          const colorCls = ev.category === 'COBRO' ? 'text-emerald-600' : (ev.category === 'COMPRA' ? 'text-indigo-600' : 'text-slate-900');
+          const prefix = ev.category === 'COBRO' ? '+' : '';
+          impactHtml += `<span class="font-black ${colorCls} block">${prefix}$${ev.amount.toFixed(2)}</span>`;
+        }
+        if (ev.emptiesQty > 0) {
+          const badgeColor = ev.emptiesSign === 'FAVOR'
+            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+            : 'bg-amber-50 text-amber-800 border-amber-200';
+          const labelSign = ev.emptiesSign === 'FAVOR' ? 'A Favor' : 'Envases';
+          impactHtml += `<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${badgeColor} mt-0.5">${ev.emptiesQty} ${labelSign}</span>`;
+        }
+        if (!impactHtml) {
+          impactHtml = `<span class="text-xs text-slate-400">-</span>`;
+        }
+
+        const actionBtns = ev.orderId
+          ? `<div class="flex items-center justify-end gap-1">
+               <button onclick="viewInvoice('${ev.orderId}')" title="Ver Factura / Comprobante" class="px-2.5 py-1.5 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg text-xs font-bold transition">
+                 <i class="fa-solid fa-eye"></i>
+               </button>
+               <button onclick="openCollectAndEmptiesModal('${ev.orderId}')" title="Cobrar o Retirar Vacíos" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg text-xs font-bold transition">
+                 <i class="fa-solid fa-hand-holding-dollar"></i>
+               </button>
+               <button onclick="openThermalDirectForOrder('${ev.orderId}')" title="Imprimir Ticket Térmico" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition">
+                 <i class="fa-solid fa-receipt"></i>
+               </button>
+             </div>`
+          : `<span class="text-[11px] text-slate-400 font-mono">Bitácora</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/90 transition border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-xs text-slate-600 font-mono whitespace-nowrap">${escapeHtml(ev.displayDate || ev.dateStr)}</td>
+          <td class="py-3 px-4">${typeBadge}</td>
+          <td class="py-3 px-4 font-mono font-bold text-blue-600 text-xs">${escapeHtml(ev.ref)}</td>
+          <td class="py-3 px-4">
+            <span class="font-bold text-slate-900 block text-xs">${escapeHtml(ev.entity)}</span>
+            <span class="text-[10px] text-slate-400 block">${escapeHtml(ev.subEntity || '')}</span>
+          </td>
+          <td class="py-3 px-4 text-xs text-slate-700 max-w-md">${escapeHtml(ev.concept)}</td>
+          <td class="py-3 px-4 text-right">${impactHtml}</td>
+          <td class="py-3 px-4 text-right">${actionBtns}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.openManualMovementModal = function() {
+      document.getElementById('manualMovementForm')?.reset();
+      document.getElementById('mm-ref').value = `MOV-${Math.floor(100 + Math.random() * 900)}`;
+      openModal('modal-manual-movement');
+    };
+
+    window.saveManualMovement = function(e) {
+      e.preventDefault();
+      const category = document.getElementById('mm-category').value;
+      const ref = document.getElementById('mm-ref').value.trim() || 'MANUAL';
+      const entity = document.getElementById('mm-entity').value.trim();
+      const concept = document.getElementById('mm-concept').value.trim();
+      const amount = parseFloat(document.getElementById('mm-amount').value) || 0;
+      const emptiesQty = parseInt(document.getElementById('mm-empties').value) || 0;
+
+      recordSystemMovement({
+        category,
+        ref,
+        entity,
+        concept,
+        amount,
+        emptiesQty,
+        emptiesSign: category === 'VACIOS' ? 'ENVASES' : ''
+      });
+
+      closeModal('modal-manual-movement');
+      renderHistoryView();
+      showNotification('Movimiento registrado y sincronizado en Firebase.', 'success');
+    };
+
+    window.exportHistoryCSV = function() {
+      const allEvents = buildUnifiedHistoryFeed();
+      let csv = 'Fecha,Tipo,Referencia,Cliente_Entidad,Responsable_Detalle,Concepto,Monto_USD,Envases\n';
+      allEvents.forEach(ev => {
+        const cleanConcept = String(ev.concept || '').replace(/"/g, '""');
+        const cleanEntity = String(ev.entity || '').replace(/"/g, '""');
+        const cleanSub = String(ev.subEntity || '').replace(/"/g, '""');
+        csv += `"${ev.displayDate || ev.dateStr}","${ev.category}","${ev.ref}","${cleanEntity}","${cleanSub}","${cleanConcept}",${Number(ev.amount || 0).toFixed(2)},${Number(ev.emptiesQty || 0)}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Historial_Movimientos_CervezaLogix_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showNotification('Historial de facturas, cobros y movimientos exportado a CSV.', 'success');
     };
 
     window.openGeminiSheet = function() {
