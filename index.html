@@ -68,14 +68,6 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
-    /* Soporte para pantallas móviles (100dvh y barra inferior del sistema) */
-    .app-viewport-height {
-      height: 100vh;
-      height: 100dvh;
-    }
-    .safe-bottom-pad {
-      padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 24px));
-    }
     @media print {
       body * {
         visibility: hidden !important;
@@ -95,7 +87,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased flex app-viewport-height overflow-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
 
   <!-- Mobile Backdrop Overlay for Sidebar -->
   <div id="sidebar-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-40 hidden transition-opacity duration-300 pointer-events-auto"></div>
@@ -275,7 +267,7 @@
     <div id="toastContainer" class="fixed top-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- Scrollable Content Views -->
-    <main class="flex-1 overflow-y-auto p-4 pb-32 md:p-8 md:pb-12 bg-slate-50 relative">
+    <main class="flex-1 overflow-y-auto p-4 pb-36 md:p-8 md:pb-16 bg-slate-50 relative">
 
       <!-- VIEW: DASHBOARD -->
       <section id="view-dashboard" class="space-y-6">
@@ -519,7 +511,7 @@
           </div>
 
           <!-- Right Column: Current Order Items & Summary -->
-          <div id="pos-cart-summary-card" class="lg:col-span-5 bg-white p-5 pb-8 lg:pb-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:sticky lg:top-6 lg:max-h-[calc(100dvh-100px)]">
+          <div id="pos-cart-summary-card" class="lg:col-span-5 bg-white p-5 pb-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:sticky lg:top-6 mb-32 lg:mb-0 lg:max-h-[calc(100vh-100px)]">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
               <div>
                 <label class="block text-[11px] font-black text-blue-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-3 mr-1"></i> Paso 3: Confirmar y Facturar</label>
@@ -528,18 +520,23 @@
                   <span id="pos-cart-count-badge" class="bg-blue-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full">0</span>
                 </div>
               </div>
-              <button onclick="clearCurrentCart()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1">
-                <i class="fa-solid fa-trash-can"></i> Vaciar
-              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="clearCurrentCart()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1">
+                  <i class="fa-solid fa-trash-can"></i> Vaciar
+                </button>
+                <button onclick="navigateTab('dashboard')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-xmark"></i> Cerrar
+                </button>
+              </div>
             </div>
 
             <!-- Cart Items List -->
-            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-xl p-2 bg-slate-50/60 mt-3 space-y-2 min-h-[120px]" id="pos-cart-items-container">
+            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-xl p-2 bg-slate-50/60 mt-3 space-y-2 min-h-[140px] max-h-[340px]" id="pos-cart-items-container">
               <p class="text-xs text-slate-400 text-center py-6">El carrito está vacío. Haz clic o escanea un producto para agregarlo.</p>
             </div>
 
             <!-- Pricing & Submission Container (Sticky Bottom) -->
-            <div class="shrink-0 mt-3 pt-3 border-t border-slate-100 space-y-3">
+            <div class="shrink-0 mt-3 pt-3 border-t border-slate-100 space-y-3 pb-4">
               <!-- Pricing Calculation -->
               <div class="space-y-1.5 text-sm">
                 <div class="flex justify-between text-slate-600">
@@ -669,20 +666,8 @@
                 </div>
               </div>
 
-              <!-- Preferencia de Impresión al Generar Pedido -->
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
-                <span class="font-bold text-slate-700 flex items-center gap-1.5">
-                  <i class="fa-solid fa-print text-blue-600"></i> Al facturar abrir:
-                </span>
-                <select id="posAfterSubmitPrintMode" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
-                  <option value="BOTH" selected>📄 Factura + Botón Ticket</option>
-                  <option value="THERMAL">🧾 Ticket Térmico Directo (58/80mm)</option>
-                  <option value="A4">🖨️ Imprimir Factura A4 Directo</option>
-                </select>
-              </div>
-
               <!-- Submit Button -->
-              <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98 text-sm sm:text-base">
+              <button id="btn-submit-order" onclick="submitOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl transition duration-200 shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-98 text-sm sm:text-base">
                 <i class="fa-solid fa-file-invoice-dollar text-lg"></i> Generar Pedido e Imprimir Factura
               </button>
             </div>
@@ -690,14 +675,14 @@
         </div>
 
         <!-- Floating Mobile Cart Bar for Easier Cashier & Client Navigation -->
-        <div id="pos-mobile-cart-bar" onclick="scrollToPosCart()" class="lg:hidden fixed bottom-4 left-4 right-20 z-30 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition transform hidden">
+        <div id="pos-mobile-cart-bar" onclick="scrollToPosCart()" class="lg:hidden fixed bottom-16 left-4 right-20 z-30 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition transform hidden">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
               <span id="pos-mobile-bar-qty">0</span>
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Ir a Confirmar e Imprimir</p>
-              <p class="text-[10px] text-amber-300">Toca para bajar al botón de facturar</p>
+              <p class="text-xs font-bold text-white leading-tight">Ver Carrito y Facturar</p>
+              <p class="text-[10px] text-amber-300">Toca para ir al resumen</p>
             </div>
           </div>
           <div class="text-right">
@@ -1303,12 +1288,15 @@
               <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
                 <i class="fa-solid fa-clipboard-check text-blue-600"></i> Hoja de Ruta Interactiva del Repartidor
               </h4>
-              <p class="text-xs text-slate-500">Todo lo que el chofer necesita en cada parada: mercancía a bajar, dinero a cobrar, vacíos a recoger y saldos previos del cliente</p>
+              <p class="text-xs text-slate-500">Los pedidos aparecen minimizados para una vista limpia. Toca cualquier pedido para maximizar y ver todos sus detalles.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
               <select id="logisticsDriverFilter" onchange="renderLogistics()" class="border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1 md:flex-none">
                 <option value="ALL">🚚 Todos los Choferes en Ruta</option>
               </select>
+              <button type="button" onclick="toggleAllDriverStops()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-up-right-and-down-left-from-center"></i> <span id="btn-toggle-all-stops-label">Expandir Todos</span>
+              </button>
               <button onclick="navigateTab('receivables')" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Ver Todas las Cuentas
               </button>
@@ -1747,47 +1735,44 @@
           <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
             <i class="fa-solid fa-link text-blue-600"></i> Enlaces de Acceso Rápido por Rol
           </h4>
-          <p class="text-xs text-slate-500">Copia y envía estos enlaces a tus empleados o pruébalos aquí mismo. Al abrirlos, el sistema entra directamente en el modo del rol seleccionado.</p>
+          <p class="text-xs text-slate-500">Copia y envía estos enlaces a tus empleados o ábrelos directamente desde aquí.</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-3.5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col justify-between gap-3 shadow-sm">
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-2 shadow-sm">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
-                  <i class="fa-solid fa-cash-register text-sm"></i>
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+                  <i class="fa-solid fa-cash-register text-xs"></i>
                 </div>
                 <div class="text-left">
-                  <span class="block text-xs font-bold text-slate-800">Acceso para Cajero / Preventa</span>
-                  <span class="block text-[10px] text-slate-500">Abre directo en Preventa POS, Pedidos y Cobros</span>
+                  <span class="block text-xs font-bold text-slate-800">Modo Cajero</span>
+                  <span class="block text-[10px] text-slate-500">Acceso a POS y Pedidos</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="copyRoleLink('cajero')" class="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-copy"></i> Copiar Link Cajero
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="copyRoleLink('cajero')" class="px-2.5 py-1.5 bg-white hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-copy"></i> Copiar
                 </button>
-                <button type="button" onclick="activateRoleModeNow('cajero')" class="py-2 px-3 bg-white hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1" title="Probar vista de Cajero aquí">
-                  <i class="fa-solid fa-eye"></i> Probar
+                <button onclick="activateRoleNow('cajero')" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition">
+                  Abrir
                 </button>
               </div>
             </div>
 
-            <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col justify-between gap-3 shadow-sm">
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2 shadow-sm">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
-                  <i class="fa-solid fa-truck text-sm"></i>
+                <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
+                  <i class="fa-solid fa-truck text-xs"></i>
                 </div>
                 <div class="text-left">
-                  <span class="block text-xs font-bold text-slate-800">Acceso para Chofer / Repartidor</span>
-                  <span class="block text-[10px] text-slate-500">Abre directo en Hoja de Ruta, Cobros, Vacíos y Arqueo</span>
+                  <span class="block text-xs font-bold text-slate-800">Modo Repartidor / Chofer</span>
+                  <span class="block text-[10px] text-slate-500">Acceso directo a Rutas y Arqueo</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <select id="settings-driver-link-select" class="text-xs p-2 border border-emerald-300 rounded-lg bg-white font-semibold text-slate-800 max-w-[140px]">
-                  <option value="ALL">Todos los Choferes</option>
-                </select>
-                <button type="button" onclick="copyDriverRoleLinkFromSettings()" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-copy"></i> Copiar Link
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="copyRoleLink('repartidor')" class="px-2.5 py-1.5 bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-copy"></i> Copiar
                 </button>
-                <button type="button" onclick="activateDriverModeFromSettings()" class="py-2 px-2.5 bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1" title="Entrar al Modo Repartidor ahora">
-                  <i class="fa-solid fa-eye"></i> Probar
+                <button onclick="activateRoleNow('repartidor')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                  Abrir Ruta
                 </button>
               </div>
             </div>
@@ -1864,7 +1849,7 @@
   </div>
 
   <!-- Floating AI Button (Updated Gemini Mobile UI) -->
-  <button onclick="openGeminiSheet()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-2xl shadow-purple-500/50 text-white flex items-center justify-center text-2xl z-40 hover:scale-110 transition-transform" title="Asistente de IA Gemini">
+  <button onclick="openGeminiSheet()" class="fixed bottom-28 right-4 lg:bottom-6 lg:right-6 w-14 h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-2xl shadow-purple-500/50 text-white flex items-center justify-center text-2xl z-40 hover:scale-110 transition-transform" title="Asistente de IA Gemini">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
   </button>
 
@@ -2193,8 +2178,8 @@
   </div>
 
   <!-- MODAL: AGREGAR PRODUCTO AL CARRITO (POS) -->
-  <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 hidden p-0 sm:p-4 overflow-y-auto">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92dvh] overflow-y-auto safe-bottom-pad">
+  <div id="modal-add-cart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 pb-20 sm:pb-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4 my-auto">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
         <div class="flex items-center gap-3">
           <img id="mac-product-img" src="" alt="Producto" class="w-12 h-12 rounded-xl object-cover border border-slate-200 hidden">
@@ -2203,7 +2188,7 @@
             <p id="mac-product-sku" class="text-xs font-mono text-slate-400">SKU</p>
           </div>
         </div>
-        <button type="button" onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700 p-1">
+        <button type="button" onclick="closeModal('modal-add-cart')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -2238,9 +2223,9 @@
           </div>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2 sticky bottom-0 bg-white pb-2">
-          <button type="button" onclick="closeModal('modal-add-cart')" class="px-4 py-3 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
-          <button type="submit" class="flex-1 sm:flex-none px-6 py-3 rounded-xl text-xs sm:text-sm font-black bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center justify-center gap-1.5">
+        <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-add-cart')" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">Cerrar / Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-1.5">
             <i class="fa-solid fa-cart-plus"></i> Aceptar y Agregar
           </button>
         </div>
@@ -2287,40 +2272,34 @@
   </div>
 
   <!-- MODAL: FACTURA / GUÍA DE DESPACHO IMPRIMIBLE -->
-  <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 hidden p-0 sm:p-4 overflow-y-auto">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-2xl w-full shadow-2xl p-4 sm:p-6 space-y-4 my-0 sm:my-8 max-h-[94dvh] overflow-y-auto safe-bottom-pad">
-      <!-- Barra destacada de Impresión Rápida arriba y siempre visible -->
-      <div class="bg-slate-900 text-white p-3.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-lg">
-        <div class="flex items-center justify-between sm:justify-start gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">
-              <i class="fa-solid fa-print"></i>
-            </span>
-            <div>
-              <span class="font-mono font-black text-amber-400 text-sm block leading-none" id="inv-folio">ORD-0000</span>
-              <span class="text-[10px] text-slate-300 font-semibold" id="inv-status">Estado</span>
-            </div>
+  <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4 pb-20 sm:pb-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl p-4 sm:p-6 space-y-4 my-auto max-h-[88vh] overflow-y-auto">
+      <!-- Banner de Confirmación de Venta Recién Creada -->
+      <div id="inv-sale-success-banner" class="hidden p-3.5 rounded-2xl bg-emerald-600 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-circle-check"></i>
           </div>
-          <button onclick="closeModal('modal-invoice')" class="sm:hidden text-slate-300 hover:text-white p-1.5 bg-slate-800 rounded-lg">
-            <i class="fa-solid fa-xmark text-base"></i>
-          </button>
+          <div>
+            <h4 class="font-black text-sm uppercase tracking-wide">¡Venta Registrada con Éxito!</h4>
+            <p class="text-xs text-emerald-100">Selecciona abajo el formato en el que deseas imprimir tu factura:</p>
+          </div>
         </div>
-        <div class="grid grid-cols-2 sm:flex items-center gap-2">
-          <button onclick="openThermalReceiptModal()" class="py-2.5 px-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm">
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button type="button" onclick="openThermalReceiptModal()" class="flex-1 sm:flex-none px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black transition shadow flex items-center justify-center gap-1.5">
             <i class="fa-solid fa-receipt"></i> Imprimir Ticket Térmico
           </button>
-          <button onclick="printInvoiceA4Browser()" class="py-2.5 px-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-print"></i> Imprimir Factura A4
-          </button>
-          <button onclick="closeModal('modal-invoice')" class="hidden sm:inline-flex text-slate-400 hover:text-white p-1.5 ml-1">
-            <i class="fa-solid fa-xmark text-lg"></i>
+          <button type="button" onclick="window.print()" class="flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-slate-100 text-emerald-900 rounded-xl text-xs font-black transition shadow flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-print"></i> Imprimir Hoja A4
           </button>
         </div>
       </div>
 
-      <!-- Acciones operativas secundarias -->
-      <div class="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2.5">
-        <span class="text-[11px] font-bold text-slate-400 uppercase">Acciones del Pedido:</span>
+      <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="font-mono font-black text-blue-600 text-base" id="inv-folio">ORD-0000</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700" id="inv-status">Estado</span>
+        </div>
         <div class="flex flex-wrap items-center gap-1.5">
           <button id="btn-approve-action" onclick="approveOrderFromInvoice()" class="hidden px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-check mr-1"></i> Aprobar Pedido
@@ -2328,7 +2307,7 @@
           <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-list-check mr-1"></i> Cambiar Estado
           </button>
-          <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition">
+          <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Cobrar / Vacíos
           </button>
           <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
@@ -2336,6 +2315,15 @@
           </button>
           <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-signature mr-1"></i> Firma POD
+          </button>
+          <button onclick="openThermalReceiptModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-receipt mr-1"></i> Ticket Térmico
+          </button>
+          <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-print mr-1"></i> Imprimir A4
+          </button>
+          <button onclick="closeModal('modal-invoice')" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-xmark mr-1"></i> Cerrar
           </button>
         </div>
       </div>
@@ -2414,6 +2402,20 @@
           <p id="inv-company-legal" class="text-[10px] text-slate-500"></p>
           <p id="inv-company-footer" class="text-xs font-bold text-slate-700 mt-0.5">¡Gracias por su compra!</p>
         </div>
+
+        <div class="pt-4 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2 print:hidden">
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="openThermalReceiptModal()" class="px-4 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-receipt text-amber-400"></i> Imprimir Ticket Térmico
+            </button>
+            <button type="button" onclick="window.print()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-print"></i> Imprimir Factura A4
+            </button>
+          </div>
+          <button type="button" onclick="closeModal('modal-invoice')" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-xmark"></i> Cerrar Factura
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2457,6 +2459,9 @@
         </button>
         <button onclick="copyThermalText()" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-copy"></i> Copiar Texto
+        </button>
+        <button onclick="closeModal('modal-thermal-receipt')" class="col-span-2 py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm mt-1">
+          <i class="fa-solid fa-xmark"></i> Cerrar Ticket
         </button>
       </div>
 
@@ -2759,11 +2764,24 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Código SKU / Barras</label>
-            <input type="text" id="prod-sku" required placeholder="CERV-PAN-24" class="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+            <div class="flex gap-1.5 mt-1">
+              <input type="text" id="prod-sku" required placeholder="CERV-PAN-24" class="flex-1 text-xs font-mono p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <button type="button" onclick="openBarcodeScannerForProductField()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1 shrink-0 shadow-xs" title="Escanear código de barras con la cámara">
+                <i class="fa-solid fa-barcode"></i> Escanear
+              </button>
+            </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Categoría</label>
             <input type="text" id="prod-category" required placeholder="Cervezas Nacionales" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <!-- Escáner integrado en el formulario de producto -->
+          <div id="prod-inline-scanner-wrap" class="sm:col-span-2 hidden p-3 rounded-xl bg-slate-900 text-white space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-camera"></i> Apunta al código de barras del producto</span>
+              <button type="button" onclick="stopProductInlineScanner()" class="px-2 py-0.5 bg-rose-600 text-white rounded font-bold text-[10px]">Cerrar Cámara</button>
+            </div>
+            <div id="prod-sku-scanner-reader" class="w-full rounded-lg overflow-hidden bg-black min-h-[160px]"></div>
           </div>
           <div class="sm:col-span-2">
             <label class="block text-xs font-semibold text-slate-600">Descripción del Producto</label>
@@ -2829,6 +2847,29 @@
           <div class="sm:col-span-2">
             <label class="block text-xs font-semibold text-slate-600">Dirección de Entrega</label>
             <input type="text" id="cli-address" required placeholder="Calle 4ta, David, Chiriquí" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl bg-slate-50 mt-1">
+          </div>
+          <!-- GPS y Enlace de Google Maps para el Cliente -->
+          <div class="sm:col-span-2 p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label class="block text-xs font-bold text-blue-900">
+                <i class="fa-solid fa-location-crosshairs text-blue-600 mr-1"></i> Ubicación GPS y Enlace de Google Maps
+              </label>
+              <button type="button" onclick="detectClientGpsLocation()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs active:scale-95">
+                <i class="fa-solid fa-satellite-dish"></i> Detectar mi GPS Actual
+              </button>
+            </div>
+            <input type="text" id="cli-maps-url" oninput="parseClientMapsUrlInput(this.value)" placeholder="Pega aquí el enlace de Google Maps o usa 'Detectar mi GPS Actual'..." class="w-full text-xs p-2.5 border border-blue-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Latitud</label>
+                <input type="number" step="any" id="cli-lat" placeholder="8.4275" class="w-full text-xs font-mono p-1.5 border border-slate-200 rounded-lg bg-white">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Longitud</label>
+                <input type="number" step="any" id="cli-lng" placeholder="-82.4312" class="w-full text-xs font-mono p-1.5 border border-slate-200 rounded-lg bg-white">
+              </div>
+            </div>
+            <p id="cli-gps-status" class="text-[10px] text-blue-700 font-medium">Puedes detectar el GPS desde el teléfono o pegar el link de Google Maps del cliente.</p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Ruta Asignada</label>
@@ -2905,6 +2946,9 @@
         </button>
         <button onclick="copyCurrentQrLink()" class="col-span-2 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-link"></i> Copiar Link Directo del Portal
+        </button>
+        <button onclick="closeModal('modal-client-qr')" class="col-span-2 py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold mt-1">
+          Cerrar Ventana
         </button>
       </div>
     </div>
@@ -3375,12 +3419,11 @@
 
     function resolveFirebaseCredentials() {
       const urlParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
-      const urlApiKey = urlParams.get('fb_key') || hashParams.get('fb_key');
-      const urlProjectId = urlParams.get('fb_pid') || hashParams.get('fb_pid');
-      const urlAuthDomain = urlParams.get('fb_dom') || hashParams.get('fb_dom');
-      const urlAppId = urlParams.get('fb_aid') || hashParams.get('fb_aid');
-      const urlBucket = urlParams.get('fb_bkt') || hashParams.get('fb_bkt');
+      const urlApiKey = urlParams.get('fb_key');
+      const urlProjectId = urlParams.get('fb_pid');
+      const urlAuthDomain = urlParams.get('fb_dom');
+      const urlAppId = urlParams.get('fb_aid');
+      const urlBucket = urlParams.get('fb_bkt');
 
       if (urlApiKey && urlProjectId) {
         window.fbCredentials = {
@@ -4620,13 +4663,6 @@
 
       renderReceiptLogoPreview();
 
-      const drvLinkSelect = document.getElementById('settings-driver-link-select');
-      if (drvLinkSelect) {
-        const prevDrv = drvLinkSelect.value || 'ALL';
-        drvLinkSelect.innerHTML = `<option value="ALL">Todos los Choferes</option>` +
-          drivers.map(d => `<option value="${escapeHtml(d.name)}" ${d.name === prevDrv ? 'selected' : ''}>${escapeHtml(d.name)}</option>`).join('');
-      }
-
       const botsList = document.getElementById('settings-bots-list');
       if (botsList) {
         botsList.innerHTML = '';
@@ -4768,7 +4804,123 @@
     
     window.wipeAllData = async function() {
       products = [];
-      renderDashboard();
+      clients = [];
+      orders = [];
+      purchases = [];
+      batches = [];
+      cashouts = [];
+      movementsLog = [];
+      if (window.wipeCloudCollections) {
+        await window.wipeCloudCollections();
+      }
+      refreshActiveViews();
+      showNotification('Sistema limpiado por completo.', 'info');
+    };
+
+    window.getConditionText = function(isCold) {
+      if (isCold) return '(FRÍO)';
+      if (appSettings.nonColdLabel === 'HIDDEN') return '';
+      return `(${appSettings.nonColdLabel || 'AL CLIMA'})`;
+    };
+
+    window.toggleCreditDays = function() {
+      const method = document.getElementById('posPaymentMethod')?.value;
+      const box = document.getElementById('posCreditDaysContainer');
+      if (box) {
+        box.classList.toggle('hidden', method !== 'Crédito');
+      }
+      if (method === 'Crédito') {
+        const payStatusSel = document.getElementById('posImmediatePaymentStatus');
+        if (payStatusSel) {
+          payStatusSel.value = 'Pendiente';
+          handlePosPaymentStatusChange();
+        }
+      }
+    };
+
+    window.handlePosDriverChange = function() {
+      const drv = document.getElementById('posAssignedDriver')?.value || '';
+      const payStatusSel = document.getElementById('posImmediatePaymentStatus');
+      if (drv.includes('Bodega') && payStatusSel && payStatusSel.value === 'CobrarEnCamion') {
+        payStatusSel.value = 'Pagado';
+        handlePosPaymentStatusChange();
+      }
+    };
+
+    window.testSelectedAlarm = function() {
+      const sel = document.getElementById('pref-alarm-sound');
+      if (sel && sel.value) {
+        orderAlarmAudio.src = sel.value;
+      }
+      playSynthAlarmBeep();
+      orderAlarmAudio.muted = false;
+      orderAlarmAudio.currentTime = 0;
+      orderAlarmAudio.play().catch(() => {});
+      setTimeout(() => {
+        orderAlarmAudio.pause();
+        orderAlarmAudio.currentTime = 0;
+      }, 2500);
+    };
+
+    window.broadcastTestTelegramMessage = function() {
+      const msg = (document.getElementById('settings-test-message')?.value || '').trim() || 'Mensaje de prueba desde CervezaLogix ERP';
+      showNotification(`Mensaje transmitido a ${telegramChats.length} canales de Telegram: "${msg}"`, 'success');
+    };
+
+    function renderDashboard() {
+      const validOrders = orders.filter(o => o.status !== 'Cancelado' && o.status !== 'Por Aprobar');
+      const totalSales = validOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      const pendingOrders = orders.filter(o => o.status === 'Pendiente' || o.status === 'En Preparación' || o.status === 'Despachando').length;
+      const activeRoutes = orders.filter(o => o.status === 'En Ruta').length;
+      const lowStockCount = products.filter(p => Number(p.stock) <= Number(p.minStock)).length;
+
+      const elSales = document.getElementById('stat-sales-total');
+      const elPending = document.getElementById('stat-pending-count');
+      const elRoutes = document.getElementById('stat-routes-active');
+      const elLow = document.getElementById('stat-low-stock-count');
+
+      if (elSales) elSales.innerText = `$${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (elPending) elPending.innerText = pendingOrders;
+      if (elRoutes) elRoutes.innerText = activeRoutes;
+      if (elLow) elLow.innerText = lowStockCount;
+
+      const badgePending = document.getElementById('badge-pending-orders');
+      if (badgePending) badgePending.innerText = pendingOrders;
+
+      const badgeLow = document.getElementById('badge-low-stock');
+      if (badgeLow) {
+        if (lowStockCount > 0) {
+          badgeLow.classList.remove('hidden');
+          badgeLow.innerText = lowStockCount;
+        } else {
+          badgeLow.classList.add('hidden');
+        }
+      }
+
+      const recentBody = document.getElementById('dashboard-recent-orders-body');
+      if (recentBody) {
+        recentBody.innerHTML = '';
+        orders.slice(0, 6).forEach(ord => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 border-b border-slate-100';
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono font-bold text-blue-600">${ord.id}</td>
+            <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(ord.clientName)}</td>
+            <td class="py-3 px-4 text-xs text-slate-500">${ord.date}</td>
+            <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total || 0).toFixed(2)}</td>
+            <td class="py-3 px-4 text-xs text-slate-600">${escapeHtml(ord.driver || 'Por asignar')}</td>
+            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="viewInvoice('${ord.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg text-xs font-bold transition">
+                <i class="fa-solid fa-print mr-1"></i> Ver / Imprimir
+              </button>
+            </td>
+          `;
+          recentBody.appendChild(tr);
+        });
+      }
+
+      renderCharts();
     }
 
     // Navegación directa desde las 4 tarjetas de indicadores del Panel General
@@ -5580,13 +5732,7 @@
     };
 
     window.scrollToPosCart = function() {
-      const submitBtn = document.getElementById('btn-submit-order');
-      const summaryCard = document.getElementById('pos-cart-summary-card');
-      if (submitBtn) {
-        submitBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else if (summaryCard) {
-        summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      document.getElementById('pos-cart-summary-card')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     function getCategoryPlaceholderIcon(category) {
@@ -6391,26 +6537,18 @@
         clearCurrentCart();
         renderClientHistory(clientId);
       } else {
-        const printMode = document.getElementById('posAfterSubmitPrintMode')?.value || 'BOTH';
-        showNotification(`Pedido ${newId} generado (${window.getSyncTag()}). Abriendo factura para imprimir...`, 'success');
+        showNotification(`¡Venta ${newId} creada con éxito! Mostrando opciones de impresión...`, 'success');
         clearCurrentCart();
         refreshActiveViews();
-        currentViewingOrder = newOrder;
-        viewInvoice(newId);
-
-        if (printMode === 'THERMAL') {
-          setTimeout(() => {
-            openThermalReceiptModal();
-          }, 180);
-        } else if (printMode === 'A4') {
-          setTimeout(() => {
-            printInvoiceA4Browser();
-          }, 250);
-        }
+        viewInvoice(newOrder, true);
       }
     }
 
-    function openBarcodeScannerModal() {
+    let scannerTargetMode = 'POS';
+    let prodInlineQrScanner = null;
+
+    function openBarcodeScannerModal(mode = 'POS') {
+      scannerTargetMode = mode || 'POS';
       openModal('modal-barcode-scanner');
       setTimeout(() => {
         try {
@@ -6431,6 +6569,50 @@
       }, 200);
     }
 
+    window.openBarcodeScannerForProductField = function() {
+      const wrap = document.getElementById('prod-inline-scanner-wrap');
+      if (!wrap) {
+        openBarcodeScannerModal('PRODUCT_SKU');
+        return;
+      }
+      wrap.classList.remove('hidden');
+      setTimeout(() => {
+        try {
+          if (!prodInlineQrScanner && typeof Html5Qrcode !== 'undefined') {
+            prodInlineQrScanner = new Html5Qrcode("prod-sku-scanner-reader");
+          }
+          if (prodInlineQrScanner && !prodInlineQrScanner.isScanning) {
+            prodInlineQrScanner.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: { width: 220, height: 100 } },
+              (decodedText) => {
+                const cleanCode = decodedText.trim();
+                const skuInput = document.getElementById('prod-sku');
+                if (skuInput) skuInput.value = cleanCode;
+                showNotification(`Código de barras asignado al producto: ${cleanCode}`, 'success');
+                stopProductInlineScanner();
+              },
+              () => {}
+            ).catch(() => {
+              wrap.classList.add('hidden');
+              openBarcodeScannerModal('PRODUCT_SKU');
+            });
+          }
+        } catch (e) {
+          wrap.classList.add('hidden');
+          openBarcodeScannerModal('PRODUCT_SKU');
+        }
+      }, 150);
+    };
+
+    window.stopProductInlineScanner = function() {
+      const wrap = document.getElementById('prod-inline-scanner-wrap');
+      if (wrap) wrap.classList.add('hidden');
+      if (prodInlineQrScanner && prodInlineQrScanner.isScanning) {
+        prodInlineQrScanner.stop().catch(() => {});
+      }
+    };
+
     function closeBarcodeScannerModal() {
       stopHtml5Scanner();
       closeModal('modal-barcode-scanner');
@@ -6439,6 +6621,35 @@
     function stopHtml5Scanner() {
       if (html5QrScanner && html5QrScanner.isScanning) {
         html5QrScanner.stop().catch(e => console.debug("Stop scanner error:", e));
+      }
+    }
+
+    function onBarcodeScanned(barcode) {
+      const cleanCode = barcode.trim();
+      if (scannerTargetMode === 'PRODUCT_SKU') {
+        const skuInput = document.getElementById('prod-sku');
+        if (skuInput) skuInput.value = cleanCode;
+        showNotification(`Código asignado al producto: ${cleanCode}`, 'success');
+        scannerTargetMode = 'POS';
+        closeBarcodeScannerModal();
+        return;
+      }
+
+      showNotification(`Código detectado: ${cleanCode}`, 'info');
+      const upperCode = cleanCode.toUpperCase();
+      const product = products.find(p => p.sku.toUpperCase() === upperCode || p.id === upperCode || p.name.toUpperCase().includes(upperCode));
+      
+      if (product) {
+        addToCart(product.id);
+        showNotification(`Agregado al pedido: ${product.name}`, 'success');
+        closeBarcodeScannerModal();
+        navigateTab('pos');
+      } else {
+        showNotification(`Código "${cleanCode}" no registrado. Abriendo ficha para crearlo...`, 'info');
+        closeBarcodeScannerModal();
+        openProductModal();
+        const skuInput = document.getElementById('prod-sku');
+        if (skuInput) skuInput.value = cleanCode;
       }
     }
 
@@ -6927,12 +7138,17 @@
       openCollectAndEmptiesModal(orderId);
     };
 
-    function viewInvoice(orderId) {
-      const order = orders.find(o => o.id === orderId);
+    window.viewInvoice = function(orderIdOrObj, isNewlyCreated = false) {
+      const order = typeof orderIdOrObj === 'object' ? orderIdOrObj : orders.find(o => o.id === orderIdOrObj);
       if (!order) return;
 
       currentViewingOrder = order;
       applyCompanyBrandingToInvoice();
+
+      const successBanner = document.getElementById('inv-sale-success-banner');
+      if (successBanner) {
+        successBanner.classList.toggle('hidden', !isNewlyCreated);
+      }
 
       document.getElementById('inv-folio').innerText = order.id;
       document.getElementById('inv-status').innerText = order.status;
@@ -7409,41 +7625,6 @@
       openModal('modal-thermal-receipt');
     }
 
-    window.printInvoiceA4Browser = function() {
-      const invoiceArea = document.getElementById('printInvoiceArea');
-      if (!invoiceArea) {
-        window.print();
-        return;
-      }
-      const printWin = window.open('', '_blank', 'width=840,height=720');
-      if (!printWin) {
-        window.print();
-        return;
-      }
-      printWin.document.write(`<!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <title>Factura ${currentViewingOrder ? currentViewingOrder.id : ''}</title>
-          <script src="https://cdn.tailwindcss.com"><\/script>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-          <style>
-            @page { size: A4; margin: 12mm; }
-            body { font-family: Arial, sans-serif; background: #fff; color: #0f172a; padding: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="max-w-3xl mx-auto">${invoiceArea.innerHTML}</div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); window.close(); }, 450);
-            };
-          <\/script>
-        </body>
-        </html>`);
-      printWin.document.close();
-    };
-
     window.printThermalTicketBrowser = function() {
       const textToPrint = document.getElementById('thermal-receipt-text')?.value || currentThermalReceiptPlainText;
       const logoHtml = appSettings.receiptLogo
@@ -7826,6 +8007,7 @@
     };
 
     function openProductModal() {
+      stopProductInlineScanner();
       document.getElementById('modalProductTitle').innerText = 'Registrar Producto';
       document.getElementById('productForm').reset();
       document.getElementById('prod-id').value = '';
@@ -7837,6 +8019,7 @@
     }
 
     function editProductModal(productId) {
+      stopProductInlineScanner();
       const prod = products.find(p => p.id === productId);
       if (!prod) return;
 
@@ -7969,15 +8152,24 @@
               ? `<span class="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md"><i class="fa-solid fa-fire-flame-curved mr-1"></i>Hace ${daysSinceLastOrder} días sin pedir</span>`
               : `<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md"><i class="fa-solid fa-check mr-1"></i>Compró hace ${daysSinceLastOrder}d</span>`);
 
+        const clientMapsHref = getClientGoogleMapsUrl(c);
+        const hasExactGps = Boolean((c.mapsUrl && c.mapsUrl.trim()) || (c.lat && c.lng));
+
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-start gap-2">
               <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">${escapeHtml(c.route)}</span>
               <div class="flex flex-wrap items-center justify-end gap-1">
+                <a href="${clientMapsHref}" target="_blank" rel="noopener noreferrer" title="Abrir ubicación GPS en Google Maps" class="px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs inline-flex items-center gap-1 ${hasExactGps ? 'bg-emerald-100 hover:bg-emerald-600 text-emerald-800 hover:text-white' : 'bg-slate-100 hover:bg-blue-600 text-slate-700 hover:text-white'}">
+                  <i class="fa-solid fa-location-dot"></i> GPS
+                </a>
+                <button onclick="quickSaveClientGpsFromCard('${c.id}')" title="Detectar y guardar mi ubicación GPS actual para este cliente" class="text-blue-700 hover:text-white bg-blue-50 hover:bg-blue-600 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                  <i class="fa-solid fa-satellite-dish"></i> Fijar GPS
+                </button>
                 <button onclick="openClientCreditEmptiesModal('${c.id}')" title="Gestionar Vacíos a Favor del Cliente" class="text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-hand-holding-heart"></i> A Favor (${creditEmptiesTotal})
                 </button>
-                <button onclick="editClientModal('${c.id}')" title="Editar datos del cliente" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
+                <button onclick="editClientModal('${c.id}')" title="Editar datos y enlace de Google Maps del cliente" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
                   <i class="fa-solid fa-pen"></i> Editar
                 </button>
                 <button onclick="openSpecialPricesModal('${c.id}')" title="Configurar precios especiales B2B en Firebase" class="text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-md text-[11px] font-bold transition shadow-xs">
@@ -8009,84 +8201,91 @@
       });
     }
 
-    // =====================================================================
-    // OPCIÓN 14: PREDICCIÓN DE RECOMPRA E INACTIVIDAD DE CLIENTES ("CLIENTE FRÍO")
-    // =====================================================================
-    function getClientDaysSinceLastOrder(clientId, clientName) {
-      const clientOrders = orders.filter(o =>
-        o.status !== 'Cancelado' &&
-        (o.clientId === clientId || (o.clientName || '').toLowerCase() === (clientName || '').toLowerCase())
-      );
-      if (clientOrders.length === 0) return null;
-
-      let latestMs = 0;
-      clientOrders.forEach(o => {
-        const dMs = o.date ? new Date(o.date + 'T12:00:00').getTime() : (o.createdAt || 0);
-        if (dMs > latestMs) latestMs = dMs;
-      });
-      if (!latestMs) return null;
-
-      const referenceNow = new Date('2026-10-22T12:00:00').getTime();
-      const nowMs = Math.max(Date.now(), referenceNow);
-      const diffDays = Math.max(0, Math.floor((nowMs - latestMs) / (1000 * 60 * 60 * 24)));
-      return diffDays;
+    function getClientGoogleMapsUrl(clientObj, fallbackAddress = '') {
+      if (clientObj) {
+        if (clientObj.mapsUrl && String(clientObj.mapsUrl).trim()) {
+          return String(clientObj.mapsUrl).trim();
+        }
+        if (clientObj.lat && clientObj.lng) {
+          return `https://www.google.com/maps?q=${clientObj.lat},${clientObj.lng}`;
+        }
+        const q = encodeURIComponent(`${clientObj.name || ''} ${clientObj.address || 'David, Chiriqui'}`.trim());
+        return `https://www.google.com/maps/search/?api=1&query=${q}`;
+      }
+      const qFallback = encodeURIComponent(fallbackAddress || 'David, Chiriqui');
+      return `https://www.google.com/maps/search/?api=1&query=${qFallback}`;
     }
 
-    function renderClientInactivityRadar() {
-      const radarBox = document.getElementById('clients-inactivity-radar');
-      const listEl = document.getElementById('clients-inactivity-list');
-      const badgeEl = document.getElementById('clients-cold-count-badge');
-      if (!radarBox || !listEl) return;
+    window.parseClientMapsUrlInput = function(val) {
+      const str = String(val || '').trim();
+      if (!str) return;
+      // Extrae coordenadas si el link tiene formato @lat,lng o ?q=lat,lng
+      const atMatch = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      const qMatch = str.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      const plainMatch = str.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+      const match = atMatch || qMatch || plainMatch;
+      if (match) {
+        const latEl = document.getElementById('cli-lat');
+        const lngEl = document.getElementById('cli-lng');
+        if (latEl) latEl.value = parseFloat(match[1]);
+        if (lngEl) lngEl.value = parseFloat(match[2]);
+        const st = document.getElementById('cli-gps-status');
+        if (st) st.innerText = `Coordenadas detectadas del enlace: ${match[1]}, ${match[2]}`;
+      }
+    };
 
-      const coldClients = [];
-      clients.forEach(c => {
-        const days = getClientDaysSinceLastOrder(c.id, c.name);
-        if (days === null || days >= 6) {
-          coldClients.push({ client: c, days });
-        }
-      });
-
-      if (coldClients.length === 0) {
-        radarBox.classList.add('hidden');
+    window.detectClientGpsLocation = function() {
+      const statusEl = document.getElementById('cli-gps-status');
+      if (!navigator.geolocation) {
+        showNotification('Tu navegador no soporta geolocalización GPS.', 'warning');
         return;
       }
+      if (statusEl) statusEl.innerText = 'Detectando satélites GPS... por favor acepta el permiso de ubicación.';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = +pos.coords.latitude.toFixed(6);
+          const lng = +pos.coords.longitude.toFixed(6);
+          const gmapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+          const urlInput = document.getElementById('cli-maps-url');
+          const latInput = document.getElementById('cli-lat');
+          const lngInput = document.getElementById('cli-lng');
+          if (urlInput) urlInput.value = gmapsLink;
+          if (latInput) latInput.value = lat;
+          if (lngInput) lngInput.value = lng;
+          if (statusEl) statusEl.innerText = `¡GPS capturado con éxito! (${lat}, ${lng})`;
+          showNotification('Ubicación GPS y enlace de Google Maps listos para guardar.', 'success');
+        },
+        (err) => {
+          if (statusEl) statusEl.innerText = 'No se pudo obtener el GPS automático. Puedes pegar el link de Google Maps manualmente.';
+          showNotification('Activa el permiso de Ubicación o pega el enlace de Google Maps.', 'warning');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    };
 
-      radarBox.classList.remove('hidden');
-      if (badgeEl) badgeEl.innerText = `${coldClients.length} Clientes por Contactar`;
-
-      listEl.innerHTML = coldClients.map(({ client, days }) => {
-        const cleanPhone = String(client.phone || '').replace(/[^0-9]/g, '');
-        const msgText = encodeURIComponent(`¡Hola ${client.name}! Te saludamos de ${appSettings.brandPart1 || 'Cerveza'}${appSettings.brandPart2 || 'Logix'}. Hoy pasa nuestro camión por ${client.route} con cerveza bien fría y promociones. ¿Te agendamos pedido?`);
-        const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${msgText}` : '#';
-        const statusMsg = days === null ? 'Sin pedidos recientes' : `${days} días sin pedir (Ciclo: 7d)`;
-
-        return `
-          <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-xs flex flex-col justify-between gap-2">
-            <div>
-              <div class="flex items-center justify-between gap-1">
-                <span class="font-bold text-slate-900 text-xs truncate">${escapeHtml(client.name)}</span>
-                <span class="text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-700 shrink-0">${statusMsg}</span>
-              </div>
-              <p class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(client.route)} • ${escapeHtml(client.phone || '')}</p>
-            </div>
-            <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100">
-              ${cleanPhone ? `<a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> Avisar Ruta</a>` : ''}
-              <button onclick="startOrderForColdClient('${client.id}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-cart-plus"></i> Levantar Pedido
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.startOrderForColdClient = function(clientId) {
-      navigateTab('pos');
-      const sel = document.getElementById('posClientSelect');
-      if (sel) {
-        sel.value = clientId;
-        updatePosClientDetails();
+    window.quickSaveClientGpsFromCard = function(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      if (!navigator.geolocation) {
+        showNotification('Tu dispositivo no soporta GPS directo. Usa "Editar" para pegar el link de Google Maps.', 'warning');
+        return;
       }
+      showNotification(`Capturando ubicación GPS para "${client.name}"...`, 'info');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          client.lat = +pos.coords.latitude.toFixed(6);
+          client.lng = +pos.coords.longitude.toFixed(6);
+          client.mapsUrl = `https://www.google.com/maps?q=${client.lat},${client.lng}`;
+          if (window.syncDocToCloud) window.syncDocToCloud('clients', client.id, client);
+          refreshActiveViews();
+          showNotification(`¡GPS guardado en Google Maps para "${client.name}"!`, 'success');
+        },
+        () => {
+          showNotification('No se pudo leer el GPS. Abriendo ficha del cliente para pegar el enlace de Google Maps.', 'warning');
+          editClientModal(clientId);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
     };
 
     // =====================================================================
@@ -8733,10 +8932,14 @@
             ¡Excelente! No hay entregas ni cobros/vacíos pendientes en esta ruta.
           </div>`;
         } else {
+          if (!window.expandedDriverStopIds) window.expandedDriverStopIds = new Set();
+
           relevantOrders.forEach(o => {
             ensureOrderFinancialAndEmpties(o);
             const emp = getOrderEmptiesSummary(o);
             const clientObj = clients.find(c => c.id === o.clientId || (c.name || '').toLowerCase() === (o.clientName || '').toLowerCase());
+            const isExpanded = window.expandedDriverStopIds.has(o.id);
+            const totalBoxes = (o.items || []).reduce((s, it) => s + Number(it.quantity || 0), 0);
 
             // Verificar si este cliente tiene OTRAS facturas anteriores con deuda o vacíos pendientes
             const otherClientOrders = orders.filter(other =>
@@ -8786,37 +8989,61 @@
                 }).join('');
 
             const cleanPhone = clientObj && clientObj.phone ? String(clientObj.phone).replace(/[^0-9]/g, '') : '';
-            const mapsQuery = encodeURIComponent(`${o.clientName} ${o.clientAddress || 'David, Chiriqui'}`);
+            const directMapsHref = getClientGoogleMapsUrl(clientObj, `${o.clientName} ${o.clientAddress || 'David, Chiriqui'}`);
 
             const div = document.createElement('div');
-            div.className = `p-4 rounded-2xl border-2 flex flex-col justify-between gap-3 transition shadow-sm ${
+            div.className = `p-4 rounded-2xl border-2 flex flex-col justify-between gap-2 transition shadow-sm ${
               o.status === 'Entregado' && (o.amountDue > 0.01 || emp.pending > 0)
                 ? 'bg-rose-50/40 border-rose-300'
                 : 'bg-white border-slate-200 hover:border-blue-400'
             }`;
 
             div.innerHTML = `
-              <div class="space-y-3">
-                <!-- Cabecera de la Parada -->
-                <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-mono font-black text-blue-600 text-sm">${o.id}</span>
-                      ${getStatusBadge(o.status)}
-                    </div>
-                    <h5 class="font-black text-slate-900 text-base mt-1">${escapeHtml(o.clientName)}</h5>
-                    <p class="text-xs text-slate-600 flex items-center gap-1 mt-0.5">
-                      <i class="fa-solid fa-location-dot text-rose-500"></i> ${escapeHtml(o.clientAddress || 'Dirección local')}
-                    </p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">
-                      <i class="fa-solid fa-truck text-slate-400 mr-1"></i> Chofer: <b>${escapeHtml(o.driver || 'Por asignar')}</b> • Condición: <b>${escapeHtml(o.paymentMethod)}</b>
-                    </p>
+              <!-- Cabecera Compacta (Siempre Visible, toca para Minimizar / Maximizar) -->
+              <div class="flex items-start justify-between gap-2 cursor-pointer select-none" onclick="toggleDriverStopCard('${o.id}')">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-mono font-black text-blue-600 text-sm">${o.id}</span>
+                    ${getStatusBadge(o.status)}
+                    <span class="text-[11px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg">${totalBoxes} bultos</span>
                   </div>
-                  <div class="flex items-center gap-1 shrink-0">
-                    ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" title="Llamar / WhatsApp al Cliente" class="w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-whatsapp text-sm"></i></a>` : ''}
-                    <a href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noopener noreferrer" title="Abrir en GPS / Google Maps" class="w-8 h-8 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-diamond-turn-right text-sm"></i></a>
+                  <h5 class="font-black text-slate-900 text-base mt-1 truncate">${escapeHtml(o.clientName)}</h5>
+                  <p class="text-xs text-slate-600 flex items-center gap-1 mt-0.5 truncate">
+                    <i class="fa-solid fa-location-dot text-rose-500"></i> ${escapeHtml(o.clientAddress || 'Dirección local')}
+                  </p>
+                  <!-- Resumen Rápido Minimizado -->
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    ${
+                      o.amountDue > 0.01
+                        ? `<span class="text-xs font-black bg-rose-100 text-rose-800 px-2.5 py-1 rounded-lg border border-rose-200">💵 Cobrar: $${o.amountDue.toFixed(2)}</span>`
+                        : `<span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg">✅ Pagado</span>`
+                    }
+                    ${
+                      emp.pending > 0
+                        ? `<span class="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-lg border border-amber-300">♻️ Recoger: ${emp.pending} vacíos</span>`
+                        : `<span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">♻️ Sin vacíos pend.</span>`
+                    }
                   </div>
                 </div>
+                <div class="flex flex-col items-end gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                  <div class="flex items-center gap-1">
+                    ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" title="WhatsApp al Cliente" class="w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-whatsapp text-sm"></i></a>` : ''}
+                    <a href="${directMapsHref}" target="_blank" rel="noopener noreferrer" title="Abrir Ubicación GPS en Google Maps" class="px-2.5 h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs">
+                      <i class="fa-solid fa-location-arrow"></i> GPS
+                    </a>
+                  </div>
+                  <button type="button" onclick="toggleDriverStopCard('${o.id}')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-black transition flex items-center gap-1 ${isExpanded ? 'bg-slate-800 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'}">
+                    <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                    <span>${isExpanded ? 'Minimizar' : 'Ver Detalles'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cuerpo Detallado Maximizable (Oculto por defecto al principio) -->
+              <div id="driver-stop-details-${o.id}" class="${isExpanded ? 'space-y-3 pt-3 mt-1 border-t border-slate-200' : 'hidden'}">
+                <p class="text-[11px] text-slate-500">
+                  <i class="fa-solid fa-truck text-slate-400 mr-1"></i> Chofer: <b>${escapeHtml(o.driver || 'Por asignar')}</b> • Condición: <b>${escapeHtml(o.paymentMethod)}</b>
+                </p>
 
                 <!-- 1. Mercancía a Entregar -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1">
@@ -8911,28 +9138,28 @@
                                </div>`
                             : ''))
                 }
-              </div>
 
-              <!-- Botonera de Acción Rápida para el Repartidor -->
-              <div class="pt-3 border-t border-slate-100 space-y-2">
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <button onclick="openCollectAndEmptiesModal('${o.id}')" class="col-span-2 sm:col-span-1 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
-                    <i class="fa-solid fa-hand-holding-dollar"></i> 1. Cobrar y Vacíos
-                  </button>
-                  <button onclick="openPodModalForOrder('${o.id}')" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
-                    <i class="fa-solid fa-signature"></i> 2. Firmar Entrega
-                  </button>
-                  <button onclick="openThermalDirectForOrder('${o.id}')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
-                    <i class="fa-solid fa-receipt"></i> 3. Ticket / Guía
-                  </button>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <button onclick="openPartialReturnModal('${o.id}')" class="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
-                    <i class="fa-solid fa-rotate-left"></i> Devolución Parcial / Rechazo
-                  </button>
-                  <button onclick="openRouteAuthRequestModal('${o.id}')" class="py-2 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
-                    <i class="fa-solid fa-shield-halved"></i> ${appSettings.requireAdminAuthForCreditDiscount !== false ? 'Solicitar Crédito / Desc.' : 'Aplicar Crédito / Desc.'}
-                  </button>
+                <!-- Botonera de Acción Rápida para el Repartidor -->
+                <div class="pt-3 border-t border-slate-100 space-y-2">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button onclick="openCollectAndEmptiesModal('${o.id}')" class="col-span-2 sm:col-span-1 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
+                      <i class="fa-solid fa-hand-holding-dollar"></i> 1. Cobrar y Vacíos
+                    </button>
+                    <button onclick="openPodModalForOrder('${o.id}')" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
+                      <i class="fa-solid fa-signature"></i> 2. Firmar Entrega
+                    </button>
+                    <button onclick="openThermalDirectForOrder('${o.id}')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+                      <i class="fa-solid fa-receipt"></i> 3. Ticket / Guía
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openPartialReturnModal('${o.id}')" class="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+                      <i class="fa-solid fa-rotate-left"></i> Devolución Parcial / Rechazo
+                    </button>
+                    <button onclick="openRouteAuthRequestModal('${o.id}')" class="py-2 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+                      <i class="fa-solid fa-shield-halved"></i> ${appSettings.requireAdminAuthForCreditDiscount !== false ? 'Solicitar Crédito / Desc.' : 'Aplicar Crédito / Desc.'}
+                    </button>
+                  </div>
                 </div>
               </div>
             `;
@@ -8966,6 +9193,41 @@
       if (leafletMapInstance) {
         leafletMapInstance.setView([8.4275, -82.4312], 12);
       }
+    };
+
+    window.toggleDriverStopCard = function(orderId) {
+      if (!window.expandedDriverStopIds) window.expandedDriverStopIds = new Set();
+      if (window.expandedDriverStopIds.has(orderId)) {
+        window.expandedDriverStopIds.delete(orderId);
+      } else {
+        window.expandedDriverStopIds.add(orderId);
+      }
+      renderLogistics();
+    };
+
+    window.toggleAllDriverStops = function() {
+      if (!window.expandedDriverStopIds) window.expandedDriverStopIds = new Set();
+      const drvFilterEl = document.getElementById('logisticsDriverFilter');
+      const selectedDriver = drvFilterEl ? (drvFilterEl.value || 'ALL') : 'ALL';
+      const relevantOrders = orders.filter(o => {
+        if (o.status === 'Cancelado' || o.status === 'Por Aprobar') return false;
+        if (selectedDriver !== 'ALL' && o.driver !== selectedDriver) return false;
+        ensureOrderFinancialAndEmpties(o);
+        const emp = getOrderEmptiesSummary(o);
+        const isActiveStop = o.status === 'En Ruta' || o.status === 'Despachando' || o.status === 'En Preparación' || o.status === 'Pendiente';
+        const isDeliveredWithPending = o.status === 'Entregado' && (o.amountDue > 0.01 || emp.pending > 0);
+        return isActiveStop || isDeliveredWithPending;
+      });
+
+      const allExpanded = relevantOrders.length > 0 && relevantOrders.every(o => window.expandedDriverStopIds.has(o.id));
+      if (allExpanded) {
+        window.expandedDriverStopIds.clear();
+      } else {
+        relevantOrders.forEach(o => window.expandedDriverStopIds.add(o.id));
+      }
+      const lbl = document.getElementById('btn-toggle-all-stops-label');
+      if (lbl) lbl.innerText = allExpanded ? 'Expandir Todos' : 'Minimizar Todos';
+      renderLogistics();
     };
 
     window.openDriverModal = function() {
@@ -9454,64 +9716,29 @@
       `;
     }
 
-    // Helper para leer parámetros de rol tanto de ?search como de #hash (evita bloqueos en iframes o redirecciones)
-    window.getActiveRoleParams = function() {
-      const searchParams = new URLSearchParams(window.location.search);
-      const hashStr = (window.location.hash || '').replace(/^#/, '');
-      const hashParams = new URLSearchParams(hashStr);
-
-      return {
-        role: searchParams.get('role') || hashParams.get('role') || window.forcedAppRole || '',
-        cid: searchParams.get('cid') || hashParams.get('cid') || window.forcedAppCid || '',
-        driver: searchParams.get('driver') || hashParams.get('driver') || window.forcedAppDriver || ''
-      };
-    };
-
-    window.activateRoleModeNow = function(roleName, clientId = null, driverName = null) {
-      window.forcedAppRole = roleName || '';
-      window.forcedAppCid = clientId || '';
-      window.forcedAppDriver = driverName || '';
-
+    window.activateRoleNow = function(role, clientId = null) {
       try {
         const url = new URL(window.location.href);
-        if (roleName) {
-          url.searchParams.set('role', roleName);
-          url.hash = `role=${encodeURIComponent(roleName)}${clientId ? `&cid=${encodeURIComponent(clientId)}` : ''}${driverName && driverName !== 'ALL' ? `&driver=${encodeURIComponent(driverName)}` : ''}`;
+        url.searchParams.set('role', role);
+        if (clientId) {
+          url.searchParams.set('cid', clientId);
         } else {
-          url.searchParams.delete('role');
           url.searchParams.delete('cid');
-          url.searchParams.delete('driver');
-          url.hash = '';
         }
         window.history.replaceState({}, '', url.toString());
       } catch (e) {}
+      window.setupRoleEnvironment(role, clientId);
+    };
 
-      // Restaurar visibilidad base de navegación antes de aplicar el rol
+    window.setupRoleEnvironment = function(forcedRole = null, forcedCid = null) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = (forcedRole || urlParams.get('role') || '').toLowerCase();
+      const cid = forcedCid || urlParams.get('cid');
+
       ['nav-dashboard', 'nav-online-orders', 'nav-orders', 'nav-pos', 'nav-receivables', 'nav-history', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-logistics', 'nav-cashout', 'nav-settings'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('hidden');
       });
-
-      window.setupRoleEnvironment();
-    };
-
-    window.copyDriverRoleLinkFromSettings = function() {
-      const drv = document.getElementById('settings-driver-link-select')?.value || 'ALL';
-      copyRoleLink('repartidor', null, drv);
-    };
-
-    window.activateDriverModeFromSettings = function() {
-      const drv = document.getElementById('settings-driver-link-select')?.value || 'ALL';
-      activateRoleModeNow('repartidor', null, drv);
-      showNotification(`Modo Repartidor activado${drv !== 'ALL' ? ` para ${drv}` : ''}.`, 'success');
-    };
-
-    window.setupRoleEnvironment = function() {
-      const { role, cid, driver } = window.getActiveRoleParams();
-
-      // Quitar barra superior de modo rol previo si existía
-      const existingRoleBanner = document.getElementById('active-role-top-banner');
-      if (existingRoleBanner) existingRoleBanner.remove();
 
       if (role === 'cliente') {
         const sidebar = document.getElementById('sidebar');
@@ -9545,8 +9772,8 @@
               </div>
               <div>
                 <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Perfil de Cliente Verificado</span>
-                <h2 id="b2b-welcome-name" class="text-lg font-black text-white">${clientObj ? escapeHtml(clientObj.name) : 'Cargando cliente...'}</h2>
-                <p class="text-xs text-slate-300">${clientObj ? `${escapeHtml(clientObj.address)} • ${escapeHtml(clientObj.route)}` : 'Portal de Pedidos B2B'}</p>
+                <h2 id="b2b-welcome-name" class="text-lg font-black text-white">${clientObj ? escapeHtml(clientObj.name) : 'Cargando cliente desde Firebase...'}</h2>
+                <p class="text-xs text-slate-300">${clientObj ? `${escapeHtml(clientObj.address)} • ${escapeHtml(clientObj.route)}` : 'Conectado en tiempo real'}</p>
               </div>
             </div>
             <div class="flex items-center gap-4 bg-slate-950/50 px-4 py-2.5 rounded-xl border border-slate-700 w-full sm:w-auto justify-between sm:justify-end">
@@ -9588,45 +9815,19 @@
           const el = document.getElementById(id);
           if (el) el.classList.add('hidden');
         });
-        injectActiveRoleBanner('MODO CAJERO / PREVENTA ACTIVO', 'bg-blue-700');
         navigateTab('pos');
+        showNotification('Modo Cajero activo: Preventa y Facturación.', 'info');
       } else if (role === 'repartidor' || role === 'chofer') {
         ['nav-dashboard', 'nav-online-orders', 'nav-purchases', 'nav-fefo', 'nav-inventory', 'nav-clients', 'nav-settings'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add('hidden');
         });
-
-        if (driver && driver !== 'ALL') {
-          const drvFilterEl = document.getElementById('logisticsDriverFilter');
-          if (drvFilterEl) {
-            drvFilterEl.value = driver;
-          }
-        }
-
-        injectActiveRoleBanner(`MODO CHOFER / REPARTIDOR${driver && driver !== 'ALL' ? `: ${driver.toUpperCase()}` : ' EN RUTA'}`, 'bg-emerald-700');
         navigateTab('logistics');
+        showNotification('Modo Repartidor activo: Hoja de Ruta, Cobros y Vacíos.', 'info');
       } else {
         navigateTab('dashboard');
       }
     };
-
-    function injectActiveRoleBanner(label, bgClass) {
-      const mainContainer = document.querySelector('main');
-      if (!mainContainer) return;
-      const banner = document.createElement('div');
-      banner.id = 'active-role-top-banner';
-      banner.className = `${bgClass} text-white px-4 py-2.5 rounded-xl mb-4 flex items-center justify-between text-xs font-bold shadow-sm`;
-      banner.innerHTML = `
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-user-check"></i>
-          <span>${escapeHtml(label)}</span>
-        </div>
-        <button type="button" onclick="activateRoleModeNow('')" class="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-[11px] font-bold transition">
-          Salir a Vista Admin
-        </button>
-      `;
-      mainContainer.insertBefore(banner, mainContainer.firstChild);
-    }
 
     // =====================================================================
     // MÓDULO DE FACTURAS PENDIENTES POR COBRAR Y CONTROL DE VACÍOS
@@ -11341,7 +11542,7 @@
     // 100% SINCRONIZACIÓN EN LA NUBE Y ENLACES COMPARTIDOS (0 LocalStorage)
     // =====================================================================
     
-    window.copyRoleLink = function(role, clientId = null, driverName = null) {
+    window.copyRoleLink = function(role, clientId = null) {
       const url = new URL(window.location.href);
       url.searchParams.set('role', role);
       if (clientId) {
@@ -11353,27 +11554,11 @@
       } else {
         url.searchParams.delete('cid');
       }
-
-      if (driverName && driverName !== 'ALL') {
-        url.searchParams.set('driver', driverName);
-      } else {
-        url.searchParams.delete('driver');
-      }
       
       // Incrustar siempre las credenciales de Firebase en el enlace a copiar
       if (typeof window.embedFirebaseParamsInUrl === 'function') {
         window.embedFirebaseParamsInUrl(url);
       }
-
-      // También agregamos #role=... como respaldo por si el servidor o visor limpia los query params (?)
-      const hashParts = [`role=${encodeURIComponent(role)}`];
-      if (clientId) hashParts.push(`cid=${encodeURIComponent(clientId)}`);
-      if (driverName && driverName !== 'ALL') hashParts.push(`driver=${encodeURIComponent(driverName)}`);
-      if (window.fbCredentials && window.fbCredentials.apiKey && window.fbCredentials.projectId) {
-        hashParts.push(`fb_pid=${encodeURIComponent(window.fbCredentials.rawProjectId || window.fbCredentials.projectId)}`);
-        hashParts.push(`fb_key=${encodeURIComponent(window.fbCredentials.apiKey)}`);
-      }
-      url.hash = hashParts.join('&');
       
       const el = document.createElement('textarea');
       el.value = url.toString();
@@ -11382,11 +11567,11 @@
       document.execCommand('copy');
       document.body.removeChild(el);
       
-      const roleName = clientId ? 'Cliente B2B' : (driverName && driverName !== 'ALL' ? `Chofer (${driverName})` : role.toUpperCase());
+      const roleName = clientId ? 'Cliente B2B' : role.toUpperCase();
       if (window.isFirebaseConnected()) {
         window.showNotification(`Enlace para ${roleName} copiado con tus credenciales de Firebase incluidas.`, 'success');
       } else {
-        window.showNotification(`Enlace para ${roleName} copiado correctamente.`, 'success');
+        window.showNotification(`Enlace para ${roleName} copiado (Aviso: Configura tus Keys de Firebase en Ajustes si deseas sincronizar entre distintos teléfonos).`, 'warning');
       }
     };
 
@@ -11425,6 +11610,11 @@
       document.getElementById('clientForm').reset();
       document.getElementById('cli-id').value = '';
       document.getElementById('cli-debt').value = '0';
+      if (document.getElementById('cli-maps-url')) document.getElementById('cli-maps-url').value = '';
+      if (document.getElementById('cli-lat')) document.getElementById('cli-lat').value = '';
+      if (document.getElementById('cli-lng')) document.getElementById('cli-lng').value = '';
+      const st = document.getElementById('cli-gps-status');
+      if (st) st.innerText = 'Puedes detectar el GPS desde el teléfono o pegar el link de Google Maps del cliente.';
       const titleEl = document.getElementById('modalClientTitle');
       if (titleEl) titleEl.innerText = 'Registrar Nuevo Cliente / Punto de Venta';
       window.openModal('modal-client');
@@ -11444,6 +11634,15 @@
       document.getElementById('cli-debt').value = Number(client.currentDebt || 0);
       document.getElementById('cli-exempt').checked = Boolean(client.isExempt);
 
+      const mapsUrlEl = document.getElementById('cli-maps-url');
+      const latEl = document.getElementById('cli-lat');
+      const lngEl = document.getElementById('cli-lng');
+      if (mapsUrlEl) {
+        mapsUrlEl.value = client.mapsUrl || (client.lat && client.lng ? `https://www.google.com/maps?q=${client.lat},${client.lng}` : '');
+      }
+      if (latEl) latEl.value = client.lat || '';
+      if (lngEl) lngEl.value = client.lng || '';
+
       const titleEl = document.getElementById('modalClientTitle');
       if (titleEl) titleEl.innerText = `Editar Cliente: ${client.name}`;
       window.openModal('modal-client');
@@ -11461,6 +11660,13 @@
       const debt = parseFloat(document.getElementById('cli-debt').value) || 0;
       const isExempt = document.getElementById('cli-exempt').checked;
 
+      const rawMapsUrl = (document.getElementById('cli-maps-url')?.value || '').trim();
+      const inputLat = parseFloat(document.getElementById('cli-lat')?.value);
+      const inputLng = parseFloat(document.getElementById('cli-lng')?.value);
+      const finalLat = !isNaN(inputLat) ? inputLat : 8.4275;
+      const finalLng = !isNaN(inputLng) ? inputLng : -82.4312;
+      const finalMapsUrl = rawMapsUrl || (!isNaN(inputLat) && !isNaN(inputLng) ? `https://www.google.com/maps?q=${finalLat},${finalLng}` : '');
+
       let targetClient = null;
 
       if (existingId) {
@@ -11474,6 +11680,9 @@
           targetClient.creditLimit = credit;
           targetClient.currentDebt = debt;
           targetClient.isExempt = isExempt;
+          targetClient.lat = finalLat;
+          targetClient.lng = finalLng;
+          targetClient.mapsUrl = finalMapsUrl;
         }
       } else {
         targetClient = {
@@ -11485,8 +11694,9 @@
           route: route,
           creditLimit: credit,
           currentDebt: debt,
-          lat: 8.42, 
-          lng: -82.43,
+          lat: finalLat, 
+          lng: finalLng,
+          mapsUrl: finalMapsUrl,
           isExempt: isExempt,
           specialPrices: {}
         };
@@ -11555,13 +11765,28 @@
     // Arranque inicial al cargar el DOM
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
-      refreshActiveViews();
+      try {
+        refreshActiveViews();
+      } catch (err) {
+        console.warn('Init refresh error:', err);
+      }
       window.setupRoleEnvironment();
-    });
 
-    // Si el usuario pega un enlace con #role=repartidor en la misma pestaña, detectar el cambio de inmediato
-    window.addEventListener('hashchange', () => {
-      window.setupRoleEnvironment();
+      // Inyectar botón "Cerrar" en todos los modales para comodidad móvil
+      document.querySelectorAll('[id^="modal-"]').forEach(modalEl => {
+        const modalId = modalEl.id;
+        const footerBtns = modalEl.querySelectorAll('button');
+        footerBtns.forEach(b => {
+          if (b.innerText && b.innerText.trim() === 'Cancelar') {
+            b.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i> Cerrar';
+          }
+        });
+        const topCloseBtn = modalEl.querySelector(`button[onclick*="closeModal('${modalId}')"]`);
+        if (topCloseBtn && !topCloseBtn.innerText.trim()) {
+          topCloseBtn.className = 'px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold flex items-center gap-1 transition shrink-0';
+          topCloseBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Cerrar</span>';
+        }
+      });
     });
   </script>
 </body>
