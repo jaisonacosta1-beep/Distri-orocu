@@ -172,8 +172,9 @@
     <!-- Brand Header -->
     <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/30">
-          <i class="fa-solid fa-beer-mug-empty text-lg"></i>
+        <div id="sidebar-brand-icon-box" class="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/30 overflow-hidden shrink-0">
+          <img id="sidebar-brand-logo-img" src="" alt="Logo" class="w-11 h-11 object-contain hidden">
+          <i id="sidebar-brand-default-icon" class="fa-solid fa-beer-mug-empty text-lg"></i>
         </div>
         <div>
           <span class="font-extrabold text-white text-lg tracking-tight"><span id="brand-part1">Cerveza</span><span id="brand-part2" class="text-amber-400">Logix</span></span>
@@ -299,6 +300,9 @@
         <button id="btn-toggle-sidebar" onclick="toggleSidebar()" class="text-slate-600 shrink-0 hover:text-slate-900 p-2.5 rounded-xl hover:bg-slate-100 border border-slate-200 shadow-xs transition active:scale-95 flex items-center justify-center" title="Abrir/Cerrar menú">
           <i class="fa-solid fa-bars text-xl"></i>
         </button>
+        <div id="topbar-brand-logo-wrap" onclick="openBrandModal()" title="Cambiar Logo de la Empresa" class="hidden w-12 h-12 items-center justify-center shrink-0 cursor-pointer hover:scale-105 transition">
+          <img id="topbar-brand-logo-img" src="" alt="Logo Empresa" class="w-12 h-12 object-contain">
+        </div>
         <div class="min-w-0 flex-1">
           <h1 id="page-title" class="text-base sm:text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">Distribuidora de Cervezas, Bebidas y Snacks</h1>
           <p id="page-subtitle" class="text-xs text-slate-500 hidden sm:block truncate">Control de botellas, barriles, fardos, caducidad FEFO y envases retornables</p>
@@ -1670,14 +1674,19 @@
         <!-- Personalizar Marca en Ajustes -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-amber-600"></i> Identidad de la Empresa / Marca
-              </h4>
-              <p class="text-xs text-slate-500 mt-1">Modifica el título y el subtítulo que aparecen en el menú superior izquierdo.</p>
+            <div class="flex items-center gap-3.5">
+              <div id="settings-brand-logo-box" onclick="openBrandModal()" class="w-14 h-14 rounded-2xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-amber-500 transition p-1.5" title="Clic para cambiar el logo universal">
+                <i class="fa-solid fa-beer-mug-empty text-amber-500 text-xl"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-pen-to-square text-amber-600"></i> Identidad y Logo Universal de la Empresa
+                </h4>
+                <p class="text-xs text-slate-500 mt-1">Configura el logo, título y subtítulo para que se adapten automáticamente en el menú lateral, barra superior, páginas, modales, portal B2B y facturas.</p>
+              </div>
             </div>
-            <button onclick="openBrandModal()" class="w-full sm:w-auto px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2 shrink-0">
-              <i class="fa-solid fa-edit"></i> Editar Nombre
+            <button onclick="openBrandModal()" class="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition shadow-sm flex items-center justify-center gap-2 shrink-0">
+              <i class="fa-solid fa-image"></i> Configurar Logo y Nombre
             </button>
           </div>
         </div>
@@ -1911,8 +1920,9 @@
       <section id="global-recent-invoices-section" class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shrink-0 shadow">
-              <i class="fa-solid fa-file-invoice-dollar"></i>
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shrink-0 shadow overflow-hidden">
+              <img class="universal-company-logo-img w-12 h-12 object-contain hidden" src="" alt="Logo">
+              <i class="universal-company-fallback-icon fa-solid fa-file-invoice-dollar"></i>
             </div>
             <div>
               <h3 class="font-black text-sm sm:text-base tracking-tight text-white flex items-center gap-2">
@@ -3503,12 +3513,42 @@
   <div id="modal-brand" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base">Editar Identidad de la Marca</h3>
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-award text-amber-500"></i> Identidad y Logo Universal de la Empresa
+        </h3>
         <button onclick="closeModal('modal-brand')" class="text-slate-400 hover:text-slate-700">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
       <form onsubmit="saveBrandName(event)" class="space-y-3">
+        <!-- Selector y Vista Previa del Logo Universal Adaptable -->
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+          <label class="block text-xs font-black uppercase text-slate-700">
+            <i class="fa-solid fa-image text-blue-600 mr-1"></i> Logo Universal (Se adapta a Menú, Páginas y Facturas)
+          </label>
+          <div class="flex items-center gap-3">
+            <div id="brand-modal-logo-preview" class="w-16 h-16 rounded-xl bg-white border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 p-1 shadow-2xs">
+              <span class="text-[10px] text-slate-400 font-semibold text-center">Sin Logo</span>
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <div class="flex flex-wrap gap-1.5">
+                <label class="cursor-pointer px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-xs">
+                  <i class="fa-solid fa-upload"></i> Subir Logo
+                  <input type="file" accept="image/*" class="hidden" onchange="handleUniversalBrandLogoUpload(event)">
+                </label>
+                <button type="button" onclick="clearUniversalBrandLogo()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition">
+                  Quitar
+                </button>
+              </div>
+              <input type="text" id="brand-input-logo-url" oninput="handleUniversalBrandLogoUrlInput(this.value)" placeholder="O pega URL del logo (https://...)" class="w-full text-xs p-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <label class="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-700 cursor-pointer pt-1">
+            <input type="checkbox" id="brand-sync-receipt-logo" checked class="rounded text-blue-600">
+            <span>Usar este mismo logo en todas las vistas, menús, facturas A4 y tickets térmicos</span>
+          </label>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Parte 1 (Blanco)</label>
@@ -3525,7 +3565,7 @@
         </div>
         <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
           <button type="button" onclick="closeModal('modal-brand')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950">Guardar Marca</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950">Guardar Marca y Logo</button>
         </div>
       </form>
     </div>
@@ -4345,6 +4385,7 @@
       brandPart1: 'Cerveza',
       brandPart2: 'Logix',
       brandSubtitle: 'Cervezas & Snacks ERP',
+      companyLogo: '',
       nonColdLabel: 'AL CLIMA',
       defaultCreditDays: 15,
       alarmSound: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
@@ -7757,11 +7798,72 @@
     window.renderReceiptLogoPreview = function() {
       const box = document.getElementById('receipt-logo-preview-box');
       if (!box) return;
-      if (appSettings.receiptLogo) {
-        box.innerHTML = `<img src="${appSettings.receiptLogo}" alt="Logo" class="max-h-full max-w-full object-contain">`;
+      const activeLogo = appSettings.receiptLogo || appSettings.companyLogo || '';
+      if (activeLogo) {
+        box.innerHTML = `<img src="${activeLogo}" alt="Logo" class="max-h-full max-w-full object-contain">`;
       } else {
         box.innerHTML = `<span class="text-[10px] text-slate-400 text-center font-semibold">Sin Logo</span>`;
       }
+    };
+
+    window.handleReceiptLogoUpload = function(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 260;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/png', 0.85);
+          appSettings.receiptLogo = dataUrl;
+          appSettings.companyLogo = dataUrl;
+          renderReceiptLogoPreview();
+          applyBrandSettings();
+          applyCompanyBrandingToInvoice();
+          if (window.syncSettingsToCloud) window.syncSettingsToCloud(appSettings);
+          showNotification('Logo cargado y aplicado en todo el sistema y Firebase.', 'success');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleReceiptLogoUrlInput = function(urlVal) {
+      const clean = (urlVal || '').trim();
+      if (clean) {
+        appSettings.receiptLogo = clean;
+        appSettings.companyLogo = clean;
+        renderReceiptLogoPreview();
+        applyBrandSettings();
+      }
+    };
+
+    window.clearReceiptLogo = function() {
+      appSettings.receiptLogo = '';
+      appSettings.companyLogo = '';
+      const urlInput = document.getElementById('pref-receipt-logo-url');
+      if (urlInput) urlInput.value = '';
+      renderReceiptLogoPreview();
+      applyBrandSettings();
+      applyCompanyBrandingToInvoice();
+      if (window.syncSettingsToCloud) window.syncSettingsToCloud(appSettings);
+      showNotification('Logo eliminado del sistema y la factura.', 'info');
     };
 
     window.handleReceiptLogoUpload = function(event) {
@@ -10401,11 +10503,18 @@
           posSection.insertBefore(clientBanner, posSection.firstChild);
         }
         if (clientBanner) {
+          const activeLogo = appSettings.companyLogo || appSettings.receiptLogo || '';
+          const b2bIconHtml = activeLogo
+            ? `<img src="${activeLogo}" alt="Logo" class="w-14 h-14 object-contain">`
+            : `<i class="fa-solid fa-store"></i>`;
+          const b2bBoxClasses = activeLogo
+            ? 'w-14 h-14 flex items-center justify-center shrink-0'
+            : 'w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-black shadow-lg overflow-hidden shrink-0';
           clientBanner.className = 'bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4';
           clientBanner.innerHTML = `
             <div class="flex items-center gap-3.5">
-              <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-black shadow-lg">
-                <i class="fa-solid fa-store"></i>
+              <div class="${b2bBoxClasses}">
+                ${b2bIconHtml}
               </div>
               <div>
                 <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Perfil de Cliente Verificado</span>
@@ -12600,6 +12709,163 @@ REGLAS:
       if (b1) b1.innerText = appSettings.brandPart1 || 'Cerveza';
       if (b2) b2.innerText = appSettings.brandPart2 || 'Logix';
       if (bs) bs.innerText = appSettings.brandSubtitle || 'Cervezas & Snacks ERP';
+
+      // Sincronizar logo universal entre companyLogo y receiptLogo
+      const activeLogo = appSettings.companyLogo || appSettings.receiptLogo || '';
+      if (activeLogo) {
+        if (!appSettings.companyLogo) appSettings.companyLogo = activeLogo;
+        if (!appSettings.receiptLogo) appSettings.receiptLogo = activeLogo;
+      }
+
+      // 1. Menú lateral (Sidebar)
+      const sidebarIconBox = document.getElementById('sidebar-brand-icon-box');
+      const sidebarLogoImg = document.getElementById('sidebar-brand-logo-img');
+      const sidebarDefaultIcon = document.getElementById('sidebar-brand-default-icon');
+      if (sidebarLogoImg && sidebarDefaultIcon) {
+        if (activeLogo) {
+          sidebarLogoImg.src = activeLogo;
+          sidebarLogoImg.classList.remove('hidden');
+          sidebarDefaultIcon.classList.add('hidden');
+          if (sidebarIconBox) {
+            sidebarIconBox.className = 'w-11 h-11 flex items-center justify-center shrink-0';
+          }
+        } else {
+          sidebarLogoImg.classList.add('hidden');
+          sidebarDefaultIcon.classList.remove('hidden');
+          if (sidebarIconBox) {
+            sidebarIconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/30 overflow-hidden shrink-0';
+          }
+        }
+      }
+
+      // 2. Barra superior (Topbar Header)
+      const topbarWrap = document.getElementById('topbar-brand-logo-wrap');
+      const topbarImg = document.getElementById('topbar-brand-logo-img');
+      if (topbarWrap && topbarImg) {
+        if (activeLogo) {
+          topbarImg.src = activeLogo;
+          topbarWrap.classList.remove('hidden');
+          topbarWrap.classList.add('flex');
+        } else {
+          topbarWrap.classList.add('hidden');
+          topbarWrap.classList.remove('flex');
+        }
+      }
+
+      // 3. Tarjeta de Identidad en Ajustes
+      const settingsLogoBox = document.getElementById('settings-brand-logo-box');
+      if (settingsLogoBox) {
+        if (activeLogo) {
+          settingsLogoBox.className = 'w-16 h-16 flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 transition';
+          settingsLogoBox.innerHTML = `<img src="${activeLogo}" alt="Logo Empresa" class="w-16 h-16 object-contain">`;
+        } else {
+          settingsLogoBox.className = 'w-14 h-14 rounded-2xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-amber-500 transition p-1.5';
+          settingsLogoBox.innerHTML = `<i class="fa-solid fa-beer-mug-empty text-amber-500 text-xl"></i>`;
+        }
+      }
+
+      // 4. Todas las insignias universales (.universal-company-logo-img) y cabeceras de vistas/modales
+      document.querySelectorAll('.universal-company-logo-img').forEach(imgEl => {
+        const parent = imgEl.parentElement;
+        const fallback = parent ? parent.querySelector('.universal-company-fallback-icon') : null;
+        if (activeLogo) {
+          imgEl.src = activeLogo;
+          imgEl.classList.remove('hidden');
+          if (fallback) fallback.classList.add('hidden');
+          if (parent) {
+            parent.className = 'w-12 h-12 flex items-center justify-center shrink-0';
+          }
+        } else {
+          imgEl.classList.add('hidden');
+          if (fallback) fallback.classList.remove('hidden');
+          if (parent) {
+            parent.className = 'w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shrink-0 shadow overflow-hidden';
+          }
+        }
+      });
+
+      // 5. Inyectar insignia adaptable de marca en las cabeceras de todas las páginas y modales (sin recuadro blanco)
+      document.querySelectorAll('main > section > div:first-child h3, [id^="modal-"] h3').forEach(headingEl => {
+        let badgeImg = headingEl.querySelector('.dynamic-page-brand-logo');
+        if (activeLogo) {
+          if (!badgeImg) {
+            badgeImg = document.createElement('img');
+            headingEl.insertBefore(badgeImg, headingEl.firstChild);
+          }
+          badgeImg.className = 'dynamic-page-brand-logo w-8 h-8 sm:w-9 sm:h-9 object-contain mr-2 inline-block align-middle shrink-0';
+          badgeImg.src = activeLogo;
+          badgeImg.classList.remove('hidden');
+        } else if (badgeImg) {
+          badgeImg.classList.add('hidden');
+        }
+      });
+
+      // 6. Actualizar favicon e ícono de la PWA si hay logo
+      const favIconEl = document.getElementById('pwa-favicon');
+      const appleIconEl = document.getElementById('pwa-apple-icon');
+      if (activeLogo) {
+        if (favIconEl) favIconEl.href = activeLogo;
+        if (appleIconEl) appleIconEl.href = activeLogo;
+      }
+
+      if (typeof renderReceiptLogoPreview === 'function') renderReceiptLogoPreview();
+      if (typeof applyCompanyBrandingToInvoice === 'function') applyCompanyBrandingToInvoice();
+    };
+
+    let tempUniversalBrandLogo = '';
+
+    window.renderBrandModalLogoPreview = function() {
+      const box = document.getElementById('brand-modal-logo-preview');
+      if (!box) return;
+      if (tempUniversalBrandLogo) {
+        box.innerHTML = `<img src="${tempUniversalBrandLogo}" alt="Logo Preview" class="max-w-full max-h-full object-contain">`;
+      } else {
+        box.innerHTML = `<span class="text-[10px] text-slate-400 font-semibold text-center">Sin Logo</span>`;
+      }
+    };
+
+    window.handleUniversalBrandLogoUpload = function(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 260;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          tempUniversalBrandLogo = canvas.toDataURL('image/png', 0.85);
+          renderBrandModalLogoPreview();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleUniversalBrandLogoUrlInput = function(val) {
+      tempUniversalBrandLogo = (val || '').trim();
+      renderBrandModalLogoPreview();
+    };
+
+    window.clearUniversalBrandLogo = function() {
+      tempUniversalBrandLogo = '';
+      const urlInput = document.getElementById('brand-input-logo-url');
+      if (urlInput) urlInput.value = '';
+      renderBrandModalLogoPreview();
     };
 
     window.saveBrandName = function(e) {
@@ -12607,6 +12873,17 @@ REGLAS:
       appSettings.brandPart1 = document.getElementById('brand-input-1').value.trim();
       appSettings.brandPart2 = document.getElementById('brand-input-2').value.trim();
       appSettings.brandSubtitle = document.getElementById('brand-input-sub').value.trim();
+
+      const urlInputVal = document.getElementById('brand-input-logo-url')?.value.trim();
+      if (urlInputVal) {
+        tempUniversalBrandLogo = urlInputVal;
+      }
+
+      appSettings.companyLogo = tempUniversalBrandLogo || '';
+      const syncReceipt = document.getElementById('brand-sync-receipt-logo')?.checked !== false;
+      if (syncReceipt) {
+        appSettings.receiptLogo = appSettings.companyLogo;
+      }
       
       if (window.syncSettingsToCloud) {
         window.syncSettingsToCloud(appSettings);
@@ -12614,13 +12891,19 @@ REGLAS:
       
       window.applyBrandSettings();
       window.closeModal('modal-brand');
-      window.showNotification(`Identidad de marca actualizada (${window.getSyncTag()}).`, 'success');
+      window.showNotification(`Logo e identidad de marca aplicados en todo el sistema (${window.getSyncTag()}).`, 'success');
     };
 
     window.openBrandModal = function() {
       document.getElementById('brand-input-1').value = appSettings.brandPart1 || 'Cerveza';
       document.getElementById('brand-input-2').value = appSettings.brandPart2 || 'Logix';
       document.getElementById('brand-input-sub').value = appSettings.brandSubtitle || 'Cervezas & Snacks ERP';
+      tempUniversalBrandLogo = appSettings.companyLogo || appSettings.receiptLogo || '';
+      const urlInput = document.getElementById('brand-input-logo-url');
+      if (urlInput) {
+        urlInput.value = (tempUniversalBrandLogo && !tempUniversalBrandLogo.startsWith('data:')) ? tempUniversalBrandLogo : '';
+      }
+      renderBrandModalLogoPreview();
       window.openModal('modal-brand');
     };
 
