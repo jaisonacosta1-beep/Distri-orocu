@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CervezaLogix">
+  <link id="pwa-manifest-link" rel="manifest" href="">
+  <link id="pwa-apple-icon" rel="apple-touch-icon" href="">
+  <link id="pwa-favicon" rel="icon" type="image/png" href="">
   <title>CervezaLogix ERP - Distribuidora de Cervezas, Bebidas y Snacks</title>
   
   <!-- Tailwind CSS -->
@@ -67,6 +75,56 @@
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+    /* Vista adaptable sin deslizamiento horizontal para tablas y opciones en móvil/tablet */
+    @media (max-width: 1023px) {
+      main section .overflow-x-auto {
+        overflow-x: visible !important;
+      }
+      main section table,
+      main section tbody {
+        display: block;
+        width: 100%;
+      }
+      main section thead {
+        display: none;
+      }
+      main section tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.85rem;
+        margin: 0.65rem;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 1rem;
+        background: #ffffff;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+      }
+      main section tbody td {
+        display: block;
+        padding: 0.2rem 0.35rem !important;
+        border: none !important;
+        text-align: left !important;
+        max-width: 100%;
+        word-break: break-word;
+      }
+      main section tbody td[colspan] {
+        width: 100%;
+        text-align: center !important;
+      }
+      main section tbody td:last-child {
+        width: 100%;
+        margin-top: 0.35rem;
+        padding-top: 0.6rem !important;
+        border-top: 1px dashed #e2e8f0 !important;
+      }
+      main section tbody td:last-child > div {
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+      }
     }
     @media print {
       body * {
@@ -248,7 +306,7 @@
       </div>
 
       <!-- Quick Actions and Alerts -->
-      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 shrink-0">
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto pb-1 sm:pb-0 shrink-0">
         <button onclick="openBarcodeScannerModal()" class="flex items-center justify-center flex-1 sm:flex-none gap-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition whitespace-nowrap">
           <i class="fa-solid fa-barcode"></i>
           <span class="inline">Escanear</span>
@@ -256,6 +314,10 @@
         <button onclick="navigateTab('pos')" class="flex items-center justify-center flex-1 sm:flex-none gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all shadow-sm shadow-amber-600/30 whitespace-nowrap">
           <i class="fa-solid fa-plus"></i>
           <span class="inline">Despachar</span>
+        </button>
+        <button id="btn-pwa-install" onclick="handlePwaInstallClick()" title="Instalar aplicación en tu teléfono o PC" class="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-400 px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition whitespace-nowrap shadow-xs">
+          <i class="fa-solid fa-download"></i>
+          <span class="inline">Instalar App</span>
         </button>
         <button onclick="resetDefaultData()" title="Restaurar catálogo de cervezas y snacks" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition shrink-0">
           <i class="fa-solid fa-rotate"></i>
@@ -393,12 +455,12 @@
       <!-- VIEW: ORDERS (PEDIDOS & DESPACHOS) -->
       <section id="view-orders" class="space-y-6 hidden">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div class="flex flex-1 w-full md:w-auto items-center gap-3">
+          <div class="flex flex-col sm:flex-row flex-1 w-full md:w-auto items-stretch sm:items-center gap-3">
             <div class="relative flex-1 max-w-md">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
               <input type="text" id="orderSearchInput" oninput="renderOrdersList()" placeholder="Buscar por cliente, folio o chofer..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
             </div>
-            <select id="orderStatusFilter" onchange="renderOrdersList()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="orderStatusFilter" onchange="renderOrdersList()" class="w-full sm:w-auto border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="ALL">Todos los Estados</option>
               <option value="Por Aprobar">Por Aprobar (Nuevos)</option>
               <option value="En Consignación">En Consignación (Eventos / Fiestas)</option>
@@ -504,7 +566,7 @@
             </div>
 
             <!-- Interactive Category Pills (Intuitive Quick Filter) -->
-            <div id="posCategoryPills" class="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar"></div>
+            <div id="posCategoryPills" class="flex flex-wrap items-center gap-2 pb-1.5 pt-0.5"></div>
 
             <!-- Product Cards Grid -->
             <div id="pos-products-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 max-h-[620px] overflow-y-auto pr-1"></div>
@@ -984,7 +1046,7 @@
         <!-- Quick Category Pills + Search & Filters -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
           <!-- Type Filter Pills -->
-          <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="history-type-pills">
+          <div class="flex flex-wrap items-center gap-2 pb-1" id="history-type-pills">
             <button onclick="setHistoryTypeFilter('ALL')" data-hist-pill="ALL" class="hist-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-xs flex items-center gap-1.5 whitespace-nowrap transition">
               <i class="fa-solid fa-layer-group"></i> Todos los Movimientos
             </button>
@@ -1155,12 +1217,12 @@
       <!-- VIEW: INVENTORY & STOCK -->
       <section id="view-inventory" class="space-y-6 hidden">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex flex-1 w-full md:w-auto items-center gap-3">
+          <div class="flex flex-col sm:flex-row flex-1 w-full md:w-auto items-stretch sm:items-center gap-3">
             <div class="relative flex-1 max-w-sm">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
               <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Buscar SKU, código o descripción..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            <select id="inventoryCategoryFilter" onchange="renderInventoryTable()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50 focus:outline-none">
+            <select id="inventoryCategoryFilter" onchange="renderInventoryTable()" class="w-full sm:w-auto border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-slate-50 focus:outline-none">
               <option value="ALL">Todas las Categorías</option>
             </select>
           </div>
@@ -2123,6 +2185,10 @@
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
+      <div id="msp-current-status-banner" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+        <span class="text-xs font-bold uppercase text-slate-500">Estado Actual de la Factura:</span>
+        <span id="msp-current-status-badge" class="text-xs font-black px-3 py-1 rounded-full bg-blue-100 text-blue-800">-</span>
+      </div>
       <input type="hidden" id="msp-order-id">
       <div id="msp-options-list" class="grid grid-cols-1 gap-2"></div>
       <div class="pt-2 border-t border-slate-100 flex justify-end">
@@ -2334,14 +2400,18 @@
           <button id="btn-approve-action" onclick="approveOrderFromInvoice()" class="hidden px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-check mr-1"></i> Aprobar Pedido
           </button>
-          <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
-            <i class="fa-solid fa-list-check mr-1"></i> Cambiar Estado
+          <button id="btn-advance-status" onclick="advanceOrderStatusFromModal()" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition flex flex-col items-center leading-tight">
+            <span class="text-[9px] uppercase tracking-wider font-extrabold text-indigo-500">Estado: <b id="inv-top-btn-status-lbl">-</b></span>
+            <span><i class="fa-solid fa-list-check mr-1"></i> Cambiar Estado</span>
           </button>
           <button onclick="openCollectAndEmptiesFromInvoice()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Cobrar / Vacíos
           </button>
-          <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
-            <i class="fa-solid fa-pen mr-1"></i> Editar
+          <button id="btn-edit-invoice" onclick="editInvoiceFromModal()" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-pen mr-1"></i> Editar Factura
+          </button>
+          <button id="btn-delete-invoice" onclick="openDeleteOrderModal(currentViewingOrder ? currentViewingOrder.id : '')" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-600 text-rose-700 hover:text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-trash-can mr-1"></i> Borrar
           </button>
           <button id="btn-pod-action" onclick="openPodModalFromInvoice()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition">
             <i class="fa-solid fa-signature mr-1"></i> Firma POD
@@ -2440,6 +2510,10 @@
             </button>
             <button type="button" onclick="window.print()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm">
               <i class="fa-solid fa-print"></i> Imprimir Factura A4
+            </button>
+            <button type="button" onclick="advanceOrderStatusFromModal()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex flex-col items-center justify-center leading-tight shadow-sm">
+              <span class="text-[9px] uppercase tracking-wider text-indigo-200 font-extrabold">Actual: <b id="inv-bottom-btn-status-lbl" class="text-white">-</b></span>
+              <span class="flex items-center gap-1 mt-0.5"><i class="fa-solid fa-list-check"></i> Cambiar Estado</span>
             </button>
           </div>
           <button type="button" onclick="closeModal('modal-invoice')" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition shadow-sm flex items-center gap-1.5">
@@ -2801,21 +2875,75 @@
               <option value="Cancelado">Cancelado</option>
             </select>
           </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Monto Abonado / Pagado ($)</label>
+            <input type="number" step="0.01" min="0" id="eo-amount-paid" class="w-full text-xs p-2 border border-emerald-300 rounded-xl bg-emerald-50/40 mt-1 font-bold text-emerald-800">
+          </div>
         </div>
 
         <div class="space-y-2">
-          <div class="flex justify-between items-center">
-            <label class="text-xs font-bold text-slate-700">Líneas de Productos</label>
-            <button type="button" onclick="addBlankLineToEditOrder()" class="text-xs font-bold text-blue-600 hover:underline">+ Añadir Línea</button>
+          <div class="flex flex-wrap justify-between items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Líneas de Productos de la Factura</label>
+            <div class="flex items-center gap-2">
+              <select id="eo-add-catalog-prod" class="text-xs p-1.5 border border-slate-200 rounded-lg bg-slate-50 max-w-[200px]"></select>
+              <button type="button" onclick="addCatalogProductToEditOrder()" class="text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">+ Del Catálogo</button>
+              <button type="button" onclick="addBlankLineToEditOrder()" class="text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200">+ Línea Libre</button>
+            </div>
           </div>
           <div id="eo-items-container" class="space-y-2 max-h-52 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200"></div>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
-          <button type="button" onclick="closeModal('modal-edit-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white">Guardar Cambios</button>
+        <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2">
+          <button type="button" onclick="openDeleteOrderFromEditModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i> Borrar Factura
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeModal('modal-edit-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+            </button>
+          </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR BORRADO DE FACTURA -->
+  <div id="modal-delete-order" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-black">
+            <i class="fa-solid fa-trash-can"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Borrar Factura / Pedido</h3>
+            <p id="del-order-subtitle" class="text-xs text-slate-500 font-mono">Folio: ORD-0000</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('modal-delete-order')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="del-order-id">
+
+      <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1.5">
+        <p class="font-bold"><i class="fa-solid fa-triangle-exclamation text-rose-600 mr-1"></i> ¿Estás seguro de que deseas borrar esta factura?</p>
+        <p id="del-order-summary" class="text-rose-700"></p>
+      </div>
+
+      <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <input type="checkbox" id="del-order-restore-stock" checked class="rounded text-blue-600 w-4 h-4">
+        <span>Devolver los productos de esta factura al stock de inventario y ajustar deuda del cliente</span>
+      </label>
+
+      <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
+        <button type="button" onclick="closeModal('modal-delete-order')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">Cancelar</button>
+        <button type="button" onclick="confirmDeleteOrder()" class="px-5 py-2 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-trash-can"></i> Sí, Borrar Definitivamente
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3468,6 +3596,70 @@
           <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white">Guardar Chat ID</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ASISTENTE DE INSTALACIÓN DE LA APP (PWA) -->
+  <div id="modal-pwa-install" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-sm">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Instalar CervezaLogix como Aplicación</h3>
+            <p class="text-xs text-slate-500">Acceso directo en pantalla de inicio (Android, iPhone y PC)</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('modal-pwa-install')" class="text-slate-400 hover:text-slate-700">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Aviso automático si está dentro de un iframe o archivo local -->
+      <div id="pwa-env-diagnostic" class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5"></div>
+
+      <!-- Botón de instalación nativa directa cuando el navegador lo habilita -->
+      <div id="pwa-native-btn-wrap" class="hidden">
+        <button type="button" onclick="triggerNativePwaPrompt()" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-download"></i> Instalar Aplicación Ahora (1 Clic)
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-700">
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <h4 class="font-black text-slate-900 flex items-center gap-1.5">
+            <i class="fa-brands fa-android text-emerald-600 text-sm"></i> En Android (Chrome / Edge / Samsung Internet)
+          </h4>
+          <p>1. Abre tu enlace en una pestaña directa de <b>Google Chrome</b> (no dentro de otro visor).</p>
+          <p>2. Toca el menú de 3 puntos <b>(⋮)</b> arriba a la derecha y selecciona <b>"Agregar a la pantalla principal"</b> o <b>"Instalar aplicación"</b>.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <h4 class="font-black text-slate-900 flex items-center gap-1.5">
+            <i class="fa-brands fa-apple text-slate-800 text-sm"></i> En iPhone / iPad (Safari)
+          </h4>
+          <p>1. Abre el enlace en <b>Safari</b> y toca el botón <b>Compartir</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-600"></i> en la barra inferior.</p>
+          <p>2. Elige <b>"Agregar a Inicio"</b>. Quedará instalada con su ícono a pantalla completa sin barras del navegador.</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-1">
+          <h4 class="font-black text-blue-900 flex items-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-up text-blue-600 text-sm"></i> ¿Por qué a veces dice "No se puede instalar"?
+          </h4>
+          <p class="text-blue-800">Chrome bloquea el botón de instalar si abres el archivo como <code>file:///</code> (descargado en el teléfono) o dentro de un recuadro de vista previa. Si lo subes gratis a <b>Firebase Hosting, GitHub Pages o Netlify</b> (con <code>https://</code>), se instala con 1 clic en cualquier celular o PC.</p>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2">
+        <button type="button" onclick="openAppInNewTabForInstall()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center gap-1.5">
+          <i class="fa-solid fa-up-right-from-square"></i> Abrir en Pestaña Limpia
+        </button>
+        <button type="button" onclick="closeModal('modal-pwa-install')" class="px-5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-white">
+          Entendido / Cerrar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -4705,7 +4897,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="font-mono font-black text-blue-600 text-sm">${ord.id}</span>
                   <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded"><i class="fa-regular fa-clock mr-1"></i>${timeLabel}</span>
-                  ${getStatusBadge(ord.status)}
+                  ${getStatusSelectHtml(ord.id, ord.status)}
                   <span class="text-xs font-bold text-slate-700">${totalBoxes} bultos</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -4720,8 +4912,18 @@
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                <button onclick="openStatusPickerModal('${ord.id}')" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-600 text-emerald-800 hover:text-white rounded-xl text-xs font-bold transition flex flex-col items-center justify-center leading-tight shadow-2xs" title="Cambiar Estado de la Factura">
+                  <span class="text-[9px] font-black uppercase tracking-wider opacity-80">Actual: ${escapeHtml(ord.status)}</span>
+                  <span class="flex items-center gap-1 mt-0.5"><i class="fa-solid fa-list-check"></i> Cambiar Estado</span>
+                </button>
                 <button onclick="openCollectAndEmptiesModal('${ord.id}')" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-2xs">
                   <i class="fa-solid fa-hand-holding-dollar"></i> Liquidar / Vacíos
+                </button>
+                <button onclick="editOrderDirect('${ord.id}')" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs" title="Editar esta factura">
+                  <i class="fa-solid fa-pen"></i> Editar
+                </button>
+                <button onclick="openDeleteOrderModal('${ord.id}')" class="px-3 py-2 bg-rose-100 hover:bg-rose-600 text-rose-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs" title="Borrar esta factura">
+                  <i class="fa-solid fa-trash-can"></i> Borrar
                 </button>
                 <button onclick="openThermalDirectForOrder('${ord.id}')" class="px-3 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
                   <i class="fa-solid fa-receipt text-amber-400"></i> Imprimir Ticket
@@ -5127,11 +5329,23 @@
             <td class="py-3 px-4 text-xs text-slate-500">${ord.date}</td>
             <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total || 0).toFixed(2)}</td>
             <td class="py-3 px-4 text-xs text-slate-600">${escapeHtml(ord.driver || 'Por asignar')}</td>
-            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+            <td class="py-3 px-4 text-center">${getStatusSelectHtml(ord.id, ord.status)}</td>
             <td class="py-3 px-4 text-right">
-              <button onclick="viewInvoice('${ord.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg text-xs font-bold transition">
-                <i class="fa-solid fa-print mr-1"></i> Ver / Imprimir
-              </button>
+              <div class="flex flex-wrap items-center justify-end gap-1.5">
+                <button onclick="openStatusPickerModal('${ord.id}')" title="Cambiar Estado" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-xs font-bold transition flex flex-col items-center leading-tight">
+                  <span class="text-[9px] font-black uppercase opacity-75">Actual: ${escapeHtml(ord.status)}</span>
+                  <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+                </button>
+                <button onclick="viewInvoice('${ord.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg text-xs font-bold transition">
+                  <i class="fa-solid fa-print mr-1"></i> Ver
+                </button>
+                <button onclick="editOrderDirect('${ord.id}')" title="Editar Factura" class="px-2 py-1 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg text-xs font-bold transition">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="openDeleteOrderModal('${ord.id}')" title="Borrar Factura" class="px-2 py-1 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg text-xs font-bold transition">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
             </td>
           `;
           recentBody.appendChild(tr);
@@ -5463,9 +5677,12 @@
       ).join('');
 
       return `
-        <select onchange="setOrderStatusDirect('${orderId}', this.value)" class="text-xs px-2.5 py-1.5 rounded-full font-bold border ${found.cls} focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs">
-          ${optionsHtml}
-        </select>
+        <div class="inline-flex flex-col items-start gap-0.5 text-left">
+          <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 px-1 leading-none">Estado: <strong class="text-slate-800">${escapeHtml(normalized)}</strong></span>
+          <select onchange="setOrderStatusDirect('${orderId}', this.value)" class="text-xs px-2.5 py-1 rounded-full font-bold border ${found.cls} focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs">
+            ${optionsHtml}
+          </select>
+        </div>
       `;
     }
 
@@ -5502,7 +5719,15 @@
       if (!order) return;
 
       document.getElementById('msp-order-id').value = order.id;
-      document.getElementById('msp-subtitle').innerText = `Pedido ${order.id} • ${order.clientName} (Actual: ${order.status})`;
+      document.getElementById('msp-subtitle').innerText = `Pedido ${order.id} • ${order.clientName}`;
+
+      const normalized = order.status === 'Entrega Realizada' ? 'Entregado' : order.status;
+      const currentFound = ALL_ORDER_STATUSES.find(s => s.value === normalized);
+      const currentBadgeEl = document.getElementById('msp-current-status-badge');
+      if (currentBadgeEl) {
+        currentBadgeEl.className = `text-xs font-black px-3 py-1 rounded-full border ${currentFound ? currentFound.cls : 'bg-slate-100 text-slate-800 border-slate-300'}`;
+        currentBadgeEl.innerText = currentFound ? currentFound.label : order.status;
+      }
 
       const listEl = document.getElementById('msp-options-list');
       if (listEl) {
@@ -5589,7 +5814,7 @@
             <i class="fa-solid fa-truck text-slate-400 mr-1"></i> ${escapeHtml(ord.driver || 'Por asignar')}
           </td>
           <td class="py-3 px-4 text-center">
-            <div class="flex items-center justify-center gap-1">
+            <div class="flex flex-wrap items-center justify-center gap-1.5">
               ${
                 ord.status === 'En Consignación' || ord.isConsignment
                   ? `<button onclick="openConsignmentSettleModal('${ord.id}')" title="Liquidar Evento / Devolver Cajas Cerradas" class="p-2 bg-purple-100 hover:bg-purple-600 text-purple-700 hover:text-white rounded-lg transition font-bold text-xs">
@@ -5603,6 +5828,9 @@
               <button onclick="editOrderDirect('${ord.id}')" title="Editar Factura" class="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition">
                 <i class="fa-solid fa-pen"></i>
               </button>
+              <button onclick="openDeleteOrderModal('${ord.id}')" title="Borrar Factura" class="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
               <button onclick="viewInvoice('${ord.id}')" title="Ver Guía / Factura / Ticket" class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition">
                 <i class="fa-solid fa-file-invoice"></i>
               </button>
@@ -5613,8 +5841,9 @@
                     </button>`
                   : ''
               }
-              <button onclick="openStatusPickerModal('${ord.id}')" title="Seleccionar Estado del Pedido" class="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition">
-                <i class="fa-solid fa-list-check"></i>
+              <button onclick="openStatusPickerModal('${ord.id}')" title="Cambiar Estado del Pedido" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg transition text-xs font-bold flex flex-col items-center leading-tight">
+                <span class="text-[9px] font-black uppercase opacity-75">Actual: ${escapeHtml(ord.status)}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
               </button>
             </div>
           </td>
@@ -5660,17 +5889,27 @@
             <td class="py-3 px-4 text-slate-800 font-semibold">${itemsCount} bultos</td>
             <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
             <td class="py-3 px-4 text-xs font-semibold text-slate-600">${ord.paymentMethod}</td>
-            <td class="py-3 px-4 text-center">${getStatusBadge(ord.status)}</td>
+            <td class="py-3 px-4 text-center">${getStatusSelectHtml(ord.id, ord.status)}</td>
             <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex flex-wrap items-center justify-center gap-1.5">
+                <button onclick="openStatusPickerModal('${ord.id}')" title="Cambiar Estado" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 border border-indigo-200 rounded-xl font-bold transition flex flex-col items-center leading-tight">
+                  <span class="text-[9px] font-black uppercase opacity-75">Actual: ${escapeHtml(ord.status)}</span>
+                  <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+                </button>
                 <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 border border-blue-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
                   <i class="fa-solid fa-eye"></i> Ver
+                </button>
+                <button onclick="editOrderDirect('${ord.id}')" title="Editar Pedido" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 border border-amber-200 rounded-xl font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-pen"></i> Editar
                 </button>
                 <button onclick="approveOrder('${ord.id}')" title="Aprobar Pedido" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-600 border border-emerald-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
                   <i class="fa-solid fa-check"></i> Aprobar
                 </button>
                 <button onclick="rejectOrder('${ord.id}')" title="Rechazar Pedido" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-200 hover:border-transparent rounded-xl font-bold transition flex items-center gap-1">
                   <i class="fa-solid fa-xmark"></i> Rechazar
+                </button>
+                <button onclick="openDeleteOrderModal('${ord.id}')" title="Borrar Pedido" class="p-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl transition">
+                  <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
             </td>
@@ -5693,12 +5932,19 @@
             <td class="py-3 px-4 font-black text-slate-900">$${Number(ord.total).toFixed(2)}</td>
             <td class="py-3 px-4 text-center">${getStatusSelectHtml(ord.id, ord.status)}</td>
             <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex flex-wrap items-center justify-center gap-1.5">
+                <button onclick="openStatusPickerModal('${ord.id}')" title="Cambiar Estado" class="px-3 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-xl font-bold transition flex flex-col items-center leading-tight">
+                  <span class="text-[9px] font-black uppercase opacity-75">Actual: ${escapeHtml(ord.status)}</span>
+                  <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+                </button>
                 <button onclick="viewInvoice('${ord.id}')" title="Ver Factura" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition flex items-center justify-center gap-1">
                   <i class="fa-solid fa-file-invoice"></i> Ver
                 </button>
-                <button onclick="openStatusPickerModal('${ord.id}')" title="Seleccionar Estado" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition">
-                  <i class="fa-solid fa-list-check"></i>
+                <button onclick="editOrderDirect('${ord.id}')" title="Editar Factura" class="p-2 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg transition">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="openDeleteOrderModal('${ord.id}')" title="Borrar Factura" class="p-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg transition">
+                  <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
             </td>
@@ -7368,6 +7614,10 @@
 
       document.getElementById('inv-folio').innerText = order.id;
       document.getElementById('inv-status').innerText = order.status;
+      const topBtnStatusLbl = document.getElementById('inv-top-btn-status-lbl');
+      const bottomBtnStatusLbl = document.getElementById('inv-bottom-btn-status-lbl');
+      if (topBtnStatusLbl) topBtnStatusLbl.innerText = order.status;
+      if (bottomBtnStatusLbl) bottomBtnStatusLbl.innerText = order.status;
       document.getElementById('inv-date').innerText = `Fecha: ${order.date}`;
       document.getElementById('inv-client-name').innerText = order.clientName;
       document.getElementById('inv-client-tax').innerText = `RIF/Céd: ${order.clientTax || 'N/A'}`;
@@ -7489,18 +7739,13 @@
 
       if (order.status === 'Por Aprobar') {
         if (approveBtn) approveBtn.classList.remove('hidden');
-        if (advanceBtn) advanceBtn.classList.add('hidden');
       } else {
         if (approveBtn) approveBtn.classList.add('hidden');
-        if (advanceBtn) advanceBtn.classList.remove('hidden');
       }
 
-      if (order.status === 'Cancelado' || order.status === 'Entregado' || order.status === 'Entrega Realizada') {
-        if (editBtn) editBtn.classList.add('hidden');
-        if (advanceBtn) advanceBtn.classList.add('hidden');
-      } else {
-        if (editBtn) editBtn.classList.remove('hidden');
-      }
+      // Siempre mostrar el botón de Cambiar Estado y Editar Factura en el modal de factura
+      if (advanceBtn) advanceBtn.classList.remove('hidden');
+      if (editBtn) editBtn.classList.remove('hidden');
 
       if (podBtn) {
         podBtn.style.display = (order.status === 'Entregado' || order.status === 'Entrega Realizada') ? 'none' : 'inline-flex';
@@ -9254,7 +9499,7 @@
                 <div class="min-w-0 flex-1">
                   <div class="flex flex-wrap items-center gap-1.5">
                     <span class="font-mono font-black text-blue-600 text-sm">${o.id}</span>
-                    ${getStatusBadge(o.status)}
+                    <span onclick="event.stopPropagation()">${getStatusSelectHtml(o.id, o.status)}</span>
                     <span class="text-[11px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg">${totalBoxes} bultos</span>
                   </div>
                   <h5 class="font-black text-slate-900 text-base mt-1 truncate">${escapeHtml(o.clientName)}</h5>
@@ -9408,6 +9653,18 @@
                     </button>
                     <button onclick="openRouteAuthRequestModal('${o.id}')" class="py-2 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
                       <i class="fa-solid fa-shield-halved"></i> ${appSettings.requireAdminAuthForCreditDiscount !== false ? 'Solicitar Crédito / Desc.' : 'Aplicar Crédito / Desc.'}
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2 pt-1">
+                    <button onclick="openStatusPickerModal('${o.id}')" class="py-1.5 px-2.5 bg-emerald-100 hover:bg-emerald-600 text-emerald-800 hover:text-white border border-emerald-300 rounded-xl text-[11px] font-bold transition flex flex-col items-center justify-center leading-tight active:scale-95">
+                      <span class="text-[9px] font-black uppercase opacity-80">Estado: ${escapeHtml(o.status)}</span>
+                      <span class="flex items-center gap-1 mt-0.5"><i class="fa-solid fa-list-check"></i> Cambiar Estado</span>
+                    </button>
+                    <button onclick="editOrderDirect('${o.id}')" class="py-2 px-2.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+                      <i class="fa-solid fa-pen"></i> Editar Factura
+                    </button>
+                    <button onclick="openDeleteOrderModal('${o.id}')" class="py-2 px-2.5 bg-rose-100 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+                      <i class="fa-solid fa-trash-can"></i> Borrar Factura
                     </button>
                   </div>
                 </div>
@@ -9832,6 +10089,7 @@
     window.editInvoiceFromModal = function() {
       if (!currentViewingOrder) return;
       const ord = currentViewingOrder;
+      ensureOrderFinancialAndEmpties(ord);
       closeModal('modal-invoice');
 
       document.getElementById('eo-id').value = ord.id;
@@ -9845,10 +10103,40 @@
       document.getElementById('eo-discount').value = Number(ord.discountRate || 0);
       document.getElementById('eo-tax-mode').value = Number(ord.tax || 0) > 0 ? '7' : '0';
       document.getElementById('eo-status').value = ord.status || 'Pendiente';
+      const paidInput = document.getElementById('eo-amount-paid');
+      if (paidInput) paidInput.value = Number(ord.amountPaid || 0).toFixed(2);
+
+      const catSelect = document.getElementById('eo-add-catalog-prod');
+      if (catSelect) {
+        catSelect.innerHTML = products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} ($${Number(p.wholesalePrice).toFixed(2)})</option>`).join('');
+      }
 
       editingOrderItemsTemp = (ord.items || []).map(it => ({ ...it }));
       renderEditOrderItemsRows();
       openModal('modal-edit-order');
+    };
+
+    window.addCatalogProductToEditOrder = function() {
+      const prodId = document.getElementById('eo-add-catalog-prod')?.value;
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+      const existing = editingOrderItemsTemp.find(it => it.id === prod.id && !it.isCustom);
+      if (existing) {
+        existing.quantity = Number(existing.quantity || 0) + 1;
+      } else {
+        editingOrderItemsTemp.push({
+          id: prod.id,
+          sku: prod.sku,
+          name: prod.name,
+          quantity: 1,
+          price: Number(prod.wholesalePrice || 0),
+          batchAssigned: 'FEFO',
+          isCold: false,
+          requiresEmpty: isProductReturnable(prod.name + ' ' + prod.unit, false),
+          isCustom: false
+        });
+      }
+      renderEditOrderItemsRows();
     };
 
     window.renderEditOrderItemsRows = function() {
@@ -9916,13 +10204,30 @@
       const taxable = subtotal - discountAmount;
       const taxRate = document.getElementById('eo-tax-mode').value === '7' ? 0.07 : 0;
       const tax = taxable * taxRate;
-      const total = taxable + tax;
+      const total = +(taxable + tax).toFixed(2);
+
+      const oldDue = Number(ord.amountDue || 0);
+      const paidInputEl = document.getElementById('eo-amount-paid');
+      if (paidInputEl && paidInputEl.value !== '') {
+        ord.amountPaid = Math.min(total, Math.max(0, parseFloat(paidInputEl.value) || 0));
+      }
 
       ord.subtotal = subtotal;
       ord.discountAmount = discountAmount;
       ord.tax = tax;
       ord.total = total;
       ensureOrderFinancialAndEmpties(ord);
+
+      if (ord.clientId && ord.clientId !== 'GENERICO') {
+        const cli = clients.find(c => c.id === ord.clientId);
+        if (cli) {
+          const diffDue = Number(ord.amountDue || 0) - oldDue;
+          if (Math.abs(diffDue) > 0.009) {
+            cli.currentDebt = Math.max(0, +(Number(cli.currentDebt || 0) + diffDue).toFixed(2));
+            if (window.syncDocToCloud) window.syncDocToCloud('clients', cli.id, cli);
+          }
+        }
+      }
 
       if (window.syncDocToCloud) {
         window.syncDocToCloud('orders', ord.id, ord);
@@ -9931,6 +10236,79 @@
       closeModal('modal-edit-order');
       refreshActiveViews();
       showNotification(`Factura ${ord.id} actualizada (${window.getSyncTag()}).`, 'success');
+    };
+
+    window.openDeleteOrderFromEditModal = function() {
+      const id = document.getElementById('eo-id')?.value;
+      if (!id) return;
+      closeModal('modal-edit-order');
+      openDeleteOrderModal(id);
+    };
+
+    window.openDeleteOrderModal = function(orderId) {
+      const ord = orders.find(o => o.id === orderId);
+      if (!ord) return;
+      ensureOrderFinancialAndEmpties(ord);
+
+      document.getElementById('del-order-id').value = ord.id;
+      document.getElementById('del-order-subtitle').innerText = `Folio: ${ord.id} • Fecha: ${ord.date}`;
+      document.getElementById('del-order-summary').innerText = `Cliente: ${ord.clientName} | Total: $${Number(ord.total || 0).toFixed(2)} | Estado: ${ord.status}`;
+      const restoreChk = document.getElementById('del-order-restore-stock');
+      if (restoreChk) {
+        restoreChk.checked = (ord.status !== 'Cancelado' && ord.status !== 'Por Aprobar');
+      }
+
+      openModal('modal-delete-order');
+    };
+
+    window.confirmDeleteOrder = function() {
+      const id = document.getElementById('del-order-id')?.value;
+      const ord = orders.find(o => o.id === id);
+      if (!ord) {
+        closeModal('modal-delete-order');
+        return;
+      }
+
+      const shouldRestore = document.getElementById('del-order-restore-stock')?.checked;
+      ensureOrderFinancialAndEmpties(ord);
+
+      if (shouldRestore && ord.status !== 'Cancelado' && ord.status !== 'Por Aprobar') {
+        (ord.items || []).forEach(it => {
+          if (!it.isCustom) {
+            const prod = products.find(p => p.id === it.id);
+            if (prod) {
+              prod.stock = Number(prod.stock || 0) + Number(it.quantity || 0);
+              if (window.syncDocToCloud) window.syncDocToCloud('products', prod.id, prod);
+            }
+          }
+        });
+
+        if (ord.amountDue > 0 && ord.clientId && ord.clientId !== 'GENERICO') {
+          const cli = clients.find(c => c.id === ord.clientId);
+          if (cli) {
+            cli.currentDebt = Math.max(0, +(Number(cli.currentDebt || 0) - ord.amountDue).toFixed(2));
+            if (window.syncDocToCloud) window.syncDocToCloud('clients', cli.id, cli);
+          }
+        }
+      }
+
+      orders = orders.filter(o => o.id !== id);
+      if (window.deleteDocFromCloud) {
+        window.deleteDocFromCloud('orders', id);
+      }
+
+      if (currentViewingOrder && currentViewingOrder.id === id) {
+        currentViewingOrder = null;
+      }
+
+      closeModal('modal-delete-order');
+      closeModal('modal-invoice');
+      closeModal('modal-edit-order');
+      closeModal('modal-collect-empties');
+      closeModal('modal-thermal-receipt');
+
+      refreshActiveViews();
+      showNotification(`Factura ${id} borrada del sistema (${window.getSyncTag()}).`, 'success');
     };
 
     function renderClientHistory(clientId) {
@@ -9959,7 +10337,16 @@
                     <span class="text-slate-400 ml-2">${o.date}</span>
                   </div>
                   <div class="font-black text-slate-900">$${Number(o.total || 0).toFixed(2)}</div>
-                  <div>${getStatusBadge(o.status)}</div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    ${getStatusSelectHtml(o.id, o.status)}
+                    <button onclick="openStatusPickerModal('${o.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg font-bold transition flex flex-col items-center leading-tight" title="Cambiar Estado">
+                      <span class="text-[8px] font-black uppercase opacity-75">Actual: ${escapeHtml(o.status)}</span>
+                      <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+                    </button>
+                    <button onclick="viewInvoice('${o.id}')" class="px-2 py-1 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-bold transition" title="Ver Factura"><i class="fa-solid fa-eye"></i></button>
+                    <button onclick="editOrderDirect('${o.id}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg font-bold transition" title="Editar Factura"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="openDeleteOrderModal('${o.id}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg font-bold transition" title="Borrar Factura"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
                 </div>
               `).join('')}</div>`
         }
@@ -10252,7 +10639,7 @@
           <td class="py-3.5 px-4">
             <span class="font-mono font-black text-blue-600 block">${o.id}</span>
             <span class="text-[11px] text-slate-400 block">${o.date}</span>
-            <div class="mt-1">${getStatusBadge(o.status)}</div>
+            <div class="mt-1">${getStatusSelectHtml(o.id, o.status)}</div>
           </td>
           <td class="py-3.5 px-4">
             <span class="font-bold text-slate-900 block">${escapeHtml(o.clientName)}</span>
@@ -10293,11 +10680,18 @@
                     </button>`
                   : ''
               }
+              <button onclick="openStatusPickerModal('${o.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-xl text-xs font-bold transition flex flex-col items-center leading-tight" title="Cambiar Estado de la Factura">
+                <span class="text-[9px] font-black uppercase opacity-75">Actual: ${escapeHtml(o.status)}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+              </button>
               <button onclick="openCollectAndEmptiesModal('${o.id}')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Cobrar / Vacíos
               </button>
               <button onclick="editOrderDirect('${o.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition" title="Editar Factura">
                 <i class="fa-solid fa-pen"></i> Editar
+              </button>
+              <button onclick="openDeleteOrderModal('${o.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl text-xs font-bold transition" title="Borrar Factura">
+                <i class="fa-solid fa-trash-can"></i> Borrar
               </button>
               <button onclick="openThermalDirectForOrder('${o.id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1" title="Imprimir Ticket Térmico con Firma">
                 <i class="fa-solid fa-receipt"></i> Ticket
@@ -11742,9 +12136,19 @@
         }
 
         const actionBtns = ev.orderId
-          ? `<div class="flex items-center justify-end gap-1">
+          ? `<div class="flex flex-wrap items-center justify-end gap-1.5">
+               <button onclick="openStatusPickerModal('${ev.orderId}')" title="Cambiar Estado de la Factura" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-xs font-bold transition flex flex-col items-center leading-tight">
+                 <span class="text-[8px] font-black uppercase opacity-75">Actual: ${escapeHtml(orders.find(o => o.id === ev.orderId)?.status || ev.status || 'Activo')}</span>
+                 <span class="flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Estado</span>
+               </button>
                <button onclick="viewInvoice('${ev.orderId}')" title="Ver Factura / Comprobante" class="px-2.5 py-1.5 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg text-xs font-bold transition">
                  <i class="fa-solid fa-eye"></i>
+               </button>
+               <button onclick="editOrderDirect('${ev.orderId}')" title="Editar Factura" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg text-xs font-bold transition">
+                 <i class="fa-solid fa-pen"></i>
+               </button>
+               <button onclick="openDeleteOrderModal('${ev.orderId}')" title="Borrar Factura" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg text-xs font-bold transition">
+                 <i class="fa-solid fa-trash-can"></i>
                </button>
                <button onclick="openCollectAndEmptiesModal('${ev.orderId}')" title="Cobrar o Retirar Vacíos" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-slate-950 rounded-lg text-xs font-bold transition">
                  <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -12376,9 +12780,141 @@ REGLAS:
            .replace(/'/g, "&#039;");
     };
 
+    // =====================================================================
+    // SOPORTE PWA (MANIFIESTO + ÍCONOS PNG + INSTALADOR)
+    // =====================================================================
+    let deferredPwaPrompt = null;
+
+    function generatePwaAppIconPng(size) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Fondo oscuro elegante
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, size, size);
+
+        // Cuadro interior ámbar redondeado
+        const pad = Math.round(size * 0.12);
+        const boxSize = size - pad * 2;
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(pad, pad, boxSize, boxSize, Math.round(size * 0.18)) : ctx.rect(pad, pad, boxSize, boxSize);
+        ctx.fill();
+
+        // Iniciales CL de la marca
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `900 ${Math.round(size * 0.36)}px Inter, Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🍺', size / 2, size / 2 + Math.round(size * 0.02));
+
+        return canvas.toDataURL('image/png');
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function initPwaSupport() {
+      const icon192 = generatePwaAppIconPng(192);
+      const icon512 = generatePwaAppIconPng(512);
+
+      const appleIconEl = document.getElementById('pwa-apple-icon');
+      const favIconEl = document.getElementById('pwa-favicon');
+      if (appleIconEl && icon192) appleIconEl.href = icon192;
+      if (favIconEl && icon192) favIconEl.href = icon192;
+
+      const brandTitle = `${appSettings.brandPart1 || 'Cerveza'}${appSettings.brandPart2 || 'Logix'} ERP`;
+      const startUrl = window.location.href.startsWith('http') ? window.location.href : './';
+
+      const manifestObj = {
+        name: `${brandTitle} - Distribuidora`,
+        short_name: brandTitle,
+        description: 'Sistema ERP de Preventa, Rutas, Facturación Térmica, Cobros y Envases Vacíos',
+        start_url: startUrl,
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#0f172a',
+        theme_color: '#0f172a',
+        icons: [
+          {
+            src: icon192,
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: icon512,
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      };
+
+      const manifestLink = document.getElementById('pwa-manifest-link');
+      if (manifestLink) {
+        const manifestJson = encodeURIComponent(JSON.stringify(manifestObj));
+        manifestLink.setAttribute('href', `data:application/manifest+json;charset=utf-8,${manifestJson}`);
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        const nativeWrap = document.getElementById('pwa-native-btn-wrap');
+        if (nativeWrap) nativeWrap.classList.remove('hidden');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredPwaPrompt = null;
+        closeModal('modal-pwa-install');
+        showNotification('¡Aplicación instalada exitosamente en tu dispositivo!', 'success');
+      });
+    }
+
+    window.handlePwaInstallClick = async function() {
+      if (deferredPwaPrompt) {
+        triggerNativePwaPrompt();
+        return;
+      }
+
+      const diagEl = document.getElementById('pwa-env-diagnostic');
+      const isIframe = window.self !== window.top;
+      const isFileProtocol = window.location.protocol === 'file:';
+
+      if (diagEl) {
+        if (isIframe) {
+          diagEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> <b>Diagnóstico detectado:</b> Estás viendo la app dentro de una ventana de vista previa (iframe). Los navegadores no permiten instalar desde una vista previa. Pulsa <b>"Abrir en Pestaña Limpia"</b> abajo o ábrela en tu dominio web para instalarla.`;
+        } else if (isFileProtocol) {
+          diagEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> <b>Diagnóstico detectado:</b> Has abierto el archivo directamente desde la memoria del dispositivo (<code>file://</code>). Usa la opción <b>"Agregar a la pantalla principal"</b> en el menú de tu navegador, o súbelo a Firebase Hosting / GitHub Pages (HTTPS).`;
+        } else {
+          diagEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <b>Manifiesto e íconos listos:</b> Sigue el paso para tu navegador abajo para dejar el ícono directo en tu pantalla de inicio a pantalla completa.`;
+        }
+      }
+
+      openModal('modal-pwa-install');
+    };
+
+    window.triggerNativePwaPrompt = async function() {
+      if (!deferredPwaPrompt) return;
+      deferredPwaPrompt.prompt();
+      const { outcome } = await deferredPwaPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredPwaPrompt = null;
+        closeModal('modal-pwa-install');
+      }
+    };
+
+    window.openAppInNewTabForInstall = function() {
+      window.open(window.location.href, '_blank');
+    };
+
     // Arranque inicial al cargar el DOM
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
+      initPwaSupport();
       try {
         refreshActiveViews();
       } catch (err) {
